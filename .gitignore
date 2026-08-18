@@ -1,0 +1,55 @@
+# ---- Secrets / env (NEVER commit) ----
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# ---- Node / Next.js ----
+node_modules/
+.pnpm-store/
+.next/
+out/
+build/
+dist/
+*.tsbuildinfo
+next-env.d.ts
+
+# ---- Python / workers ----
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.uv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# ---- Playwright / SEDAR profile (later phases) ----
+.sedar_profile/
+playwright-report/
+.playwright/
+
+# ---- Terraform ----
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+crash.log
+
+# ---- OS / editor ----
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# ---- Logs / misc ----
+*.log
+logs/
+tmp/
+coverage/

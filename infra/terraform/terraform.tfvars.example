@@ -1,0 +1,3 @@
+aws_region    = "us-east-1"
+bucket_name   = "orebase-documents-CHANGE-ME"   # must be globally unique
+iam_user_name = "orebase-workers"

@@ -1,0 +1,15 @@
+-- migrate:up
+CREATE EXTENSION IF NOT EXISTS vector;
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+CREATE SCHEMA IF NOT EXISTS raw;
+CREATE SCHEMA IF NOT EXISTS sedar;
+CREATE SCHEMA IF NOT EXISTS core;
+CREATE SCHEMA IF NOT EXISTS app;
+
+-- migrate:down
+DROP SCHEMA IF EXISTS app CASCADE;
+DROP SCHEMA IF EXISTS core CASCADE;
+DROP SCHEMA IF EXISTS sedar CASCADE;
+DROP SCHEMA IF EXISTS raw CASCADE;
+-- Extensions are left installed; they are harmless and may be shared with other objects.

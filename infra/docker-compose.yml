@@ -1,0 +1,49 @@
+# ============================================================================
+# OreBase worker fleet — STUB, NOT YET DEPLOYED.
+#
+# This file describes the always-on ingestion bot planned for an EC2 t3.medium
+# (master plan §8). It is here for reference in later phases; nothing runs it yet.
+#
+# Before deploying:
+#   - Only `edgar-poller` and `processor` exist today (Phase 1). `newswire-poller`
+#     and `sedar-incremental` reference workers that are built in Phase 4.
+#   - On the EC2 box, secrets come from AWS SSM Parameter Store, NOT a committed
+#     .env. The `env_file` line below is a local-dev convenience only.
+#   - `sedar-incremental` needs a persistent Playwright profile volume on EBS.
+# ============================================================================
+
+x-worker-base: &worker-base
+  build:
+    context: ../workers
+    dockerfile: Dockerfile
+  # env_file: ../workers/.env        # local dev only; on EC2 pull from SSM at startup
+  restart: always
+
+services:
+  edgar-poller:
+    <<: *worker-base
+    # EDGAR is built for polling; loop every ~15 min within SEC fair-access limits.
+    command: >
+      sh -c "while true; do uv run python edgar_poller.py --limit 50; sleep 900; done"
+
+  newswire-poller:
+    <<: *worker-base
+    # Phase 4: RSS every 5-15 min (drill results often hit newswires before filings).
+    command: >
+      sh -c "while true; do uv run python newswire_poller.py; sleep 600; done"
+
+  sedar-incremental:
+    <<: *worker-base
+    # Phase 4: scheduled 2-3x/day + alert-driven; persistent Playwright profile on EBS.
+    command: >
+      sh -c "while true; do uv run python -m sedar.fetch_documents; sleep 28800; done"
+    volumes:
+      - sedar_profile:/root/.sedar_profile
+
+  processor:
+    <<: *worker-base
+    # Always-on: drains raw.processing_jobs.
+    command: ["uv", "run", "python", "processor.py"]
+
+volumes:
+  sedar_profile:
