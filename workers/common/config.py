@@ -21,7 +21,17 @@ class Settings(BaseSettings):
     aws_access_key_id: str = Field(default="", alias="AWS_ACCESS_KEY_ID")
     aws_secret_access_key: str = Field(default="", alias="AWS_SECRET_ACCESS_KEY")
 
+    # OCR backend for low-text pages: "none", "textract", or "tesseract". Defaults to none
+    # so a document still indexes its extractable text when no OCR provider is reachable;
+    # a page that cannot be read is recorded as unread rather than failing the document.
+    ocr_backend: str = Field(default="none", alias="OCR_BACKEND")
+
     voyage_api_key: str = Field(default="", alias="VOYAGE_API_KEY")
+    # 0 uses the embedder's free-tier-safe default. Raise it once the Voyage account has a
+    # payment method to send fewer, larger embedding requests.
+    voyage_max_tokens_per_request: int = Field(
+        default=0, alias="VOYAGE_MAX_TOKENS_PER_REQUEST"
+    )
     anthropic_api_key: str = Field(default="", alias="ANTHROPIC_API_KEY")
 
     # SEC requires a declared User-Agent that identifies the app and a contact email.

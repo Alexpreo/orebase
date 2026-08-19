@@ -23,9 +23,9 @@ RUN uv sync --frozen --no-install-project
 COPY . .
 RUN uv sync --frozen
 
-# Playwright (used by the SEDAR+ workers in a later phase) needs its browser binaries and
-# OS dependencies. Uncomment when the SEDAR+ fleet is deployed:
-# RUN uv run playwright install --with-deps chromium
+# Chromium renders EDGAR's HTML exhibits to the PDFs that page citations point at, so the
+# browser is a runtime dependency of the poller, not just the later SEDAR+ workers.
+RUN uv run playwright install --with-deps chromium
 
 # Default target is overridden per service in docker-compose (edgar_poller / processor / ...).
 CMD ["uv", "run", "python", "processor.py"]

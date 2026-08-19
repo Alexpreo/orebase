@@ -1,97 +1,71 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useChat } from "@ai-sdk/react";
+import { DefaultChatTransport } from "ai";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { CitationChips } from "@/components/chat/citation-chips";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
+import { collectCitations } from "@/lib/citations";
+import type { OreBaseUIMessage } from "@/lib/chat-types";
 import { cn } from "@/lib/utils";
-import type { Citation, ChatResponse } from "@/lib/chat-types";
 
-type ChatMessage = {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-  citations?: Citation[];
-  isError?: boolean;
-};
-
-function makeId() {
-  return Math.random().toString(36).slice(2);
+function messageText(message: OreBaseUIMessage): string {
+  return message.parts
+    .filter((part) => part.type === "text")
+    .map((part) => part.text)
+    .join("");
 }
 
-export function ChatClient() {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+export function ChatClient({
+  chatId,
+  initialMessages,
+}: {
+  chatId: string;
+  initialMessages: OreBaseUIMessage[];
+}) {
+  const router = useRouter();
   const [input, setInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
+  const transport = useMemo(
+    () =>
+      new DefaultChatTransport({
+        api: "/api/chat",
+        prepareSendMessagesRequest: ({ id, messages }) => ({
+          body: { id, messages },
+        }),
+      }),
+    [],
+  );
 
-  function scrollToBottom() {
-    requestAnimationFrame(() => {
-      const el = listRef.current;
-      if (el) el.scrollTop = el.scrollHeight;
-    });
-  }
+  const { messages, sendMessage, status, error } = useChat<OreBaseUIMessage>({
+    id: chatId,
+    messages: initialMessages,
+    transport,
+    onFinish: () => {
+      router.refresh();
+    },
+  });
 
-  async function sendMessage() {
+  const busy = status === "submitted" || status === "streaming";
+
+  useEffect(() => {
+    const el = listRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [messages, status]);
+
+  function submit() {
     const trimmed = input.trim();
-    if (!trimmed || isLoading) return;
-
-    const userMessage: ChatMessage = {
-      id: makeId(),
-      role: "user",
-      content: trimmed,
-    };
-    setMessages((prev) => [...prev, userMessage]);
+    if (!trimmed || busy) return;
     setInput("");
-    setIsLoading(true);
-    scrollToBottom();
-
-    try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: trimmed }),
-      });
-      const data = (await res.json()) as ChatResponse;
-
-      if (!res.ok || "error" in data) {
-        const errorText =
-          "error" in data ? data.error : "Something went wrong.";
-        setMessages((prev) => [
-          ...prev,
-          { id: makeId(), role: "assistant", content: errorText, isError: true },
-        ]);
-      } else {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: makeId(),
-            role: "assistant",
-            content: data.answer,
-            citations: data.citations,
-          },
-        ]);
-      }
-    } catch {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: makeId(),
-          role: "assistant",
-          content: "Network error. Please try again.",
-          isError: true,
-        },
-      ]);
-    } finally {
-      setIsLoading(false);
-      scrollToBottom();
-    }
+    void sendMessage({ text: trimmed });
   }
 
   function handleKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
-      void sendMessage();
+      submit();
     }
   }
 
@@ -106,46 +80,46 @@ export function ChatClient() {
             </div>
           ) : null}
 
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={cn(
-                "flex flex-col gap-2",
-                message.role === "user" ? "items-end" : "items-start",
-              )}
-            >
+          {messages.map((message) => {
+            const text = messageText(message);
+            const citations =
+              message.metadata?.citations ??
+              (message.role === "assistant" ? collectCitations([message]) : []);
+            return (
               <div
+                key={message.id}
                 className={cn(
-                  "max-w-[85%] whitespace-pre-wrap rounded-lg px-4 py-2 text-sm",
-                  message.role === "user"
-                    ? "bg-primary text-primary-foreground"
-                    : message.isError
-                      ? "bg-destructive/10 text-destructive"
-                      : "bg-muted text-foreground",
+                  "flex flex-col gap-2",
+                  message.role === "user" ? "items-end" : "items-start",
                 )}
               >
-                {message.content}
+                {text ? (
+                  <div
+                    className={cn(
+                      "max-w-[85%] whitespace-pre-wrap rounded-lg px-4 py-2 text-sm",
+                      message.role === "user"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted text-foreground",
+                    )}
+                  >
+                    {text}
+                  </div>
+                ) : null}
+                {message.role === "assistant" ? (
+                  <CitationChips citations={citations} />
+                ) : null}
               </div>
+            );
+          })}
 
-              {message.citations && message.citations.length > 0 ? (
-                <div className="flex max-w-[85%] flex-wrap gap-1.5">
-                  {message.citations.map((citation) => (
-                    <Badge
-                      key={`${message.id}-${citation.label}`}
-                      variant="secondary"
-                      className="cursor-default font-mono text-xs"
-                      title={`Document ${citation.documentId}`}
-                    >
-                      {citation.label}
-                    </Badge>
-                  ))}
-                </div>
-              ) : null}
-            </div>
-          ))}
-
-          {isLoading ? (
+          {busy ? (
             <div className="text-sm text-muted-foreground">Searching filings…</div>
+          ) : null}
+
+          {error ? (
+            <div className="text-sm text-destructive">
+              Something went wrong. Please try again.
+            </div>
           ) : null}
         </div>
       </div>
@@ -159,9 +133,9 @@ export function ChatClient() {
             placeholder="Ask about a project, resource estimate, or drill result…"
             rows={2}
             className="resize-none"
-            disabled={isLoading}
+            disabled={busy}
           />
-          <Button onClick={() => void sendMessage()} disabled={isLoading || !input.trim()}>
+          <Button onClick={submit} disabled={busy || !input.trim()}>
             Send
           </Button>
         </div>

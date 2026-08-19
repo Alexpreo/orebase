@@ -1,9 +1,5 @@
-import { ChatClient } from "@/components/chat/chat-client";
+import { redirect } from "next/navigation";
 
 export default function ChatPage() {
-  return (
-    <div className="h-[calc(100svh-3.5rem)]">
-      <ChatClient />
-    </div>
-  );
+  redirect(`/chat/${crypto.randomUUID()}`);
 }

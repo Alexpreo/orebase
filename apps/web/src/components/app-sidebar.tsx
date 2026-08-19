@@ -26,6 +26,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import type { ChatSummary } from "@/lib/chat-types";
 
 const NAV_ITEMS = [
   { title: "Chat", href: "/chat", icon: MessagesSquare },
@@ -37,7 +38,7 @@ const NAV_ITEMS = [
   { title: "Admin", href: "/admin", icon: ShieldCheck },
 ] as const;
 
-export function AppSidebar() {
+export function AppSidebar({ chats = [] }: { chats?: ChatSummary[] }) {
   const pathname = usePathname();
   const hasClerk = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
 
@@ -75,6 +76,29 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+        {chats.length > 0 ? (
+          <SidebarGroup>
+            <SidebarGroupLabel>Recent chats</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {chats.map((chat) => {
+                  const href = `/chat/${chat.id}`;
+                  return (
+                    <SidebarMenuItem key={chat.id}>
+                      <SidebarMenuButton
+                        render={<Link href={href} />}
+                        isActive={pathname === href}
+                        tooltip={chat.title ?? "New chat"}
+                      >
+                        <span className="truncate">{chat.title ?? "New chat"}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ) : null}
       </SidebarContent>
       <SidebarFooter>
         <div className="flex items-center gap-2 px-2 py-1.5">

@@ -1,182 +1,128 @@
-import { NextResponse } from "next/server";
-import { getSql } from "@/lib/db";
+import { anthropic } from "@ai-sdk/anthropic";
 import {
-  DEFAULT_TOP_K,
-  VOYAGE_EMBEDDING_DIM,
-  embedQuery,
-  hybridRetrieve,
-  type RetrievedChunk,
-} from "@/lib/retrieval";
-import type { Citation } from "@/lib/chat-types";
+  convertToModelMessages,
+  createUIMessageStreamResponse,
+  stepCountIs,
+  streamText,
+  toUIMessageStream,
+} from "ai";
+import { persistChat } from "@/lib/chat";
+import { collectCitations, isDocumentUuid } from "@/lib/citations";
+import {
+  getDocumentTool,
+  queryDatabaseTool,
+  searchDocumentsTool,
+} from "@/lib/chat-tools";
+import type { OreBaseUIMessage } from "@/lib/chat-types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
-const ANTHROPIC_MESSAGES_URL = "https://api.anthropic.com/v1/messages";
-const ANTHROPIC_VERSION = "2023-06-01";
 const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-5";
-const MAX_TOKENS = 1024;
+const MAX_OUTPUT_TOKENS = 2048;
+const MAX_TOOL_STEPS = 8;
 
 const SYSTEM_PROMPT = `You are OreBase, a mining-intelligence research assistant.
 
+Tools:
+- search_documents: hybrid search over indexed technical-report chunks. Call this before answering any factual question. Pass company, doc_type, or date filters when the user names them.
+- get_document: load more pages from a document_id returned by search_documents.
+- query_database: read-only SQL against core.v_* views. Those views are empty until structured extraction has run; if a query returns no rows, say so and fall back to search_documents.
+
 Rules you MUST follow:
-- Answer ONLY using the information in the provided context sources. Do not use outside knowledge.
-- Cite every factual claim inline using the format [docId p.X], copying the exact docId and page shown for the source you used.
-- If the answer is not contained in the context, reply exactly: "That information is not in the database." Do not guess.
+- Answer ONLY using tool results. Do not use outside knowledge.
+- Cite every factual claim inline using the format [docId p.X], copying the exact document UUID and page shown in the tool output.
+- If the answer is not contained in the tool results, reply exactly: "That information is not in the database." Do not guess.
 - End every response with this line on its own: "Disclaimer: This is not investment advice."`;
 
-function pageLabel(chunk: RetrievedChunk): string {
-  if (chunk.page_start == null) return "n/a";
-  if (chunk.page_end != null && chunk.page_end !== chunk.page_start) {
-    return `${chunk.page_start}-${chunk.page_end}`;
-  }
-  return String(chunk.page_start);
-}
-
-function buildContext(chunks: RetrievedChunk[]): string {
-  return chunks
-    .map((chunk, index) => {
-      return [
-        `Source ${index + 1}`,
-        `docId: ${chunk.document_id}`,
-        `page: ${pageLabel(chunk)}`,
-        `content: ${chunk.content}`,
-      ].join("\n");
-    })
-    .join("\n\n---\n\n");
-}
-
-function toCitations(chunks: RetrievedChunk[]): Citation[] {
-  const seen = new Set<string>();
-  const citations: Citation[] = [];
-  for (const chunk of chunks) {
-    const label = `[${chunk.document_id.slice(0, 8)} p.${pageLabel(chunk)}]`;
-    if (seen.has(label)) continue;
-    seen.add(label);
-    citations.push({
-      label,
-      documentId: chunk.document_id,
-      pageStart: chunk.page_start,
-      pageEnd: chunk.page_end,
-    });
-  }
-  return citations;
-}
-
-async function callClaude(query: string, context: string): Promise<string> {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) {
-    throw new Error("ANTHROPIC_API_KEY is not configured.");
-  }
-
-  const userContent = `Context sources:\n\n${context}\n\nQuestion: ${query}`;
-
-  const res = await fetch(ANTHROPIC_MESSAGES_URL, {
-    method: "POST",
-    headers: {
-      "x-api-key": apiKey,
-      "anthropic-version": ANTHROPIC_VERSION,
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({
-      model: ANTHROPIC_MODEL,
-      max_tokens: MAX_TOKENS,
-      system: SYSTEM_PROMPT,
-      messages: [{ role: "user", content: userContent }],
-    }),
-  });
-
-  if (!res.ok) {
-    throw new Error(`Anthropic request failed (${res.status}).`);
-  }
-
-  const data = (await res.json()) as {
-    content?: { type: string; text?: string }[];
-  };
-  const text = data.content
-    ?.filter((block) => block.type === "text")
-    .map((block) => block.text ?? "")
-    .join("")
-    .trim();
-
-  return text && text.length > 0 ? text : "That information is not in the database.";
-}
-
 export async function POST(request: Request) {
-  let query: unknown;
+  let body: unknown;
   try {
-    const body = await request.json();
-    query = body?.message;
+    body = await request.json();
   } catch {
-    return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
+    return Response.json({ error: "Invalid JSON body." }, { status: 400 });
   }
 
-  if (typeof query !== "string" || query.trim().length === 0) {
-    return NextResponse.json(
-      { error: "A non-empty message is required." },
-      { status: 400 },
-    );
-  }
-  const trimmedQuery = query.trim();
+  const record = body as { id?: unknown; messages?: unknown };
+  const chatId = typeof record.id === "string" ? record.id : "";
+  const messages = record.messages as OreBaseUIMessage[] | undefined;
 
-  if (!process.env.VOYAGE_API_KEY) {
-    return NextResponse.json(
-      { error: "Embeddings are unavailable: VOYAGE_API_KEY is not set." },
-      { status: 503 },
-    );
+  if (!isDocumentUuid(chatId)) {
+    return Response.json({ error: "A valid chat id is required." }, { status: 400 });
   }
+  if (!Array.isArray(messages) || messages.length === 0) {
+    return Response.json({ error: "messages must be a non-empty array." }, { status: 400 });
+  }
+
   if (!process.env.ANTHROPIC_API_KEY) {
-    return NextResponse.json(
+    return Response.json(
       { error: "Chat is unavailable: ANTHROPIC_API_KEY is not set." },
       { status: 503 },
     );
   }
-
-  const sql = getSql();
-  if (!sql) {
-    return NextResponse.json(
+  if (!process.env.VOYAGE_API_KEY) {
+    return Response.json(
+      { error: "Embeddings are unavailable: VOYAGE_API_KEY is not set." },
+      { status: 503 },
+    );
+  }
+  if (!process.env.DATABASE_URL_POOLED && !process.env.DATABASE_URL) {
+    return Response.json(
       { error: "Database is not configured: set DATABASE_URL_POOLED." },
       { status: 503 },
     );
   }
 
-  try {
-    const embedding = await embedQuery(trimmedQuery);
-    const chunks = await hybridRetrieve(
-      sql,
-      embedding,
-      trimmedQuery,
-      DEFAULT_TOP_K,
-    );
+  const tools = {
+    search_documents: searchDocumentsTool,
+    get_document: getDocumentTool,
+    query_database: queryDatabaseTool,
+  };
 
-    if (process.env.NODE_ENV !== "production") {
-      console.debug("[chat] retrieval", {
-        queryLength: trimmedQuery.length,
-        embeddingDims: embedding.length,
-        expectedDims: VOYAGE_EMBEDDING_DIM,
-        topK: DEFAULT_TOP_K,
-        totalChunks: chunks.length,
-      });
-    }
+  const modelMessages = await convertToModelMessages(messages, {
+    tools,
+    ignoreIncompleteToolCalls: true,
+  });
 
-    if (chunks.length === 0) {
-      return NextResponse.json({
-        answer:
-          "That information is not in the database.\n\nDisclaimer: This is not investment advice.",
-        citations: [],
-      });
-    }
+  const result = streamText({
+    model: anthropic(ANTHROPIC_MODEL),
+    system: SYSTEM_PROMPT,
+    messages: modelMessages,
+    tools,
+    stopWhen: stepCountIs(MAX_TOOL_STEPS),
+    maxOutputTokens: MAX_OUTPUT_TOKENS,
+  });
 
-    const context = buildContext(chunks);
-    const answer = await callClaude(trimmedQuery, context);
-
-    return NextResponse.json({
-      answer,
-      citations: toCitations(chunks),
-    });
-  } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Unexpected error handling chat.";
-    return NextResponse.json({ error: message }, { status: 502 });
-  }
+  return createUIMessageStreamResponse({
+    stream: toUIMessageStream({
+      stream: result.stream,
+      tools,
+      originalMessages: messages,
+      onError: () => "Something went wrong.",
+      onEnd: async ({ messages: nextMessages }) => {
+        const persisted = nextMessages.map((message) => {
+          if (message.role !== "assistant") return message;
+          return {
+            ...message,
+            metadata: {
+              ...message.metadata,
+              citations: collectCitations([message]),
+            },
+          };
+        });
+        try {
+          await persistChat(chatId, persisted);
+        } catch (error) {
+          if (process.env.NODE_ENV !== "production") {
+            console.debug("[chat] persist failed", {
+              chatId,
+              messageCount: persisted.length,
+              error: error instanceof Error ? error.message : "unknown",
+            });
+          }
+        }
+      },
+    }),
+  });
 }

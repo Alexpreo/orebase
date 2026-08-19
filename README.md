@@ -4,12 +4,12 @@ Ingestion engine + structured intelligence database + AI chat/research UI for mi
 
 Source of truth for scope and architecture: [mining-intel-platform-build-plan.md](mining-intel-platform-build-plan.md).
 
-This repo currently implements **Phase 0 (foundation)** and **Phase 1 (EDGAR ingestion MVP)**.
+This repo currently implements **Phase 0 (foundation)**, **Phase 1 (EDGAR ingestion MVP)**, and **Phase 2 (cited streaming chat)**. Screener, watchlist, research, and company profiles wait on structured extraction (Phase 3).
 
 ## Monorepo layout
 
 ```
-apps/web/      Next.js 15 (App Router, TS, Tailwind, shadcn/ui, Clerk auth)
+apps/web/      Next.js 16 (App Router, TS, Tailwind, shadcn/ui, Clerk auth)
 workers/       Python 3.12 (uv) — edgar_poller, processor, common helpers
 db/            dbmate SQL migrations (schemas: raw, core, app, sedar)
 infra/         Terraform stub (versioned S3 + scoped IAM), docker-compose stub
@@ -17,11 +17,11 @@ infra/         Terraform stub (versioned S3 + scoped IAM), docker-compose stub
 
 ## Stack
 
-- **Frontend:** Next.js 15, TypeScript, Tailwind, shadcn/ui, Clerk (email + Google), Vercel
+- **Frontend:** Next.js 16, TypeScript, Tailwind, shadcn/ui, Clerk (email + Google), Vercel
 - **Database:** Neon Postgres 16 + pgvector (HNSW + tsvector hybrid retrieval), migrations via dbmate
 - **Storage:** AWS S3 (versioning on) for the raw PDF corpus
 - **Workers:** Python 3.12 (uv), Dockerized — httpx, pymupdf, pdfplumber, playwright, psycopg, boto3, pydantic
-- **AI:** `voyage-3` embeddings (1024-dim), Claude for chat + extraction, AWS Textract for scanned pages
+- **AI:** `voyage-4` embeddings (1024-dim), Claude for chat + extraction, AWS Textract for scanned pages
 
 ## Prerequisites
 

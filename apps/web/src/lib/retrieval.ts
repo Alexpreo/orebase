@@ -1,7 +1,9 @@
 import "server-only";
 import type { Sql } from "postgres";
 
-export const VOYAGE_MODEL = "voyage-3";
+// Must match MODEL in workers/common/embeddings.py: queries and documents have to be
+// embedded by the same model for cosine distance to be meaningful.
+export const VOYAGE_MODEL = "voyage-4";
 export const VOYAGE_EMBEDDING_DIM = 1024;
 const VOYAGE_EMBEDDINGS_URL = "https://api.voyageai.com/v1/embeddings";
 
@@ -16,10 +18,24 @@ export type RetrievedChunk = {
   page_start: number | null;
   page_end: number | null;
   content: string;
+  title: string | null;
+  doc_type: string | null;
 };
 
+export type RetrievalFilters = {
+  company?: string;
+  docType?: string;
+  dateFrom?: string;
+  dateTo?: string;
+};
+
+function activeFilter(value: string | undefined): string | null {
+  if (!value || value.trim().length === 0) return null;
+  return value.trim();
+}
+
 /**
- * Embeds a single query string with Voyage AI `voyage-3` (1024-dim).
+ * Embeds a single query string with Voyage AI `voyage-4` (1024-dim).
  * Throws on missing key or non-2xx so the caller can return a clean error.
  */
 export async function embedQuery(query: string): Promise<number[]> {
@@ -64,14 +80,29 @@ export async function hybridRetrieve(
   embedding: number[],
   query: string,
   topK: number = DEFAULT_TOP_K,
+  filters: RetrievalFilters = {},
 ): Promise<RetrievedChunk[]> {
   const vectorLiteral = `[${embedding.join(",")}]`;
+  const company = activeFilter(filters.company);
+  const docType = activeFilter(filters.docType);
+  const dateFrom = activeFilter(filters.dateFrom);
+  const dateTo = activeFilter(filters.dateTo);
 
   const rows = await sql<RetrievedChunk[]>`
     WITH params AS (
       SELECT
         ${vectorLiteral}::vector AS query_embedding,
         plainto_tsquery('english', ${query}) AS query_ts
+    ),
+    filtered_chunks AS (
+      SELECT c.id, c.document_id, c.page_start, c.page_end, c.content, c.embedding,
+             d.title, d.doc_type
+      FROM raw.document_chunks c
+      INNER JOIN raw.documents d ON d.id = c.document_id
+      WHERE (${company}::text IS NULL OR d.title ILIKE '%' || ${company} || '%')
+        AND (${docType}::text IS NULL OR d.doc_type = ${docType})
+        AND (${dateFrom}::date IS NULL OR d.filed_at >= ${dateFrom}::date)
+        AND (${dateTo}::date IS NULL OR d.filed_at <= ${dateTo}::date)
     ),
     vector_hits AS (
       SELECT
@@ -80,10 +111,12 @@ export async function hybridRetrieve(
         c.page_start,
         c.page_end,
         c.content,
+        c.title,
+        c.doc_type,
         row_number() OVER (
           ORDER BY c.embedding <=> (SELECT query_embedding FROM params)
         ) AS rank
-      FROM raw.document_chunks c
+      FROM filtered_chunks c
       WHERE c.embedding IS NOT NULL
       ORDER BY c.embedding <=> (SELECT query_embedding FROM params)
       LIMIT ${CANDIDATE_LIMIT}
@@ -95,13 +128,15 @@ export async function hybridRetrieve(
         c.page_start,
         c.page_end,
         c.content,
+        c.title,
+        c.doc_type,
         row_number() OVER (
           ORDER BY ts_rank(
             to_tsvector('english', c.content),
             (SELECT query_ts FROM params)
           ) DESC
         ) AS rank
-      FROM raw.document_chunks c
+      FROM filtered_chunks c
       WHERE to_tsvector('english', c.content) @@ (SELECT query_ts FROM params)
       ORDER BY ts_rank(
         to_tsvector('english', c.content),
@@ -113,7 +148,9 @@ export async function hybridRetrieve(
       COALESCE(v.document_id, t.document_id) AS document_id,
       COALESCE(v.page_start, t.page_start) AS page_start,
       COALESCE(v.page_end, t.page_end) AS page_end,
-      COALESCE(v.content, t.content) AS content
+      COALESCE(v.content, t.content) AS content,
+      COALESCE(v.title, t.title) AS title,
+      COALESCE(v.doc_type, t.doc_type) AS doc_type
     FROM vector_hits v
     FULL OUTER JOIN text_hits t ON v.id = t.id
     ORDER BY

@@ -13,6 +13,8 @@ from .config import settings
 
 logger = logging.getLogger(__name__)
 
+PDF_CONTENT_TYPE = "application/pdf"
+
 
 @lru_cache
 def _client() -> Any:
@@ -24,8 +26,8 @@ def _client() -> Any:
     )
 
 
-def upload_pdf(data: bytes, key: str, content_type: str = "application/pdf") -> str:
-    """Upload PDF bytes under `key` and return the s3:// storage path stored on the document row."""
+def upload_object(data: bytes, key: str, content_type: str = PDF_CONTENT_TYPE) -> str:
+    """Upload bytes under `key` and return the s3:// path stored on the document row."""
     if not settings.s3_bucket:
         raise RuntimeError("S3_BUCKET is not set; cannot upload document.")
     _client().put_object(
@@ -37,7 +39,7 @@ def upload_pdf(data: bytes, key: str, content_type: str = "application/pdf") -> 
     return f"s3://{settings.s3_bucket}/{key}"
 
 
-def download_pdf(key: str) -> bytes:
+def download_object(key: str) -> bytes:
     """Fetch object bytes for a storage key (accepts either a bare key or an s3:// path)."""
     if key.startswith("s3://"):
         key = key.split("/", 3)[3]

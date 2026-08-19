@@ -16,7 +16,11 @@ logger = logging.getLogger(__name__)
 
 # search_path spans every schema so callers can use bare table names when convenient
 # while still being explicit (raw./core./app./sedar.) in the hot paths.
-_SEARCH_PATH = "raw, core, app, sedar, public"
+#
+# No spaces: this is passed through the libpq `options` connection parameter, which splits
+# on whitespace. "raw, core" would arrive at the server as search_path="raw," and be
+# rejected outright, so the list has to be a single whitespace-free token.
+_SEARCH_PATH = "raw,core,app,sedar,public"
 
 _pool: Optional[ConnectionPool] = None
 

@@ -1,6 +1,5 @@
+# Both packages ship native binaries and need their install scripts to run:
+# sharp backs Next.js image optimization, unrs-resolver backs eslint-config-next.
 allowBuilds:
-  sharp: set this to true or false
-  unrs-resolver: set this to true or false
-ignoredBuiltDependencies:
-  - sharp
-  - unrs-resolver
+  sharp: true
+  unrs-resolver: true
