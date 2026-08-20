@@ -1,6 +1,10 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-const isPublicRoute = createRouteMatcher(["/sign-in(.*)", "/sign-up(.*)"]);
+const isPublicRoute = createRouteMatcher([
+  "/sign-in(.*)",
+  "/sign-up(.*)",
+  "/api/ingest(.*)",
+]);
 
 // Local development runs unauthenticated when no Clerk key is configured, so the
 // app is usable before any account exists. Any deployment that sets the key gets

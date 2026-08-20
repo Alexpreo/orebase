@@ -23,6 +23,7 @@ from common.config import settings
 from common.db import (
     claim_job,
     complete_job,
+    enqueue_job_if_absent,
     get_document,
     queue_depth,
     replace_document_chunks,
@@ -350,6 +351,7 @@ def process_document(document_id: str) -> dict[str, int]:
     ]
     replace_document_chunks(document_id, chunk_rows)
     set_document_status(document_id, "indexed")
+    enqueue_job_if_absent(document_id, "extract")
 
     return {
         "page_count": len(pages),

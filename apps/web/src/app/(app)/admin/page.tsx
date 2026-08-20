@@ -1,7 +1,11 @@
 import { getAdminData } from "@/lib/admin";
-import { formatDate } from "@/lib/utils";
+import { extractionSpend } from "@/lib/intel";
+import { formatDate, formatNumber } from "@/lib/utils";
 import { RetryButton } from "@/components/admin/retry-button";
+import { CanadaIngestForm } from "@/components/admin/canada-ingest";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import {
   Card,
   CardContent,
@@ -37,17 +41,54 @@ function statusVariant(
 }
 
 export default async function AdminPage() {
-  const { ok, message, documents, sourceStats, statusStats } =
-    await getAdminData();
+  const [{ ok, message, documents, sourceStats, statusStats }, spend] =
+    await Promise.all([getAdminData(), extractionSpend()]);
 
   return (
     <div className="flex flex-col gap-6 p-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Admin</h1>
         <p className="text-sm text-muted-foreground">
-          Ingestion status across sources, with retry controls for failed
-          documents.
+          Canada NI 43-101s are the core corpus. Upload a SEDAR+ PDF below, then
+          run the processor and extractor. Automated SEDAR search is not live.
         </p>
+        <div className="mt-3">
+          <Button size="sm" variant="outline" nativeButton={false} render={<Link href="/admin/review" />}>
+            Open review queue
+          </Button>
+        </div>
+      </div>
+
+      <CanadaIngestForm />
+
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Extract spend today</CardTitle>
+            <CardDescription>Sum of app.extraction_costs since midnight.</CardDescription>
+          </CardHeader>
+          <CardContent className="text-2xl font-semibold tabular-nums">
+            ${formatNumber(spend.daily, 4)}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Extract spend this month</CardTitle>
+            <CardDescription>Hard cap is configured on the worker.</CardDescription>
+          </CardHeader>
+          <CardContent className="text-2xl font-semibold tabular-nums">
+            ${formatNumber(spend.monthly, 4)}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Extract queue</CardTitle>
+            <CardDescription>Pending extract jobs.</CardDescription>
+          </CardHeader>
+          <CardContent className="text-2xl font-semibold tabular-nums">
+            {spend.queue}
+          </CardContent>
+        </Card>
       </div>
 
       {!ok && message ? (

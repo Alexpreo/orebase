@@ -431,6 +431,13 @@ def run(
             counts["seen"],
         )
     logger.info("EDGAR poll complete: %s", counts)
+    if counts["ingested"]:
+        from common.metrics import put_documents_ingested
+
+        put_documents_ingested("edgar", counts["ingested"])
+    from common.metrics import emit_freshness
+
+    emit_freshness("edgar")
     return counts
 
 

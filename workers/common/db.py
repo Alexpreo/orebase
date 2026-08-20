@@ -5,7 +5,8 @@ from __future__ import annotations
 
 import logging
 from contextlib import contextmanager
-from typing import Any, Iterator, Optional
+from decimal import Decimal
+from typing import Any, Iterator, Literal, Optional
 
 from psycopg.rows import dict_row
 from psycopg_pool import ConnectionPool
@@ -109,6 +110,21 @@ def document_exists_by_sha256(sha256: str) -> bool:
         return cur.fetchone() is not None
 
 
+def document_exists_by_external_id(source: str, external_id: str) -> bool:
+    if not external_id:
+        return False
+    with connection() as conn, conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT 1 FROM raw.documents
+             WHERE source = %s AND external_id = %s
+             LIMIT 1;
+            """,
+            (source, external_id),
+        )
+        return cur.fetchone() is not None
+
+
 def insert_document(**fields: Any) -> Optional[str]:
     """Insert a raw.documents row. On sha256 conflict, no row is inserted (idempotent)."""
     columns = list(fields.keys())
@@ -146,13 +162,177 @@ def get_document(document_id: str) -> Optional[dict[str, Any]]:
     with connection() as conn, conn.cursor() as cur:
         cur.execute(
             """
-            SELECT id, source, source_url, storage_path, sha256, doc_type, status, page_count
+            SELECT id, source, source_url, external_id, storage_path, source_storage_path,
+                   source_content_type, sha256, doc_type, status, page_count, title,
+                   filed_at, company_id, project_id, summary, render_engine
               FROM raw.documents
              WHERE id = %s;
             """,
             (document_id,),
         )
         return cur.fetchone()
+
+
+def get_document_chunks(document_id: str) -> list[dict[str, Any]]:
+    with connection() as conn, conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT id, chunk_index, page_start, page_end, content, section_title
+              FROM raw.document_chunks
+             WHERE document_id = %s
+             ORDER BY chunk_index;
+            """,
+            (document_id,),
+        )
+        return list(cur.fetchall())
+
+
+def extraction_spend_usd(period: Literal["day", "month"]) -> Decimal:
+    trunc = "day" if period == "day" else "month"
+    with connection() as conn, conn.cursor() as cur:
+        cur.execute(
+            f"""
+            SELECT COALESCE(sum(cost_usd), 0) AS spent
+              FROM app.extraction_costs
+             WHERE created_at >= date_trunc('{trunc}', now());
+            """
+        )
+        row = cur.fetchone()
+        return Decimal(str(row["spent"])) if row else Decimal("0")
+
+
+class ExtractionCapExceeded(RuntimeError):
+    """Raised when daily or monthly extraction spend is at the configured cap."""
+
+
+def assert_extraction_cap() -> None:
+    """Refuse new extract work once either dollar cap is hit. Call before claiming."""
+    daily = extraction_spend_usd("day")
+    monthly = extraction_spend_usd("month")
+    daily_cap = Decimal(str(settings.extraction_daily_cap_usd))
+    monthly_cap = Decimal(str(settings.extraction_monthly_cap_usd))
+    if daily >= daily_cap:
+        raise ExtractionCapExceeded(
+            f"daily extraction cap hit (${daily} >= ${daily_cap})"
+        )
+    if monthly >= monthly_cap:
+        raise ExtractionCapExceeded(
+            f"monthly extraction cap hit (${monthly} >= ${monthly_cap})"
+        )
+
+
+def insert_extraction_cost(
+    *,
+    document_id: Optional[str],
+    model: str,
+    purpose: str,
+    input_tokens: int,
+    output_tokens: int,
+    cache_read_tokens: int,
+    cache_creation_tokens: int,
+    cost_usd: Decimal,
+) -> None:
+    with connection() as conn, conn.cursor() as cur:
+        cur.execute(
+            """
+            INSERT INTO app.extraction_costs (
+                document_id, model, purpose, input_tokens, output_tokens,
+                cache_read_tokens, cache_creation_tokens, cost_usd
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
+            """,
+            (
+                document_id,
+                model,
+                purpose,
+                input_tokens,
+                output_tokens,
+                cache_read_tokens,
+                cache_creation_tokens,
+                cost_usd,
+            ),
+        )
+
+
+def update_document_entities(
+    document_id: str,
+    *,
+    company_id: Optional[str] = None,
+    project_id: Optional[str] = None,
+    summary: Optional[str] = None,
+) -> None:
+    with connection() as conn, conn.cursor() as cur:
+        cur.execute(
+            """
+            UPDATE raw.documents
+               SET company_id = COALESCE(%s, company_id),
+                   project_id = COALESCE(%s, project_id),
+                   summary = COALESCE(%s, summary)
+             WHERE id = %s;
+            """,
+            (company_id, project_id, summary, document_id),
+        )
+
+
+def enqueue_job_if_absent(document_id: str, job_type: str) -> Optional[str]:
+    """Enqueue only when no pending, running, or done job of this type exists."""
+    with connection() as conn, conn.cursor() as cur:
+        cur.execute(
+            """
+            INSERT INTO raw.processing_jobs (document_id, job_type, status)
+            SELECT %s, %s, 'pending'
+             WHERE NOT EXISTS (
+                SELECT 1
+                  FROM raw.processing_jobs
+                 WHERE document_id = %s
+                   AND job_type = %s
+                   AND status IN ('pending', 'running', 'done')
+             )
+            RETURNING id;
+            """,
+            (document_id, job_type, document_id, job_type),
+        )
+        row = cur.fetchone()
+        return row["id"] if row else None
+
+
+def list_pending_jobs(job_type: str) -> list[dict[str, Any]]:
+    with connection() as conn, conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT id, document_id, job_type, status, attempts, last_error
+              FROM raw.processing_jobs
+             WHERE status = 'pending'
+               AND job_type = %s
+             ORDER BY created_at;
+            """,
+            (job_type,),
+        )
+        return list(cur.fetchall())
+
+
+def enqueue_extract_for_indexed() -> int:
+    """Enqueue extract jobs for indexed documents that have never been extracted.
+
+    Already-extracted documents are left alone; re-run a specific filing with
+    `extractor.py --document-id` instead of this backfill.
+    """
+    with connection() as conn, conn.cursor() as cur:
+        cur.execute(
+            """
+            INSERT INTO raw.processing_jobs (document_id, job_type, status)
+            SELECT d.id, 'extract', 'pending'
+              FROM raw.documents d
+             WHERE d.status = 'indexed'
+               AND NOT EXISTS (
+                    SELECT 1
+                      FROM raw.processing_jobs j
+                     WHERE j.document_id = d.id
+                       AND j.job_type = 'extract'
+                       AND j.status IN ('pending', 'running', 'done')
+               );
+            """
+        )
+        return cur.rowcount or 0
 
 
 def _vector_literal(embedding: list[float]) -> str:

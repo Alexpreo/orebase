@@ -14,3 +14,9 @@ variable "iam_user_name" {
   type        = string
   default     = "orebase-workers"
 }
+
+variable "alarm_email" {
+  description = "Email subscribed to the silent-death SNS topic. Empty skips the subscription."
+  type        = string
+  default     = ""
+}

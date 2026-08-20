@@ -1,49 +1,58 @@
 # ============================================================================
-# OreBase worker fleet — STUB, NOT YET DEPLOYED.
+# OreBase worker fleet — EC2 t3.medium (Docker Compose)
 #
-# This file describes the always-on ingestion bot planned for an EC2 t3.medium
-# (master plan §8). It is here for reference in later phases; nothing runs it yet.
+# Secrets come from AWS SSM Parameter Store on the box, NOT a committed .env.
+# The `env_file` line is a local-dev convenience only.
 #
-# Before deploying:
-#   - Only `edgar-poller` and `processor` exist today (Phase 1). `newswire-poller`
-#     and `sedar-incremental` reference workers that are built in Phase 4.
-#   - On the EC2 box, secrets come from AWS SSM Parameter Store, NOT a committed
-#     .env. The `env_file` line below is a local-dev convenience only.
-#   - `sedar-incremental` needs a persistent Playwright profile volume on EBS.
+# Historical SEDAR+ backfill is NOT a service here. Run it by hand with
+# `uv run python -m sedar.backfill --confirm-backfill --slice ...` after the
+# product is trusted. See workers/sedar/NOTES.md.
 # ============================================================================
 
 x-worker-base: &worker-base
   build:
     context: ../workers
     dockerfile: Dockerfile
-  # env_file: ../workers/.env        # local dev only; on EC2 pull from SSM at startup
+  # env_file: ../workers/.env
   restart: always
+  environment:
+    CLOUDWATCH_METRICS: "1"
 
 services:
   edgar-poller:
     <<: *worker-base
-    # EDGAR is built for polling; loop every ~15 min within SEC fair-access limits.
     command: >
       sh -c "while true; do uv run python edgar_poller.py --limit 50; sleep 900; done"
 
   newswire-poller:
     <<: *worker-base
-    # Phase 4: RSS every 5-15 min (drill results often hit newswires before filings).
     command: >
-      sh -c "while true; do uv run python newswire_poller.py; sleep 600; done"
+      sh -c "while true; do uv run python newswire_poller.py --limit 25; sleep 600; done"
 
   sedar-incremental:
     <<: *worker-base
-    # Phase 4: scheduled 2-3x/day + alert-driven; persistent Playwright profile on EBS.
     command: >
-      sh -c "while true; do uv run python -m sedar.fetch_documents; sleep 28800; done"
+      sh -c "while true; do uv run python -m sedar.incremental --nightly --limit 20; sleep 28800; done"
     volumes:
       - sedar_profile:/root/.sedar_profile
 
   processor:
     <<: *worker-base
-    # Always-on: drains raw.processing_jobs.
     command: ["uv", "run", "python", "processor.py"]
+
+  extractor:
+    <<: *worker-base
+    command: ["uv", "run", "python", "extractor.py"]
+
+  alerts:
+    <<: *worker-base
+    command: >
+      sh -c "while true; do uv run python alerts.py --once; sleep 300; done"
+
+  healthcheck:
+    <<: *worker-base
+    command: >
+      sh -c "while true; do uv run python healthcheck.py; sleep 3600; done"
 
 volumes:
   sedar_profile:

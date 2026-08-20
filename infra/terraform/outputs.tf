@@ -18,3 +18,8 @@ output "worker_secret_access_key" {
   value       = aws_iam_access_key.workers.secret
   sensitive   = true
 }
+
+output "ingest_alarm_topic_arn" {
+  description = "SNS topic for ingestion silent-death alarms."
+  value       = aws_sns_topic.ingest_alarms.arn
+}

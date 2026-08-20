@@ -35,3 +35,4 @@ terraform output -raw worker_secret_access_key  # -> AWS_SECRET_ACCESS_KEY  (sen
 - State contains the IAM secret key. Use a remote backend (e.g. S3 + DynamoDB lock) with
   encryption before using this beyond a throwaway account; do not commit `terraform.tfstate`.
 - For production, prefer an EC2 instance role over a static IAM user access key.
+- CloudWatch alarms on `OreBase/DocumentsLast24h` (per source) page when a poller goes silent. Set `alarm_email` in tfvars to subscribe. Do not apply SEDAR/newswire alarms until those sources have ingested at least once.

@@ -71,10 +71,49 @@ data "aws_iam_policy_document" "workers" {
     ]
     resources = ["*"] # Textract actions do not support resource-level scoping.
   }
+
+  statement {
+    sid     = "CloudWatchIngestMetrics"
+    actions = ["cloudwatch:PutMetricData"]
+    resources = ["*"]
+    condition {
+      test     = "StringEquals"
+      variable = "cloudwatch:namespace"
+      values   = ["OreBase"]
+    }
+  }
 }
 
 resource "aws_iam_user_policy" "workers" {
   name   = "${var.iam_user_name}-policy"
   user   = aws_iam_user.workers.name
   policy = data.aws_iam_policy_document.workers.json
+}
+
+resource "aws_sns_topic" "ingest_alarms" {
+  name = "orebase-ingest-alarms"
+}
+
+resource "aws_sns_topic_subscription" "ingest_email" {
+  count     = var.alarm_email == "" ? 0 : 1
+  topic_arn = aws_sns_topic.ingest_alarms.arn
+  protocol  = "email"
+  endpoint  = var.alarm_email
+}
+
+resource "aws_cloudwatch_metric_alarm" "source_silent" {
+  for_each = toset(["edgar", "sedar", "newswire"])
+
+  alarm_name          = "orebase-${each.key}-silent-24h"
+  alarm_description   = "No new raw.documents from ${each.key} in 24h. Bots fail silently; this is the silent-death page."
+  namespace           = "OreBase"
+  metric_name         = "DocumentsLast24h"
+  dimensions          = { Source = each.key }
+  statistic           = "Maximum"
+  period              = 3600
+  evaluation_periods  = 24
+  threshold           = 1
+  comparison_operator = "LessThanThreshold"
+  treat_missing_data  = "breaching"
+  alarm_actions       = [aws_sns_topic.ingest_alarms.arn]
 }
