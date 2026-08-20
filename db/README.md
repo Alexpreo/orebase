@@ -57,6 +57,8 @@ Embeddings are `vector(1024)` to match Voyage `voyage-4` output. The index uses
 | `..._document_source_artifact.sql` | `raw.documents` dual-artifact columns (`source_storage_path`, `source_content_type`, `render_engine`) |
 | `..._extraction_costs.sql` | `app.extraction_costs` token/cost ledger |
 | `..._chat_readonly.sql` | `core.v_*` views + `orebase_chat` read-only role for `query_database` |
+| `..._phase3_extraction.sql` | `reviewed` on drill/economics, unique `companies.cik`, `documents.summary`, `app.saved_filters` |
+| `..._alert_deliveries.sql` | `app.alert_deliveries` for idempotent watchlist emails |
 
 `raw.documents.company_id` / `project_id` and `sedar.sedar_issuers.company_id` reference
 `core.*`, which is created later, so those foreign keys are added via `ALTER TABLE` inside

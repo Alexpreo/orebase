@@ -10,10 +10,10 @@ covers what is left to build, what it costs, and what must be done by hand.
 - [x] **Step 2 — Fix EDGAR ingestion** (HTML exhibits render to PDF; OCR spend bounded)
 - [x] **Step 3 — Chat: streaming, tools, history**
 - [x] **Step 4 — Citations you can click**
-- [ ] **Step 5 — Structured extraction** (cost-controlled, two-tier)
-- [ ] **Step 6 — Product surface** (review queue, profiles, three dashboards)
+- [x] **Step 5 — Structured extraction** (cost-controlled, two-tier)
+- [x] **Step 6 — Product surface** (review queue, profiles, three dashboards)
 
-Neon, AWS S3, Anthropic, and Voyage are live. Autoscale floor is **0.25 CU**. Nine migrations are applied. Nine EDGAR SK-1300 filings are indexed.
+Neon, AWS S3, Anthropic, and Voyage are live. Autoscale floor is **0.25 CU**. Ten migrations are applied. Nine EDGAR SK-1300 filings are indexed; extraction jobs are enqueued after parse.
 
 ## Where the project stands
 
@@ -27,11 +27,9 @@ Neon, AWS S3, Anthropic, and Voyage are live. Autoscale floor is **0.25 CU**. Ni
 - Documents corpus browser, pdf.js viewer, and S3 byte-range file route.
 - Streaming chat with `search_documents`, `get_document`, and `query_database`; persisted
   history; citation chips that open `/documents/[id]?page=`.
-- Database live on Neon: 9 migrations applied, pgvector 0.8.6, both retrieval indexes built.
+- Database live on Neon: 10 migrations applied, pgvector 0.8.6, both retrieval indexes built.
 
 **Not built**
-- No `extractor.py` — `core.*` tables are empty, so no screener, profiles, or review queue.
-- Screener, Watchlist, Research, Companies are `PagePlaceholder` stubs.
 - No SEDAR+ module, no newswire poller (Phase 4, out of scope here).
 
 ## Ingestion artifact model

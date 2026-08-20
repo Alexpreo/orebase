@@ -4,15 +4,15 @@ Ingestion engine + structured intelligence database + AI chat/research UI for mi
 
 Source of truth for scope and architecture: [mining-intel-platform-build-plan.md](mining-intel-platform-build-plan.md).
 
-This repo currently implements **Phase 0 (foundation)**, **Phase 1 (EDGAR ingestion MVP)**, and **Phase 2 (cited streaming chat)**. Screener, watchlist, research, and company profiles wait on structured extraction (Phase 3).
+This repo currently implements **Phases 0–3** plus **Phase 4 incremental ingest** (SEDAR+ session, issuer load, alert webhook, nightly sweep, newswire RSS, email alerts, EC2 compose + silent-death alarm). Historical SEDAR/EDGAR backfill is gated and not started. The map still waits on MinFile/USGS.
 
 ## Monorepo layout
 
 ```
 apps/web/      Next.js 16 (App Router, TS, Tailwind, shadcn/ui, Clerk auth)
-workers/       Python 3.12 (uv) — edgar_poller, processor, common helpers
+workers/       Python 3.12 (uv) — edgar_poller, processor, extractor, sedar/, newswire_poller, alerts
 db/            dbmate SQL migrations (schemas: raw, core, app, sedar)
-infra/         Terraform stub (versioned S3 + scoped IAM), docker-compose stub
+infra/         Terraform (versioned S3, IAM, CloudWatch silent-death), docker-compose for EC2
 ```
 
 ## Stack
@@ -33,6 +33,12 @@ Accounts/keys required (see each package's `.env.example`): Neon, AWS (S3 + Text
 1. Copy each `.env.example` to `.env` and fill in real values (see the per-package files).
 2. Web app: `cd apps/web && pnpm install && pnpm dev`
 3. Database migrations: `cd db && dbmate up` (requires `DATABASE_URL`)
-4. Workers: `cd workers && uv sync`, then `uv run python edgar_poller.py` / `uv run python processor.py`
+4. Workers: `cd workers && uv sync`, then `uv run python edgar_poller.py` / `uv run python processor.py` / `uv run python extractor.py --once`
+5. Canadian NI 43-101s: download the PDF in Chrome, then  
+   `cd workers && uv run python -m sedar.ingest_local --file ~/Downloads/report.pdf --issuer "…" --filed-at YYYY-MM-DD`  
+   (or upload on `/admin`). Automated SEDAR+ search is blocked until a headed session works; see `workers/sedar/NOTES.md`.
+6. EC2 bot: see [infra/RUNBOOK.md](infra/RUNBOOK.md)
+
+Production web **requires** Clerk keys. Historical backfill is `uv run python -m sedar.backfill --confirm-backfill --slice ni43101_2024_present` and is not run automatically.
 
 Never commit `.env` files — they are gitignored.

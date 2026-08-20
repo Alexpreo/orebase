@@ -21,12 +21,14 @@ function messageText(message: OreBaseUIMessage): string {
 export function ChatClient({
   chatId,
   initialMessages,
+  initialInput = "",
 }: {
   chatId: string;
   initialMessages: OreBaseUIMessage[];
+  initialInput?: string;
 }) {
   const router = useRouter();
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState(initialInput);
   const listRef = useRef<HTMLDivElement>(null);
   const transport = useMemo(
     () =>

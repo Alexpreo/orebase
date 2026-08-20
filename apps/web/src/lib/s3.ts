@@ -1,5 +1,5 @@
 import "server-only";
-import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const bucket = process.env.S3_BUCKET;
@@ -39,6 +39,30 @@ function getClient(): S3Client | null {
 
 export function isS3Configured(): boolean {
   return Boolean(bucket);
+}
+
+export function s3BucketName(): string | null {
+  return bucket ?? null;
+}
+
+export async function putDocumentObject(
+  key: string,
+  body: Buffer,
+  contentType: string,
+): Promise<string | null> {
+  const client = getClient();
+  if (!client || !bucket) {
+    return null;
+  }
+  await client.send(
+    new PutObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      Body: body,
+      ContentType: contentType,
+    }),
+  );
+  return `s3://${bucket}/${key}`;
 }
 
 /** Strips the `s3://bucket/` prefix that documents.storage_path is stored with. */
