@@ -1,0 +1,26 @@
+# Production overlay: CloudWatch Logs. Used by `make deploy` on the EC2 box.
+# Local `make up` uses docker-compose.yml only.
+
+x-awslogs: &awslogs
+  driver: awslogs
+  options:
+    awslogs-group: /orebase/workers
+    awslogs-region: ${AWS_REGION:-us-east-1}
+    awslogs-create-group: "true"
+    awslogs-stream-prefix: orebase
+
+services:
+  edgar-poller:
+    logging: *awslogs
+  newswire-poller:
+    logging: *awslogs
+  sedar-incremental:
+    logging: *awslogs
+  processor:
+    logging: *awslogs
+  extractor:
+    logging: *awslogs
+  alerts:
+    logging: *awslogs
+  healthcheck:
+    logging: *awslogs

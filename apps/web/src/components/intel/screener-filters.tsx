@@ -140,6 +140,20 @@ export function ScreenerFilters({
           defaultValue={searchParams.get("filedSince") ?? ""}
           onChange={(event) => apply("filedSince", event.target.value)}
         />
+        <Button
+          size="sm"
+          variant={searchParams.get("view") === "map" ? "outline" : "secondary"}
+          onClick={() => apply("view", "")}
+        >
+          Table
+        </Button>
+        <Button
+          size="sm"
+          variant={searchParams.get("view") === "map" ? "secondary" : "outline"}
+          onClick={() => apply("view", "map")}
+        >
+          Map
+        </Button>
         <Button size="sm" variant="outline" nativeButton={false} render={<a href={exportHref} />}>
           Export CSV
         </Button>

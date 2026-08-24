@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { EntityLinkForm } from "@/components/admin/entity-link-form";
+import { ExtractButton } from "@/components/admin/extract-button";
+import { GeoLinkForm } from "@/components/admin/geo-link-form";
 import { ReviewActions, ReviewQueueToolbar } from "@/components/admin/review-actions";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -8,7 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { listReviewQueue, listUnresolvedFilings } from "@/lib/intel";
+import { listReviewQueue, listUnmatchedOccurrences, listUnresolvedFilings } from "@/lib/intel";
 import { AUTO_APPROVE_MIN } from "@/lib/intel-types";
 import { documentHref, formatDate, formatNumber } from "@/lib/utils";
 import type { ReviewItem } from "@/lib/intel-types";
@@ -55,9 +58,10 @@ function ReviewList({ items }: { items: ReviewItem[] }) {
 }
 
 export default async function AdminReviewPage() {
-  const [items, unresolved] = await Promise.all([
+  const [items, unresolved, unmatched] = await Promise.all([
     listReviewQueue(),
     listUnresolvedFilings(),
+    listUnmatchedOccurrences(),
   ]);
   const attention = items.filter((item) => item.attention);
   const rest = items.filter((item) => !item.attention);
@@ -85,20 +89,55 @@ export default async function AdminReviewPage() {
           </CardHeader>
           <CardContent className="flex flex-col gap-2 text-sm">
             {unresolved.map((row) => (
-              <div key={row.id} className="flex flex-wrap justify-between gap-2">
-                <Link href={`/documents/${row.id}`} className="hover:underline">
-                  {row.title ?? row.id}
-                </Link>
-                <span className="text-muted-foreground">
-                  {row.company_name ?? "unknown company"} · {formatDate(row.filed_at)}
-                </span>
+              <div key={row.id} className="flex flex-col gap-1 border-b pb-3 last:border-0">
+                <div className="flex flex-wrap justify-between gap-2">
+                  <Link href={`/documents/${row.id}`} className="hover:underline">
+                    {row.title ?? row.id}
+                  </Link>
+                  <span className="text-muted-foreground">
+                    {row.company_name ?? "unknown company"} · {formatDate(row.filed_at)}
+                  </span>
+                </div>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <EntityLinkForm documentId={row.id} defaultCompany={row.company_name} />
+                  <ExtractButton documentId={row.id} />
+                </div>
               </div>
             ))}
           </CardContent>
         </Card>
       ) : null}
 
-      {items.length === 0 && unresolved.length === 0 ? (
+      {unmatched.length > 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Unmatched occurrences</CardTitle>
+            <CardDescription>
+              MinFile/USGS rows with no project. Paste a project UUID to copy coordinates.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-3 text-sm">
+            {unmatched.map((row) => (
+              <div key={row.id} className="flex flex-col gap-1 border-b pb-3 last:border-0">
+                <div className="flex flex-wrap justify-between gap-2">
+                  <span>
+                    {row.name}{" "}
+                    <span className="text-muted-foreground">
+                      ({row.source} {row.external_id})
+                    </span>
+                  </span>
+                  <span className="text-muted-foreground">
+                    {row.lat}, {row.lng}
+                  </span>
+                </div>
+                <GeoLinkForm occurrenceId={row.id} />
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {items.length === 0 && unresolved.length === 0 && unmatched.length === 0 ? (
         <Card>
           <CardHeader>
             <CardTitle>Queue empty</CardTitle>

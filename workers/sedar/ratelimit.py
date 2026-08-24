@@ -33,6 +33,10 @@ class RateLimiter:
                 time.sleep(self._next_allowed - now)
             self._next_allowed = time.monotonic() + delay
 
+    def wait_between_pages(self) -> None:
+        delay = random.uniform(60.0, 120.0)
+        time.sleep(delay)
+
     def record_challenge(self) -> None:
         self.challenges += 1
         if self.challenges >= self.max_challenges:

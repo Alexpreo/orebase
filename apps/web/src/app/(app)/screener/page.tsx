@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { MiniMap } from "@/components/intel/mini-map";
 import { ScreenerFilters } from "@/components/intel/screener-filters";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -44,6 +45,7 @@ export default async function ScreenerPage({
     filedSince: firstValue(params.filedSince),
   };
 
+  const view = firstValue(params.view);
   const clerkId = await resolveClerkId();
   const userId = await ensureUserId(clerkId);
   const [rows, facets, saved] = await Promise.all([
@@ -75,6 +77,17 @@ export default async function ScreenerPage({
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {view === "map" ? (
+            <MiniMap
+              points={rows.map((row) => ({
+                id: row.id,
+                name: row.name,
+                lat: row.lat,
+                lng: row.lng,
+                href: `/projects/${row.id}`,
+              }))}
+            />
+          ) : (
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
@@ -131,6 +144,7 @@ export default async function ScreenerPage({
               </TableBody>
             </Table>
           </div>
+          )}
         </CardContent>
       </Card>
     </div>

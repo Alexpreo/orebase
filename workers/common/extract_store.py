@@ -164,7 +164,10 @@ def insert_project_event(
         cur.execute(
             """
             INSERT INTO core.project_events (project_id, document_id, event_type, event_date, summary)
-            VALUES (%s, %s, %s, %s, %s);
+            VALUES (%s, %s, %s, %s, %s)
+            ON CONFLICT (project_id, document_id, event_type)
+            WHERE document_id IS NOT NULL
+            DO NOTHING;
             """,
             (project_id, document_id, event_type, event_date, summary[:1000]),
         )

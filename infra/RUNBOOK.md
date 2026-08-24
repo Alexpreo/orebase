@@ -9,9 +9,11 @@ from `workers/` is enough).
 1. Ubuntu 24.04, 20 GB gp3 EBS, security group: SSH from your IP only.
 2. Install Docker + Compose plugin.
 3. Clone the repo to `/opt/orebase`.
-4. Put secrets in SSM (`/orebase/DATABASE_URL`, `/orebase/S3_BUCKET`, …) or a
-   root-owned `/opt/orebase/workers/.env` that is never copied off the box.
-5. `make deploy` from `infra/` (or `docker compose up -d --build`).
+4. Put secrets in SSM under `/orebase/` (`DATABASE_URL`, `S3_BUCKET`, …) and set
+   `SSM_PREFIX=/orebase` for compose, or a root-owned `/opt/orebase/workers/.env`
+   that is never copied off the box.
+5. `make deploy` from `infra/` (compose + CloudWatch Logs overlay). Local
+   `make up` skips the overlay.
 
 ## Headful Radware solve (SEDAR+)
 
@@ -40,21 +42,23 @@ service env, attach with VNC, solve once, unset headful.
 `healthcheck` publishes `OreBase/DocumentsLast24h` per source every hour.
 Terraform creates CloudWatch alarms that fire when that metric is `< 1` for
 24 hours (missing data counts as breaching). Confirm the SNS topic in
-`terraform.tfvars` before apply.
+`terraform.tfvars` before apply. Keep `enable_sedar_alarm = false` until the
+first SEDAR document exists; set `SEDAR_CHALLENGE_SNS_ARN` to the ingest topic
+ARN so Radware pauses page the same inbox.
 
-A source that is intentionally idle (SEDAR+ before the first alert) will page
-until it has ingested at least one document. Disable that alarm until
-incremental is live.
+Use the topic ARN from `terraform output ingest_alarm_topic_arn`.
 
 ## Clerk (production web)
 
-Local web runs without Clerk. Any public Vercel deploy **must** set
-`NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and `CLERK_SECRET_KEY`. `apps/web/src/proxy.ts`
-refuses to skip auth when `NODE_ENV=production`.
+Create a Clerk application (email + Google). Local web runs without keys.
+Any public Vercel deploy **must** set `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and
+`CLERK_SECRET_KEY`. `apps/web/src/proxy.ts` refuses to skip auth when
+`NODE_ENV=production`.
 
 ## Canadian NI 43-101s (no search)
 
-SEDAR+ search is WAF-blocked from the box. Copy PDFs onto the host and ingest:
+SEDAR+ search is WAF-blocked from the box until a headed profile exists. Copy
+PDFs onto the host and ingest:
 
 ```bash
 cd /opt/orebase/workers
@@ -69,16 +73,31 @@ sedarplus.ca download URLs do not.
 
 Point Resend inbound (or SEDAR+ alert forwarding) at:
 
-`POST https://<web-host>/api/ingest/sedar-alert`
+`POST https://<web-host>/api/ingest/sedar-alert?secret=$SEDAR_ALERT_WEBHOOK_SECRET`
 
-Header: `x-orebase-secret: $SEDAR_ALERT_WEBHOOK_SECRET`
+Header alternative: `x-orebase-secret: $SEDAR_ALERT_WEBHOOK_SECRET`
 
-JSON body: `{ "subject", "text", "html" }`.
+Accepts `{ "subject", "text", "html" }` or Resend's `{ "data": { "subject", "text", "html" } }` envelope.
+
+Set worker `RESEND_API_KEY` and `ALERT_FROM_EMAIL` for outbound watchlist mail.
 
 Alternatively run `uvicorn sedar.alerts_ingester:app` on the box / Lambda.
+
+## Geo (MinFile / USGS)
+
+Download the CSVs, then from `workers/`:
+
+```bash
+uv run python -m geo.load --source minfile --file ~/data/minfile.csv
+uv run python -m geo.load --source usgs --file ~/data/mrds.csv
+uv run python -m geo.load --match
+```
+
+Confirmed matches write `core.projects.lat/lng`. Unmatched rows stay on `/admin/review`.
 
 ## What this compose does not run
 
 - `python -m sedar.backfill --confirm-backfill` — historical NI 43-101 slices
 - Full EDGAR SK-1300 harvest since 2021 (`edgar_poller.py --date-from 2021-06-01`
-  with a high `--limit`) — wait until review stays empty
+  with a high `--limit`) — wait until review stays empty. Do not change the
+  15-minute compose loop to that range.

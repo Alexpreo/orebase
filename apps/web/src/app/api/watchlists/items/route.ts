@@ -29,10 +29,23 @@ export async function POST(request: Request) {
     const clerkId = await resolveClerkId();
     const userId = await ensureUserId(clerkId);
     const watchlist = await ensureDefaultWatchlist(userId);
-    await sql`
-      INSERT INTO app.watchlist_items (watchlist_id, project_id, company_id)
-      VALUES (${watchlist.id}, ${projectId}, ${companyId})
-    `;
+    const existing = projectId
+      ? await sql<{ id: string }[]>`
+          SELECT id FROM app.watchlist_items
+           WHERE watchlist_id = ${watchlist.id} AND project_id = ${projectId}
+           LIMIT 1
+        `
+      : await sql<{ id: string }[]>`
+          SELECT id FROM app.watchlist_items
+           WHERE watchlist_id = ${watchlist.id} AND company_id = ${companyId}
+           LIMIT 1
+        `;
+    if (!existing[0]) {
+      await sql`
+        INSERT INTO app.watchlist_items (watchlist_id, project_id, company_id)
+        VALUES (${watchlist.id}, ${projectId}, ${companyId})
+      `;
+    }
     return NextResponse.json({ ok: true, watchlistId: watchlist.id });
   } catch {
     return NextResponse.json({ error: "Could not add watchlist item." }, { status: 500 });

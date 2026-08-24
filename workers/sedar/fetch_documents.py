@@ -16,7 +16,7 @@ from common.db import (
     enqueue_job,
     insert_document,
 )
-from common.metrics import put_documents_ingested
+from common.metrics import notify_challenge, put_documents_ingested
 from common.s3 import PDF_CONTENT_TYPE, upload_object
 
 from .ratelimit import ChallengeDetected, CircuitOpen
@@ -212,6 +212,7 @@ def drain(*, headful: bool, limit: int) -> dict[str, int]:
             try:
                 result = process_one(sess, row)
             except (ChallengeDetected, CircuitOpen) as exc:
+                notify_challenge(str(exc))
                 logger.error("SEDAR session stopped: %s", exc)
                 break
             counts[result] = counts.get(result, 0) + 1

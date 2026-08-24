@@ -7,6 +7,7 @@ and written to app.extraction_costs so the daily/monthly caps have a ledger to s
 from __future__ import annotations
 
 import logging
+import time
 from decimal import Decimal
 from typing import Any, Optional
 
@@ -25,7 +26,10 @@ _RATES: dict[str, tuple[Decimal, Decimal]] = {
 }
 _CACHE_READ_MULT = Decimal("0.10")
 _CACHE_WRITE_MULT = Decimal("1.25")
+_BATCH_MULT = Decimal("0.50")
 _MILLION = Decimal("1000000")
+BATCH_POLL_SECONDS = 20
+BATCH_TIMEOUT_SECONDS = 3600
 
 DEFAULT_MAX_TOKENS = 8192
 
@@ -44,12 +48,15 @@ def estimate_cost_usd(model: str, input_tokens: int, output_tokens: int = 0) -> 
     ) / _MILLION
 
 
-def cost_from_usage(model: str, usage: Any) -> tuple[int, int, int, int, Decimal]:
+def cost_from_usage(model: str, usage: Any, *, batch: bool = False) -> tuple[int, int, int, int, Decimal]:
     input_tokens = int(getattr(usage, "input_tokens", 0) or 0)
     output_tokens = int(getattr(usage, "output_tokens", 0) or 0)
     cache_read = int(getattr(usage, "cache_read_input_tokens", 0) or 0)
     cache_write = int(getattr(usage, "cache_creation_input_tokens", 0) or 0)
     input_rate, output_rate = _RATES[_tier(model)]
+    if batch:
+        input_rate *= _BATCH_MULT
+        output_rate *= _BATCH_MULT
     cost = (
         Decimal(input_tokens) * input_rate
         + Decimal(cache_write) * input_rate * _CACHE_WRITE_MULT
@@ -80,6 +87,7 @@ def complete_tool(
     document_id: Optional[str] = None,
     max_tokens: int = DEFAULT_MAX_TOKENS,
     dry_run: bool = False,
+    use_batch: bool = False,
 ) -> dict[str, Any]:
     """Call Claude forced onto one tool. Returns the tool input dict (possibly empty).
 
@@ -100,26 +108,32 @@ def complete_tool(
     if cached_tools:
         cached_tools[-1] = {**cached_tools[-1], "cache_control": {"type": "ephemeral"}}
 
+    system_block = [
+        {
+            "type": "text",
+            "text": system,
+            "cache_control": {"type": "ephemeral"},
+        }
+    ]
+    params: dict[str, Any] = {
+        "model": model,
+        "max_tokens": max_tokens,
+        "system": system_block,
+        "tools": cached_tools,
+        "tool_choice": {"type": "tool", "name": tool_choice},
+        "messages": [{"role": "user", "content": user}],
+    }
+
     try:
-        response = _client().messages.create(
-            model=model,
-            max_tokens=max_tokens,
-            system=[
-                {
-                    "type": "text",
-                    "text": system,
-                    "cache_control": {"type": "ephemeral"},
-                }
-            ],
-            tools=cached_tools,
-            tool_choice={"type": "tool", "name": tool_choice},
-            messages=[{"role": "user", "content": user}],
-        )
+        if use_batch:
+            response = _complete_via_batch(params)
+        else:
+            response = _client().messages.create(**params)
     except anthropic.APIStatusError as exc:
         raise ClaudeUnavailable(str(exc)) from exc
 
     input_tokens, output_tokens, cache_read, cache_write, cost = cost_from_usage(
-        model, response.usage
+        model, response.usage, batch=use_batch
     )
     insert_extraction_cost(
         document_id=document_id,
@@ -143,3 +157,29 @@ def complete_tool(
             payload = block.input
             return payload if isinstance(payload, dict) else {}
     return {}
+
+
+def _complete_via_batch(params: dict[str, Any]) -> Any:
+    """Submit a one-request Message Batch and wait for the result (50% list price)."""
+    client = _client()
+    batch = client.messages.batches.create(
+        requests=[{"custom_id": "extract", "params": params}]
+    )
+    deadline = time.monotonic() + BATCH_TIMEOUT_SECONDS
+    while time.monotonic() < deadline:
+        current = client.messages.batches.retrieve(batch.id)
+        status = getattr(current, "processing_status", None)
+        if status in {"ended", "canceled", "expired"}:
+            break
+        time.sleep(BATCH_POLL_SECONDS)
+    else:
+        raise ClaudeUnavailable(f"batch {batch.id} timed out")
+    for item in client.messages.batches.results(batch.id):
+        result = getattr(item, "result", None)
+        if result is None:
+            continue
+        result_type = getattr(result, "type", None)
+        if result_type == "succeeded":
+            return result.message
+        raise ClaudeUnavailable(f"batch item failed: {result_type}")
+    raise ClaudeUnavailable(f"batch {batch.id} returned no results")

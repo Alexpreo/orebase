@@ -63,7 +63,7 @@ def upsert_company(
     name: str,
     cik: Optional[str],
     ticker: Optional[str],
-) -> str:
+) -> Optional[str]:
     with connection() as conn, conn.cursor() as cur:
         if cik:
             cur.execute("SELECT id FROM core.companies WHERE cik = %s LIMIT 1;", (cik,))
@@ -98,7 +98,8 @@ def upsert_company(
                 )
             return company_id
         if len(matches) > 1:
-            raise RuntimeError(f"ambiguous company name {name!r}; not creating a duplicate")
+            logger.warning("ambiguous company name %r; leaving unlinked", name)
+            return None
         cur.execute(
             """
             INSERT INTO core.companies (name, cik, tickers)
@@ -198,6 +199,9 @@ def resolve_document(doc: dict[str, Any], triage: TriageResult) -> tuple[Optiona
     ticker = triage.ticker or title_ticker
     company_id = upsert_company(name=name, cik=cik, ticker=ticker)
     project_id = None
+    if not company_id:
+        update_document_entities(str(doc["id"]), summary=triage.summary[:500])
+        return None, None
     if triage.project_name:
         project_id = upsert_project(
             company_id=company_id,

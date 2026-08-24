@@ -29,6 +29,8 @@ export type ProjectSummary = {
   region: string | null;
   commodities: string[] | null;
   stage: string | null;
+  lat: number | string | null;
+  lng: number | string | null;
 };
 
 export type ResourceRow = {
@@ -150,6 +152,18 @@ export type ReviewItem = {
   label: string;
   payload: Record<string, unknown>;
   attention: boolean;
+};
+
+export type GeoOccurrence = {
+  id: string;
+  source: string;
+  external_id: string;
+  name: string;
+  country: string | null;
+  region: string | null;
+  lat: number | string;
+  lng: number | string;
+  commodities: string[] | null;
 };
 
 export type WatchlistRecord = {

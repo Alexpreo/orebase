@@ -4,7 +4,11 @@ Ingestion engine + structured intelligence database + AI chat/research UI for mi
 
 Source of truth for scope and architecture: [mining-intel-platform-build-plan.md](mining-intel-platform-build-plan.md).
 
-This repo currently implements **Phases 0–3** plus **Phase 4 incremental ingest** (SEDAR+ session, issuer load, alert webhook, nightly sweep, newswire RSS, email alerts, EC2 compose + silent-death alarm). Historical SEDAR/EDGAR backfill is gated and not started. The map still waits on MinFile/USGS.
+This repo implements **Phases 0–3** and **Phase 4 close-out**: two-tier extraction,
+SEDAR+ incremental (headed session required), newswires, email alerts, EC2 compose
+with SSM/CloudWatch, MinFile/USGS geo loaders, and a screener map. Historical SEDAR
+backfill stays gated (`--confirm-backfill`). Working plan:
+[docs/phase-4-plan.md](docs/phase-4-plan.md).
 
 ## Monorepo layout
 
@@ -36,8 +40,9 @@ Accounts/keys required (see each package's `.env.example`): Neon, AWS (S3 + Text
 4. Workers: `cd workers && uv sync`, then `uv run python edgar_poller.py` / `uv run python processor.py` / `uv run python extractor.py --once`
 5. Canadian NI 43-101s: download the PDF in Chrome, then  
    `cd workers && uv run python -m sedar.ingest_local --file ~/Downloads/report.pdf --issuer "…" --filed-at YYYY-MM-DD`  
-   (or upload on `/admin`). Automated SEDAR+ search is blocked until a headed session works; see `workers/sedar/NOTES.md`.
-6. EC2 bot: see [infra/RUNBOOK.md](infra/RUNBOOK.md)
+   (or upload on `/admin`). Automated search needs a headed session and
+   `SEDAR_JSON_SEARCH_URL` from DevTools; see `workers/sedar/NOTES.md`.
+6. EC2 bot: see [infra/RUNBOOK.md](infra/RUNBOOK.md). Geo: `uv run python -m geo.load --source minfile --file …` then `--match`.
 
 Production web **requires** Clerk keys. Historical backfill is `uv run python -m sedar.backfill --confirm-backfill --slice ni43101_2024_present` and is not run automatically.
 

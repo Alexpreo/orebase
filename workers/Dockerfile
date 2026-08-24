@@ -27,5 +27,9 @@ RUN uv sync --frozen
 # browser is a runtime dependency of the poller, not just the later SEDAR+ workers.
 RUN uv run playwright install --with-deps chromium
 
+COPY entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+ENTRYPOINT ["/app/entrypoint.sh"]
+
 # Default target is overridden per service in docker-compose (edgar_poller / processor / ...).
 CMD ["uv", "run", "python", "processor.py"]

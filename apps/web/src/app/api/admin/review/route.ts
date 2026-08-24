@@ -5,7 +5,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const KINDS = ["resource", "economics", "drill"] as const;
-const ACTIONS = ["approve", "reject", "edit", "approve_confident"] as const;
+const ACTIONS = ["approve", "reject", "edit", "approve_confident", "link"] as const;
 
 const TABLES = {
   resource: "core.resource_estimates",
@@ -64,7 +64,7 @@ export async function POST(request: Request) {
   if (!action) {
     return NextResponse.json({ error: "action is required." }, { status: 400 });
   }
-  if (action !== "approve_confident" && (!kind || !id)) {
+  if (action !== "approve_confident" && action !== "link" && (!kind || !id)) {
     return NextResponse.json({ error: "kind, id, and action are required." }, { status: 400 });
   }
 
@@ -74,6 +74,103 @@ export async function POST(request: Request) {
   }
 
   try {
+    if (action === "link") {
+      const documentId =
+        typeof (record as { documentId?: unknown }).documentId === "string"
+          ? (record as { documentId: string }).documentId
+          : "";
+      const companyName =
+        typeof (record as { companyName?: unknown }).companyName === "string"
+          ? (record as { companyName: string }).companyName.trim()
+          : "";
+      const projectName =
+        typeof (record as { projectName?: unknown }).projectName === "string"
+          ? (record as { projectName: string }).projectName.trim()
+          : "";
+      const sedarProfile =
+        typeof (record as { sedarProfile?: unknown }).sedarProfile === "string"
+          ? (record as { sedarProfile: string }).sedarProfile.trim()
+          : "";
+      const companyIdIn =
+        typeof (record as { companyId?: unknown }).companyId === "string"
+          ? (record as { companyId: string }).companyId
+          : "";
+      const projectIdIn =
+        typeof (record as { projectId?: unknown }).projectId === "string"
+          ? (record as { projectId: string }).projectId
+          : "";
+      if (!documentId || (!companyIdIn && !companyName) || (!projectIdIn && !projectName)) {
+        return NextResponse.json(
+          { error: "documentId, company, and project are required." },
+          { status: 400 },
+        );
+      }
+
+      let companyId = companyIdIn;
+      if (!companyId) {
+        const existing = await sql<{ id: string }[]>`
+          SELECT id FROM core.companies WHERE lower(name) = lower(${companyName}) LIMIT 2
+        `;
+        if (existing.length > 1) {
+          return NextResponse.json(
+            { error: "Ambiguous company name; pick an existing id." },
+            { status: 409 },
+          );
+        }
+        if (existing[0]) {
+          companyId = existing[0].id;
+        } else {
+          const created = await sql<{ id: string }[]>`
+            INSERT INTO core.companies (name, sedar_profile)
+            VALUES (${companyName}, ${sedarProfile || null})
+            RETURNING id
+          `;
+          companyId = created[0]?.id ?? "";
+        }
+      }
+      if (sedarProfile) {
+        await sql`
+          UPDATE core.companies
+             SET sedar_profile = COALESCE(sedar_profile, ${sedarProfile})
+           WHERE id = ${companyId}
+        `;
+        await sql`
+          UPDATE sedar.sedar_issuers
+             SET company_id = ${companyId}
+           WHERE profile_number = ${sedarProfile}
+        `;
+      }
+
+      let projectId = projectIdIn;
+      if (!projectId) {
+        const existingProject = await sql<{ id: string }[]>`
+          SELECT id FROM core.projects
+           WHERE company_id = ${companyId} AND lower(name) = lower(${projectName})
+           LIMIT 1
+        `;
+        if (existingProject[0]) {
+          projectId = existingProject[0].id;
+        } else {
+          const createdProject = await sql<{ id: string }[]>`
+            INSERT INTO core.projects (company_id, name)
+            VALUES (${companyId}, ${projectName})
+            RETURNING id
+          `;
+          projectId = createdProject[0]?.id ?? "";
+        }
+      }
+
+      await sql`
+        UPDATE raw.documents
+           SET company_id = ${companyId}, project_id = ${projectId}
+         WHERE id = ${documentId}
+      `;
+      if (process.env.NODE_ENV !== "production") {
+        console.debug("[admin/review] link", { documentId, companyId, projectId });
+      }
+      return NextResponse.json({ ok: true, companyId, projectId });
+    }
+
     if (action === "approve_confident") {
       const min =
         typeof (record as { min_confidence?: unknown }).min_confidence === "number"
