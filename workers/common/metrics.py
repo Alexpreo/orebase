@@ -52,6 +52,24 @@ def documents_in_last_hours(source: str, hours: int = 24) -> int:
         return int(row["n"]) if row else 0
 
 
+def notify_challenge(message: str) -> None:
+    """Page operators when Radware stops a SEDAR run. No-op without SNS ARN."""
+    arn = settings.sedar_challenge_sns_arn
+    logger.error("SEDAR challenge: %s", message)
+    if not arn:
+        return
+    try:
+        import boto3
+
+        boto3.client("sns", region_name=settings.aws_region).publish(
+            TopicArn=arn,
+            Subject="OreBase SEDAR+ challenge — headful solve needed",
+            Message=message[:4000],
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("challenge SNS publish failed: %s", exc)
+
+
 def emit_freshness(source: str) -> int:
     """Publish DocumentsLast24h for CloudWatch alarms. Returns the count."""
     count = documents_in_last_hours(source, 24)

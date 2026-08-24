@@ -82,6 +82,25 @@ data "aws_iam_policy_document" "workers" {
       values   = ["OreBase"]
     }
   }
+
+  statement {
+    sid = "SSMReadOreBase"
+    actions = [
+      "ssm:GetParameter",
+      "ssm:GetParameters",
+      "ssm:GetParametersByPath",
+    ]
+    resources = [
+      "arn:aws:ssm:${var.aws_region}:*:parameter/orebase",
+      "arn:aws:ssm:${var.aws_region}:*:parameter/orebase/*",
+    ]
+  }
+
+  statement {
+    sid       = "SNSChallengeAndAlarms"
+    actions   = ["sns:Publish"]
+    resources = [aws_sns_topic.ingest_alarms.arn]
+  }
 }
 
 resource "aws_iam_user_policy" "workers" {
@@ -102,7 +121,7 @@ resource "aws_sns_topic_subscription" "ingest_email" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "source_silent" {
-  for_each = toset(["edgar", "sedar", "newswire"])
+  for_each = toset(var.enable_sedar_alarm ? ["edgar", "sedar", "newswire"] : ["edgar", "newswire"])
 
   alarm_name          = "orebase-${each.key}-silent-24h"
   alarm_description   = "No new raw.documents from ${each.key} in 24h. Bots fail silently; this is the silent-death page."

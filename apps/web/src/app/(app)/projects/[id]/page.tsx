@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ExtractButton } from "@/components/admin/extract-button";
 import { EconomicsTable } from "@/components/intel/economics-table";
+import { MiniMap } from "@/components/intel/mini-map";
 import { EventFeed } from "@/components/intel/event-feed";
 import { ResourceTable } from "@/components/intel/resource-table";
 import { WatchButton } from "@/components/intel/watch-button";
@@ -61,8 +63,22 @@ export default async function ProjectDetailPage({
             ))}
           </div>
         </div>
-        <WatchButton projectId={id} />
+        <div className="flex flex-wrap items-center gap-2">
+          <ExtractButton projectId={id} />
+          <WatchButton projectId={id} />
+        </div>
       </div>
+
+      <MiniMap
+        points={[
+          {
+            id: project.id,
+            name: project.name,
+            lat: project.lat,
+            lng: project.lng,
+          },
+        ]}
+      />
 
       <Card>
         <CardHeader>

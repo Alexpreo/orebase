@@ -32,6 +32,7 @@ function statusVariant(
       return "destructive";
     case "extracted":
     case "indexed":
+    case "triaged":
       return "default";
     case "parsed":
       return "secondary";

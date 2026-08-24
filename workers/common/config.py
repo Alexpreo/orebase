@@ -42,6 +42,9 @@ class Settings(BaseSettings):
     extraction_monthly_cap_usd: float = Field(
         default=50.0, alias="EXTRACTION_MONTHLY_CAP_USD"
     )
+    # Full numeric extract auto-runs for watchlisted entities and filings newer than this.
+    extract_auto_months: int = Field(default=18, alias="EXTRACT_AUTO_MONTHS")
+    extract_use_batch: bool = Field(default=False, alias="EXTRACT_USE_BATCH")
 
     # SEC requires a declared User-Agent that identifies the app and a contact email.
     edgar_user_agent: str = Field(
@@ -56,6 +59,12 @@ class Settings(BaseSettings):
         alias="SEDAR_SEARCH_URL",
     )
     sedar_alert_webhook_secret: str = Field(default="", alias="SEDAR_ALERT_WEBHOOK_SECRET")
+    sedar_json_search_url: str = Field(default="", alias="SEDAR_JSON_SEARCH_URL")
+    sedar_json_search_method: str = Field(default="POST", alias="SEDAR_JSON_SEARCH_METHOD")
+    sedar_json_search_body: str = Field(default="", alias="SEDAR_JSON_SEARCH_BODY")
+    sedar_page_size: int = Field(default=30, alias="SEDAR_PAGE_SIZE")
+    sedar_challenge_sns_arn: str = Field(default="", alias="SEDAR_CHALLENGE_SNS_ARN")
+    ssm_prefix: str = Field(default="", alias="SSM_PREFIX")
 
     resend_api_key: str = Field(default="", alias="RESEND_API_KEY")
     alert_from_email: str = Field(default="", alias="ALERT_FROM_EMAIL")

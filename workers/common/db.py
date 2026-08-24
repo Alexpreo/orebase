@@ -33,8 +33,9 @@ def get_pool() -> ConnectionPool:
             raise RuntimeError("DATABASE_URL is not set; cannot open a connection pool.")
         _pool = ConnectionPool(
             conninfo=settings.database_url,
-            min_size=1,
+            min_size=0,
             max_size=10,
+            check=ConnectionPool.check_connection,
             kwargs={"row_factory": dict_row, "options": f"-c search_path={_SEARCH_PATH}"},
             open=True,
         )
@@ -54,7 +55,10 @@ def claim_job(job_type: str = "parse") -> Optional[dict[str, Any]]:
 
     SELECT ... FOR UPDATE SKIP LOCKED lets multiple processor instances pull disjoint
     jobs concurrently without blocking each other or double-processing a row.
+    Extract jobs prefer explicit full_extract, then watchlisted filings, then newest.
     """
+    if job_type in {"extract", "full_extract"}:
+        return _claim_extract_job()
     with connection() as conn, conn.cursor() as cur:
         cur.execute(
             """
@@ -76,6 +80,59 @@ def claim_job(job_type: str = "parse") -> Optional[dict[str, Any]]:
             (job_type,),
         )
         return cur.fetchone()
+
+
+def _claim_extract_job() -> Optional[dict[str, Any]]:
+    with connection() as conn, conn.cursor() as cur:
+        cur.execute(
+            """
+            UPDATE raw.processing_jobs AS j
+               SET status = 'running',
+                   attempts = j.attempts + 1,
+                   updated_at = now()
+             WHERE j.id = (
+                 SELECT j2.id
+                   FROM raw.processing_jobs j2
+                   JOIN raw.documents d ON d.id = j2.document_id
+                  WHERE j2.status = 'pending'
+                    AND j2.job_type IN ('extract', 'full_extract')
+                  ORDER BY
+                    (j2.job_type = 'full_extract') DESC,
+                    EXISTS (
+                        SELECT 1
+                          FROM app.watchlist_items wi
+                         WHERE wi.project_id = d.project_id
+                            OR wi.company_id = d.company_id
+                    ) DESC,
+                    d.filed_at DESC NULLS LAST,
+                    j2.created_at
+                  FOR UPDATE OF j2 SKIP LOCKED
+                  LIMIT 1
+             )
+         RETURNING j.id, j.document_id, j.job_type, j.status, j.attempts, j.last_error;
+            """
+        )
+        return cur.fetchone()
+
+
+def document_on_watchlist(document_id: str) -> bool:
+    with connection() as conn, conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT 1
+              FROM raw.documents d
+             WHERE d.id = %s
+               AND EXISTS (
+                    SELECT 1
+                      FROM app.watchlist_items wi
+                     WHERE wi.project_id = d.project_id
+                        OR wi.company_id = d.company_id
+               )
+             LIMIT 1;
+            """,
+            (document_id,),
+        )
+        return cur.fetchone() is not None
 
 
 def complete_job(job_id: str, status: str = "done", last_error: Optional[str] = None) -> None:
@@ -296,18 +353,24 @@ def enqueue_job_if_absent(document_id: str, job_type: str) -> Optional[str]:
 
 
 def list_pending_jobs(job_type: str) -> list[dict[str, Any]]:
+    types = ("extract", "full_extract") if job_type == "extract" else (job_type,)
     with connection() as conn, conn.cursor() as cur:
         cur.execute(
             """
             SELECT id, document_id, job_type, status, attempts, last_error
               FROM raw.processing_jobs
              WHERE status = 'pending'
-               AND job_type = %s
+               AND job_type = ANY(%s)
              ORDER BY created_at;
             """,
-            (job_type,),
+            (list(types),),
         )
         return list(cur.fetchall())
+
+
+def enqueue_full_extract(document_id: str) -> Optional[str]:
+    """Queue a forced numeric extract even if a triage extract job already completed."""
+    return enqueue_job_if_absent(document_id, "full_extract")
 
 
 def enqueue_extract_for_indexed() -> int:

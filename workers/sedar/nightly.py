@@ -12,7 +12,7 @@ from .session import session
 
 logger = logging.getLogger(__name__)
 
-TARGET_TYPES = ("NI 43-101",)
+TARGET_TYPES = ("NI 43-101", "Material change", "News release")
 
 
 def run_nightly(*, headful: bool, day: date) -> dict[str, int]:

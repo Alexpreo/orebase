@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ExternalLink } from "lucide-react";
+import { ExtractButton } from "@/components/admin/extract-button";
 import { PdfViewer } from "@/components/documents/pdf-viewer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -53,19 +54,22 @@ export default async function DocumentPage({ params, searchParams }: DocumentPag
           </div>
         </div>
 
-        {document.source_url ? (
-          <Button
-            variant="outline"
-            size="sm"
-            nativeButton={false}
-            render={
-              <a href={document.source_url} target="_blank" rel="noreferrer noopener" />
-            }
-          >
-            <ExternalLink className="size-4" />
-            View original filing
-          </Button>
-        ) : null}
+        <div className="flex flex-wrap items-start gap-2">
+          {document.source_url ? (
+            <Button
+              variant="outline"
+              size="sm"
+              nativeButton={false}
+              render={
+                <a href={document.source_url} target="_blank" rel="noreferrer noopener" />
+              }
+            >
+              <ExternalLink className="size-4" />
+              View original filing
+            </Button>
+          ) : null}
+          <ExtractButton documentId={document.id} />
+        </div>
       </div>
 
       {document.render_engine ? (

@@ -83,7 +83,7 @@ def link_mining_issuers() -> int:
     with connection() as conn, conn.cursor() as cur:
         cur.execute(
             """
-            SELECT i.id, i.name
+            SELECT i.id, i.name, i.profile_number
               FROM sedar.sedar_issuers i
              WHERE i.active
                AND i.company_id IS NULL;
@@ -102,12 +102,49 @@ def link_mining_issuers() -> int:
             matches = cur.fetchall()
             if len(matches) != 1:
                 continue
+            company_id = matches[0]["id"]
             cur.execute(
                 "UPDATE sedar.sedar_issuers SET company_id = %s WHERE id = %s;",
-                (matches[0]["id"], issuer["id"]),
+                (company_id, issuer["id"]),
+            )
+            cur.execute(
+                """
+                UPDATE core.companies
+                   SET sedar_profile = COALESCE(sedar_profile, %s)
+                 WHERE id = %s;
+                """,
+                (issuer.get("profile_number"), company_id),
             )
             linked += 1
     return linked
+
+
+def ambiguous_issuer_report() -> list[dict[str, str]]:
+    """Issuers that match zero or multiple core.companies by exact name."""
+    rows: list[dict[str, str]] = []
+    with connection() as conn, conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT i.profile_number, i.name,
+                   (SELECT count(*) FROM core.companies c WHERE lower(c.name) = lower(i.name)) AS matches
+              FROM sedar.sedar_issuers i
+             WHERE i.active AND i.company_id IS NULL
+             ORDER BY i.name;
+            """
+        )
+        for row in cur.fetchall():
+            matches = int(row["matches"] or 0)
+            if matches == 1:
+                continue
+            rows.append(
+                {
+                    "profile_number": row["profile_number"] or "",
+                    "name": row["name"] or "",
+                    "matches": str(matches),
+                    "reason": "none" if matches == 0 else "ambiguous",
+                }
+            )
+    return rows
 
 
 def ingest_rows(rows: list[dict[str, str]], watchlist: set[str], mark_mining: bool) -> dict[str, int]:
@@ -168,6 +205,7 @@ def main() -> None:
     parser.add_argument("--csv", type=Path, help="Local Reporting Issuers List export")
     parser.add_argument("--watchlist", type=Path, help="CSV of names/tickers to force-mark mining")
     parser.add_argument("--mark-mining", action="store_true", help="set active only on mining-like issuers")
+    parser.add_argument("--report", type=Path, help="Write unmatched/ambiguous issuer CSV here")
     parser.add_argument("--headful", action="store_true")
     args = parser.parse_args()
     watchlist = _load_watchlist(args.watchlist)
@@ -181,7 +219,16 @@ def main() -> None:
         rows = parse_csv_bytes(data)
     counts = ingest_rows(rows, watchlist, args.mark_mining)
     linked = link_mining_issuers()
-    logger.info("issuers upserted=%s mining=%s skipped=%s linked=%s", counts["upserted"], counts["mining"], counts["skipped"], linked)
+    ambiguous = ambiguous_issuer_report()
+    if args.report:
+        with args.report.open("w", encoding="utf-8", newline="") as handle:
+            writer = csv.DictWriter(handle, fieldnames=["profile_number", "name", "matches", "reason"])
+            writer.writeheader()
+            writer.writerows(ambiguous)
+    logger.info(
+        "issuers upserted=%s mining=%s skipped=%s linked=%s unmatched_or_ambiguous=%s",
+        counts["upserted"], counts["mining"], counts["skipped"], linked, len(ambiguous),
+    )
 
 
 if __name__ == "__main__":

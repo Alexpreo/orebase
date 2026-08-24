@@ -7,6 +7,7 @@ import type {
   EconomicsRow,
   EventRow,
   FilingRow,
+  GeoOccurrence,
   ProjectSummary,
   ResourceRow,
   ReviewItem,
@@ -65,7 +66,7 @@ export async function listCompanyProjects(companyId: string): Promise<ProjectSum
   if (!sql) return [];
   const rows = await sql<ProjectSummary[]>`
     SELECT p.id, p.company_id, c.name AS company_name, p.name, p.country, p.region,
-           p.commodities, p.stage
+           p.commodities, p.stage, p.lat, p.lng
     FROM core.projects p
     LEFT JOIN core.companies c ON c.id = p.company_id
     WHERE p.company_id = ${companyId}
@@ -95,7 +96,7 @@ export async function getProject(id: string): Promise<ProjectSummary | null> {
   if (!sql) return null;
   const rows = await sql<ProjectSummary[]>`
     SELECT p.id, p.company_id, c.name AS company_name, p.name, p.country, p.region,
-           p.commodities, p.stage
+           p.commodities, p.stage, p.lat, p.lng
     FROM core.projects p
     LEFT JOIN core.companies c ON c.id = p.company_id
     WHERE p.id = ${id}
@@ -176,7 +177,7 @@ export async function listScreener(filters: ScreenerFilters): Promise<ScreenerRo
     const rows = await sql<ScreenerRow[]>`
     SELECT
       p.id, p.company_id, c.name AS company_name, p.name, p.country, p.region,
-      p.commodities, p.stage,
+      p.commodities, p.stage, p.lat, p.lng,
       r.category AS resource_category, r.tonnes, r.grade,
       r.document_id AS resource_document_id, r.effective_date AS resource_date,
       e.study_type, e.irr_pct, e.capex_initial, e.npv, e.currency,
@@ -522,4 +523,21 @@ export async function screenerFacets(): Promise<{
     stages: stages.map((r) => r.stage),
     studyTypes: studyTypes.map((r) => r.study_type),
   };
+}
+
+export async function listUnmatchedOccurrences(): Promise<GeoOccurrence[]> {
+  const sql = getSql();
+  if (!sql) return [];
+  try {
+    const rows = await sql<GeoOccurrence[]>`
+      SELECT id, source, external_id, name, country, region, lat, lng, commodities
+        FROM core.geo_occurrences
+       WHERE project_id IS NULL
+       ORDER BY name
+       LIMIT 50
+    `;
+    return [...rows];
+  } catch {
+    return [];
+  }
 }

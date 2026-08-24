@@ -12,9 +12,45 @@ function extractUrl(blob: string): string | null {
   return (sedar ?? matches[0] ?? "").replace(/[).,]+$/, "") || null;
 }
 
+function flattenPayload(body: unknown): {
+  subject: string;
+  text: string;
+  html: string;
+  discovered: string;
+} {
+  const record = (body ?? {}) as Record<string, unknown>;
+  const nested =
+    record.data && typeof record.data === "object"
+      ? (record.data as Record<string, unknown>)
+      : record;
+  const subject =
+    typeof nested.subject === "string"
+      ? nested.subject
+      : typeof record.subject === "string"
+        ? record.subject
+        : "";
+  const text =
+    typeof nested.text === "string"
+      ? nested.text
+      : typeof record.text === "string"
+        ? record.text
+        : "";
+  const html =
+    typeof nested.html === "string"
+      ? nested.html
+      : typeof record.html === "string"
+        ? record.html
+        : "";
+  const discovered =
+    typeof record.discovered_via === "string" ? record.discovered_via : "email_alert";
+  return { subject, text, html, discovered };
+}
+
 export async function POST(request: Request) {
   const secret = process.env.SEDAR_ALERT_WEBHOOK_SECRET;
-  const provided = request.headers.get("x-orebase-secret");
+  const provided =
+    request.headers.get("x-orebase-secret") ??
+    new URL(request.url).searchParams.get("secret");
   if (secret && provided !== secret) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
@@ -25,17 +61,7 @@ export async function POST(request: Request) {
   } catch {
     return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
   }
-  const record = body as {
-    subject?: unknown;
-    text?: unknown;
-    html?: unknown;
-    discovered_via?: unknown;
-  };
-  const subject = typeof record.subject === "string" ? record.subject : "";
-  const text = typeof record.text === "string" ? record.text : "";
-  const html = typeof record.html === "string" ? record.html : "";
-  const discovered =
-    typeof record.discovered_via === "string" ? record.discovered_via : "email_alert";
+  const { subject, text, html, discovered } = flattenPayload(body);
   const url = extractUrl(`${subject}\n${text}\n${html}`);
   if (!url) {
     return NextResponse.json({ error: "no filing URL in payload" }, { status: 400 });

@@ -1,10 +1,11 @@
 .PHONY: deploy ssh logs up down build
 
 COMPOSE := docker compose -f docker-compose.yml
+COMPOSE_PROD := docker compose -f docker-compose.yml -f docker-compose.prod.yml
 EC2_HOST ?= ubuntu@orebase-ingest
 
 deploy:
-	$(COMPOSE) up -d --build
+	$(COMPOSE_PROD) up -d --build
 
 up:
 	$(COMPOSE) up -d

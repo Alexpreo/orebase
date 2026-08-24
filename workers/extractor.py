@@ -11,6 +11,7 @@ import argparse
 import hashlib
 import logging
 import time
+from datetime import date, timedelta
 from typing import Any, Optional
 
 from pydantic import ValidationError
@@ -23,6 +24,7 @@ from common.db import (
     claim_job,
     complete_job,
     connection,
+    document_on_watchlist,
     enqueue_extract_for_indexed,
     get_document,
     get_document_chunks,
@@ -86,6 +88,38 @@ ECONOMICS_HINTS = (
 )
 DRILL_HINTS = ("drilling", "drill hole", "intercept", "assay result")
 QP_HINTS = ("qualified person", "item 2", "certificate of qualified")
+DRILL_EVENT_HINTS = ("drill", "intercept", "assay", "metre of", "meter of", "m of")
+FINANCING_EVENT_HINTS = (
+    "financ",
+    "bought deal",
+    "private placement",
+    "offering",
+    "bought-deal",
+    "placement",
+)
+
+
+def classify_event_type(doc_type: Optional[str], title: Optional[str], summary: Optional[str]) -> str:
+    hay = f"{title or ''} {summary or ''}".lower()
+    kind = (doc_type or "").lower()
+    if kind in {"press_release", "mda"} or "press" in kind:
+        if any(hint in hay for hint in DRILL_EVENT_HINTS):
+            return "drill_results"
+        if any(hint in hay for hint in FINANCING_EVENT_HINTS):
+            return "financing"
+    return "new_report"
+
+
+def should_full_extract(doc: dict[str, Any], *, force: bool) -> bool:
+    if force:
+        return True
+    if document_on_watchlist(str(doc["id"])):
+        return True
+    filed = doc.get("filed_at")
+    if isinstance(filed, date):
+        cutoff = date.today() - timedelta(days=int(settings.extract_auto_months * 30.44))
+        return filed >= cutoff
+    return False
 
 
 def _fallback_triage(doc: dict[str, Any]) -> TriageResult:
@@ -217,6 +251,7 @@ def _call_rows(
     document_id: str,
     dry_run: bool,
     extra_user: str = "",
+    use_batch: bool = False,
 ) -> list:
     if not chunks and not extra_user:
         return []
@@ -233,6 +268,7 @@ def _call_rows(
             purpose=purpose,
             document_id=document_id,
             dry_run=dry_run,
+            use_batch=use_batch,
         )
     except ClaudeUnavailable as exc:
         logger.warning("Claude unavailable for %s on %s: %s", purpose, document_id, exc)
@@ -272,7 +308,13 @@ def triage_document(
         return _fallback_triage(doc), True
 
 
-def process_document(document_id: str, dry_run: bool = False) -> dict[str, Any]:
+def process_document(
+    document_id: str,
+    dry_run: bool = False,
+    *,
+    force_full: bool = False,
+    use_batch: bool = False,
+) -> dict[str, Any]:
     doc = get_document(document_id)
     if doc is None:
         raise RuntimeError(f"document {document_id} not found")
@@ -307,28 +349,36 @@ def process_document(document_id: str, dry_run: bool = False) -> dict[str, Any]:
 
     company_id, project_id = resolve_document(doc, triage)
     event_date = doc.get("filed_at")
-    if project_id:
-        insert_project_event(
-            project_id,
-            document_id,
-            "new_report",
-            event_date,
-            triage.summary,
-        )
-
     doc_type = (doc.get("doc_type") or triage.doc_type or "").lower()
+    event_type = classify_event_type(doc_type, doc.get("title"), triage.summary)
+
     if doc_type not in TECHNICAL_DOC_TYPES:
+        if project_id:
+            insert_project_event(
+                project_id, document_id, event_type, event_date, triage.summary
+            )
         set_document_status(document_id, "extracted")
         stats["reason"] = "not_technical_report"
+        stats["company_id"] = company_id
+        stats["project_id"] = project_id
         return stats
 
     if not project_id:
         logger.warning("document %s has no resolved project; skipping fact extract", document_id)
-        set_document_status(document_id, "extracted")
+        set_document_status(document_id, "triaged")
         stats["reason"] = "unresolved_project"
         return stats
 
+    if not should_full_extract(doc, force=force_full):
+        insert_project_event(project_id, document_id, event_type, event_date, triage.summary)
+        set_document_status(document_id, "triaged")
+        stats["reason"] = "deferred_full_extract"
+        stats["company_id"] = company_id
+        stats["project_id"] = project_id
+        return stats
+
     if _is_near_duplicate(document_id, project_id, chunks):
+        insert_project_event(project_id, document_id, event_type, event_date, triage.summary)
         set_document_status(document_id, "extracted")
         stats["skipped_dupe"] = True
         return stats
@@ -345,6 +395,7 @@ def process_document(document_id: str, dry_run: bool = False) -> dict[str, Any]:
 
     resources = list(html_resources)
     economics = list(html_economics)
+    batch_mode = use_batch or settings.extract_use_batch
     if not resources and claude_ok:
         resources = _call_rows(
             model=settings.extract_sonnet_model,
@@ -354,6 +405,7 @@ def process_document(document_id: str, dry_run: bool = False) -> dict[str, Any]:
             model_cls=ResourceEstimate,
             document_id=document_id,
             dry_run=False,
+            use_batch=batch_mode,
         )
     if not economics and claude_ok:
         econ_chunks = _select_chunks(chunks, ECONOMICS_HINTS)
@@ -366,6 +418,7 @@ def process_document(document_id: str, dry_run: bool = False) -> dict[str, Any]:
                 model_cls=ProjectEconomics,
                 document_id=document_id,
                 dry_run=False,
+                use_batch=batch_mode,
             )
     drill_chunks = _select_chunks(chunks, DRILL_HINTS)
     drills: list[DrillResult] = []
@@ -378,6 +431,7 @@ def process_document(document_id: str, dry_run: bool = False) -> dict[str, Any]:
             model_cls=DrillResult,
             document_id=document_id,
             dry_run=False,
+            use_batch=batch_mode,
         )[:MAX_DRILL_ROWS]
     qp_chunks = _select_chunks(chunks, QP_HINTS)
     qps: list[QualifiedPerson] = []
@@ -390,11 +444,11 @@ def process_document(document_id: str, dry_run: bool = False) -> dict[str, Any]:
             model_cls=QualifiedPerson,
             document_id=document_id,
             dry_run=False,
+            use_batch=batch_mode,
         )
 
     clear_document_facts(document_id)
-    # Re-insert the triage event after the fact wipe.
-    insert_project_event(project_id, document_id, "new_report", event_date, triage.summary)
+    insert_project_event(project_id, document_id, event_type, event_date, triage.summary)
     stats["resources"] = insert_resources(project_id, document_id, resources)
     stats["economics"] = insert_economics(project_id, document_id, economics)
     stats["drills"] = insert_drills(project_id, document_id, drills)
@@ -402,6 +456,10 @@ def process_document(document_id: str, dry_run: bool = False) -> dict[str, Any]:
     if stats["resources"]:
         insert_project_event(
             project_id, document_id, "resource_update", event_date, triage.summary
+        )
+    if stats["drills"]:
+        insert_project_event(
+            project_id, document_id, "drill_results", event_date, triage.summary
         )
     set_document_status(document_id, "extracted")
     stats["full_extract"] = True
@@ -412,13 +470,16 @@ def process_document(document_id: str, dry_run: bool = False) -> dict[str, Any]:
     return stats
 
 
-def _handle_job(job: dict[str, Any], dry_run: bool) -> None:
+def _handle_job(job: dict[str, Any], dry_run: bool, *, use_batch: bool = False) -> None:
     job_id = job["id"]
     document_id = str(job["document_id"])
+    force_full = job.get("job_type") == "full_extract"
     try:
         if not dry_run:
             assert_extraction_cap()
-        stats = process_document(document_id, dry_run=dry_run)
+        stats = process_document(
+            document_id, dry_run=dry_run, force_full=force_full, use_batch=use_batch
+        )
         if not dry_run:
             complete_job(job_id, status="done")
         logger.info("extract job %s doc=%s stats=%s", job_id, document_id, stats)
@@ -446,6 +507,7 @@ def run(
     document_id: Optional[str],
     backfill: bool,
     idle_sleep: float,
+    use_batch: bool = False,
 ) -> None:
     if backfill:
         n = enqueue_extract_for_indexed()
@@ -453,7 +515,9 @@ def run(
     if document_id:
         if not dry_run:
             assert_extraction_cap()
-        stats = process_document(document_id, dry_run=dry_run)
+        stats = process_document(
+            document_id, dry_run=dry_run, force_full=True, use_batch=use_batch
+        )
         logger.info("extract document %s stats=%s", document_id, stats)
         return
     if dry_run:
@@ -465,7 +529,7 @@ def run(
             if once:
                 break
         return
-    logger.info("extractor started (once=%s)", once)
+    logger.info("extractor started (once=%s batch=%s)", once, use_batch)
     while True:
         try:
             assert_extraction_cap()
@@ -481,7 +545,7 @@ def run(
                 break
             time.sleep(idle_sleep)
             continue
-        _handle_job(job, dry_run=False)
+        _handle_job(job, dry_run=False, use_batch=use_batch)
         if once:
             break
 
@@ -497,6 +561,11 @@ def main() -> None:
         help="enqueue extract jobs only for indexed documents that have never been extracted",
     )
     parser.add_argument("--idle-sleep", type=float, default=5.0)
+    parser.add_argument(
+        "--batch",
+        action="store_true",
+        help="use Anthropic Message Batches (50% off) for structured extract calls",
+    )
     args = parser.parse_args()
     run(
         once=args.once,
@@ -504,6 +573,7 @@ def main() -> None:
         document_id=args.document_id,
         backfill=args.backfill,
         idle_sleep=args.idle_sleep,
+        use_batch=args.batch,
     )
 
 

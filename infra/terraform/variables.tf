@@ -20,3 +20,9 @@ variable "alarm_email" {
   type        = string
   default     = ""
 }
+
+variable "enable_sedar_alarm" {
+  description = "Create the SEDAR silent-death alarm. Keep false until the first SEDAR document lands."
+  type        = bool
+  default     = false
+}

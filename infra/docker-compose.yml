@@ -17,6 +17,7 @@ x-worker-base: &worker-base
   restart: always
   environment:
     CLOUDWATCH_METRICS: "1"
+    SSM_PREFIX: ${SSM_PREFIX:-}
 
 services:
   edgar-poller:

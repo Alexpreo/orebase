@@ -2,3 +2,4 @@ aws_region    = "us-east-1"
 bucket_name   = "orebase-documents-CHANGE-ME"   # must be globally unique
 iam_user_name = "orebase-workers"
 alarm_email   = ""                              # SNS confirm mail for silent-death alarms
+enable_sedar_alarm = false                      # set true after the first SEDAR document
