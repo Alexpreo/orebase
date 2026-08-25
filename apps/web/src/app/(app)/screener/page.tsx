@@ -29,6 +29,28 @@ function firstValue(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;
 }
 
+function sortHref(
+  params: Record<string, string | string[] | undefined>,
+  key: string,
+  currentSort: string,
+  currentDir: string,
+): string {
+  const next = new URLSearchParams();
+  for (const [name, raw] of Object.entries(params)) {
+    const value = firstValue(raw);
+    if (value) next.set(name, value);
+  }
+  const dir = currentSort === key && currentDir === "desc" ? "asc" : "desc";
+  next.set("sort", key);
+  next.set("dir", dir);
+  return `/screener?${next.toString()}`;
+}
+
+function sortMark(key: string, currentSort: string, currentDir: string): string {
+  if (currentSort !== key) return "";
+  return currentDir === "asc" ? " ↑" : " ↓";
+}
+
 export default async function ScreenerPage({
   searchParams,
 }: {
@@ -43,9 +65,23 @@ export default async function ScreenerPage({
     minGradeKey: firstValue(params.minGradeKey),
     minGrade: firstValue(params.minGrade),
     filedSince: firstValue(params.filedSince),
+    sort: firstValue(params.sort) ?? "tonnes",
+    dir: firstValue(params.dir) ?? "desc",
   };
 
   const view = firstValue(params.view);
+  const sortKey = filters.sort ?? "tonnes";
+  const sortDir = filters.dir ?? "desc";
+  if (process.env.NODE_ENV !== "production") {
+    console.debug("[screener] query", {
+      commodity: filters.commodity ?? null,
+      country: filters.country ?? null,
+      stage: filters.stage ?? null,
+      sort: sortKey,
+      dir: sortDir,
+      view: view ?? "table",
+    });
+  }
   const clerkId = await resolveClerkId();
   const userId = await ensureUserId(clerkId);
   const [rows, facets, saved] = await Promise.all([
@@ -92,14 +128,30 @@ export default async function ScreenerPage({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Project</TableHead>
+                  <TableHead>
+                    <Link href={sortHref(params, "name", sortKey, sortDir)} className="hover:underline">
+                      Project{sortMark("name", sortKey, sortDir)}
+                    </Link>
+                  </TableHead>
                   <TableHead>Company</TableHead>
                   <TableHead>Stage</TableHead>
-                  <TableHead className="text-right">Tonnes</TableHead>
+                  <TableHead className="text-right">
+                    <Link href={sortHref(params, "tonnes", sortKey, sortDir)} className="hover:underline">
+                      Tonnes{sortMark("tonnes", sortKey, sortDir)}
+                    </Link>
+                  </TableHead>
                   <TableHead>Grade</TableHead>
                   <TableHead>Study</TableHead>
-                  <TableHead className="text-right">IRR</TableHead>
-                  <TableHead>Resource date</TableHead>
+                  <TableHead className="text-right">
+                    <Link href={sortHref(params, "irr_pct", sortKey, sortDir)} className="hover:underline">
+                      IRR{sortMark("irr_pct", sortKey, sortDir)}
+                    </Link>
+                  </TableHead>
+                  <TableHead>
+                    <Link href={sortHref(params, "resource_date", sortKey, sortDir)} className="hover:underline">
+                      Resource date{sortMark("resource_date", sortKey, sortDir)}
+                    </Link>
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

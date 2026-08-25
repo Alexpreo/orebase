@@ -5,6 +5,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
+import { isAdmin } from "@/lib/admin-auth";
 import { listChats } from "@/lib/chat";
 
 // Rendered per-request so the Clerk-backed shell is never statically
@@ -14,11 +15,11 @@ export const dynamic = "force-dynamic";
 export default async function AppLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const chats = await listChats();
+  const [chats, showAdmin] = await Promise.all([listChats(), isAdmin()]);
 
   return (
     <SidebarProvider>
-      <AppSidebar chats={chats} />
+      <AppSidebar chats={chats} showAdmin={showAdmin} />
       <SidebarInset>
         <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />

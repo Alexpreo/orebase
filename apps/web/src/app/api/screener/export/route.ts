@@ -21,6 +21,8 @@ export async function GET(request: Request) {
     minGradeKey: url.searchParams.get("minGradeKey") ?? undefined,
     minGrade: url.searchParams.get("minGrade") ?? undefined,
     filedSince: url.searchParams.get("filedSince") ?? undefined,
+    sort: url.searchParams.get("sort") ?? undefined,
+    dir: url.searchParams.get("dir") ?? undefined,
   };
   const rows = await listScreener(filters);
   const header = [

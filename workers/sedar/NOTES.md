@@ -70,9 +70,11 @@ env, not this file.
 JSON_SEARCH_URL=
 JSON_SEARCH_METHOD=POST
 JSON_SEARCH_BODY_KEYS=documentType,fromDate,toDate,offset
-RESULT_LIST_KEYS=results|items|data
-ROW_KEYS=documentName|document_name, profileName|profile, profile_number,
-  submitted_date|filed_at, download_url|url, id|guid
+RESULT_LIST_KEYS=results|items|data|documents|rows|content|records
+ROW_KEYS=documentName|document_name|title|name, profileName|profile|issuer,
+  profile_number|profileNumber, submitted_date|filed_at|submittedDate,
+  download_url|url|downloadUrl, id|guid|documentId
+BODY_PLACEHOLDERS={document_type},{date_from},{date_to},{offset},{page},{limit},{page_size}
 ```
 
 ## Path 2 DOM selectors (update if the SPA ships a quarterly restyle)

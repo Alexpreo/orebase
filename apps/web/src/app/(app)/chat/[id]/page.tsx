@@ -7,7 +7,13 @@ export const dynamic = "force-dynamic";
 
 type ChatIdPageProps = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{
+    q?: string;
+    company?: string;
+    doc_type?: string;
+    date_from?: string;
+    date_to?: string;
+  }>;
 };
 
 export default async function ChatIdPage({ params, searchParams }: ChatIdPageProps) {
@@ -16,7 +22,7 @@ export default async function ChatIdPage({ params, searchParams }: ChatIdPagePro
     notFound();
   }
 
-  const { q } = await searchParams;
+  const query = await searchParams;
   const initialMessages = await getChatMessages(id);
 
   return (
@@ -25,7 +31,13 @@ export default async function ChatIdPage({ params, searchParams }: ChatIdPagePro
         key={id}
         chatId={id}
         initialMessages={initialMessages}
-        initialInput={q ?? ""}
+        initialInput={query.q ?? ""}
+        initialFilters={{
+          company: query.company,
+          docType: query.doc_type,
+          dateFrom: query.date_from,
+          dateTo: query.date_to,
+        }}
       />
     </div>
   );

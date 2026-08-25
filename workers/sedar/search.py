@@ -73,11 +73,17 @@ class JsonSearch:
         url = _json_search_url()
         body = _json_body(document_type, date_from, date_to, offset)
         method = (settings.sedar_json_search_method or "POST").upper()
+        headers = {"Accept": "application/json"}
         if method == "GET":
-            response = page.request.get(url, params=body)
+            response = page.request.get(url, params=body, headers=headers)
         else:
-            response = page.request.post(url, data=body)
-        if response.status in {401, 403, 429} or "html" in (response.headers.get("content-type") or ""):
+            response = page.request.post(
+                url,
+                data=json.dumps(body),
+                headers={**headers, "Content-Type": "application/json"},
+            )
+        content_type = (response.headers.get("content-type") or "").lower()
+        if response.status in {401, 403, 429} or "html" in content_type:
             self.session.limiter.record_challenge()
             raise ChallengeDetected(f"JSON search status {response.status}")
         try:
@@ -93,11 +99,15 @@ class JsonSearch:
 
 def _json_body(document_type: str, date_from: date, date_to: date, offset: int) -> dict[str, Any]:
     template = (settings.sedar_json_search_body or "").strip()
+    page_size = max(1, settings.sedar_page_size)
     values = {
         "document_type": document_type,
         "date_from": date_from.isoformat(),
         "date_to": date_to.isoformat(),
         "offset": str(offset),
+        "page": str(offset // page_size + 1),
+        "limit": str(page_size),
+        "page_size": str(page_size),
     }
     if template:
         filled = template
@@ -118,38 +128,100 @@ def _json_body(document_type: str, date_from: date, date_to: date, offset: int) 
     }
 
 
+_RESULT_LIST_KEYS = ("results", "items", "data", "documents", "rows", "content", "records")
+
+
 def _result_rows(payload: Any) -> list[Any]:
     if isinstance(payload, list):
         return payload
     if not isinstance(payload, dict):
         raise SearchContractError("JSON search payload is not an object or array")
-    for key in ("results", "items", "data", "documents", "rows"):
+    for key in _RESULT_LIST_KEYS:
         rows = payload.get(key)
         if isinstance(rows, list):
             return rows
+        if isinstance(rows, dict):
+            for inner in _RESULT_LIST_KEYS:
+                nested = rows.get(inner)
+                if isinstance(nested, list):
+                    return nested
     raise SearchContractError("JSON search payload has no results/items/data array")
 
 
+def _as_str(value: Any) -> str:
+    if value is None or isinstance(value, (dict, list)):
+        return ""
+    return str(value).strip()
+
+
+def _pick(row: dict[str, Any], *keys: str) -> str:
+    lower = {str(k).lower(): v for k, v in row.items()}
+    for key in keys:
+        found = lower.get(key.lower())
+        text = _as_str(found)
+        if text:
+            return text
+    return ""
+
+
 def _from_json(row: dict) -> FilingResult:
-    name = str(row.get("document_name") or row.get("documentName") or "").strip()
+    profile_obj = row.get("profile") or row.get("issuer") or row.get("reportingIssuer")
+    profile_row = profile_obj if isinstance(profile_obj, dict) else {}
+    profile = _pick(row, "profileName", "profile_name", "issuerName", "issuer_name", "issuer")
+    if not profile:
+        profile = _pick(profile_row, "name", "profileName", "issuerName") or _as_str(profile_obj)
+    profile_number = (
+        _pick(row, "profile_number", "profileNumber", "profileId", "profile_id")
+        or _pick(profile_row, "profile_number", "profileNumber", "number", "id")
+        or _profile_number(profile)
+        or None
+    )
+    name = _pick(
+        row,
+        "document_name",
+        "documentName",
+        "documentTitle",
+        "document_title",
+        "title",
+        "name",
+        "fileName",
+        "file_name",
+    )
     if not name:
         raise SearchContractError(f"JSON row missing document name: {list(row)[:12]}")
-    profile = str(row.get("profile") or row.get("profileName") or row.get("issuer") or "")
-    guid = str(row.get("id") or row.get("guid") or row.get("download_url") or name)
-    label = str(row.get("document_type") or row.get("documentType") or name)
+    filed_raw = _pick(
+        row,
+        "submitted_date",
+        "submittedDate",
+        "filed_at",
+        "filedAt",
+        "filingDate",
+        "filing_date",
+        "dateSubmitted",
+        "date",
+    )
+    guid = _pick(row, "id", "guid", "documentId", "document_id", "externalId", "external_id") or name
+    label = _pick(row, "document_type", "documentType", "docType", "type") or name
+    download = _pick(
+        row,
+        "download_url",
+        "downloadUrl",
+        "url",
+        "href",
+        "documentUrl",
+        "document_url",
+        "resourceUrl",
+        "resource_url",
+        "generateUrl",
+        "fileUrl",
+    )
     return FilingResult(
         profile_name=profile,
-        profile_number=(
-            str(row["profile_number"])
-            if row.get("profile_number")
-            else str(row["profileNumber"]) if row.get("profileNumber") else _profile_number(profile)
-        ),
+        profile_number=profile_number,
         document_name=name,
-        filed_at=str(row.get("submitted_date") or row.get("filed_at") or row.get("submittedDate") or "")
-        or None,
-        jurisdiction=str(row.get("jurisdiction") or "") or None,
-        download_url=str(row.get("download_url") or row.get("url") or row.get("downloadUrl") or "")
-        or None,
+        filed_at=_parse_filed(filed_raw) or (filed_raw[:10] if filed_raw else None),
+        jurisdiction=_pick(row, "jurisdiction", "principalJurisdiction", "principal_jurisdiction") or None,
+        download_url=download or None,
         external_id=guid,
         doc_type=map_doc_type(label),
         document_type_label=label,

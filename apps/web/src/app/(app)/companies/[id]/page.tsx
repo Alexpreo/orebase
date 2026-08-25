@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { WatchButton } from "@/components/intel/watch-button";
+import { EventFeed } from "@/components/intel/event-feed";
 import { ProjectCard } from "@/components/intel/project-card";
+import { WatchButton } from "@/components/intel/watch-button";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -10,7 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { getCompany, listCompanyFilings, listCompanyProjects } from "@/lib/intel";
+import { getCompany, listCompanyFilings, listCompanyProjects, listCompanyEvents } from "@/lib/intel";
 import { formatDate } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -24,9 +25,10 @@ export default async function CompanyDetailPage({
   const company = await getCompany(id);
   if (!company) notFound();
 
-  const [projects, filings] = await Promise.all([
+  const [projects, filings, events] = await Promise.all([
     listCompanyProjects(id),
     listCompanyFilings(id),
+    listCompanyEvents(id),
   ]);
 
   const tickers = Array.isArray(company.tickers)
@@ -66,6 +68,16 @@ export default async function CompanyDetailPage({
           </div>
         )}
       </section>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Activity</CardTitle>
+          <CardDescription>Events across this issuer’s projects.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <EventFeed events={events} />
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

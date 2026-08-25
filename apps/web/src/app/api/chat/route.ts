@@ -9,11 +9,11 @@ import {
 import { persistChat } from "@/lib/chat";
 import { collectCitations, isDocumentUuid } from "@/lib/citations";
 import {
+  createSearchDocumentsTool,
   getDocumentTool,
   queryDatabaseTool,
-  searchDocumentsTool,
 } from "@/lib/chat-tools";
-import type { OreBaseUIMessage } from "@/lib/chat-types";
+import type { ChatSearchFilters, OreBaseUIMessage } from "@/lib/chat-types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -22,6 +22,31 @@ export const maxDuration = 60;
 const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-5";
 const MAX_OUTPUT_TOKENS = 2048;
 const MAX_TOOL_STEPS = 8;
+
+function parseFilters(raw: unknown): ChatSearchFilters {
+  if (!raw || typeof raw !== "object") return {};
+  const record = raw as Record<string, unknown>;
+  const company = typeof record.company === "string" ? record.company.trim() : "";
+  const docType = typeof record.docType === "string" ? record.docType.trim() : "";
+  const dateFrom = typeof record.dateFrom === "string" ? record.dateFrom.trim() : "";
+  const dateTo = typeof record.dateTo === "string" ? record.dateTo.trim() : "";
+  return {
+    company: company || undefined,
+    docType: docType && docType !== "all" ? docType : undefined,
+    dateFrom: dateFrom || undefined,
+    dateTo: dateTo || undefined,
+  };
+}
+
+function filterPrompt(filters: ChatSearchFilters): string {
+  const parts: string[] = [];
+  if (filters.company) parts.push(`company=${filters.company}`);
+  if (filters.docType) parts.push(`doc_type=${filters.docType}`);
+  if (filters.dateFrom) parts.push(`date_from=${filters.dateFrom}`);
+  if (filters.dateTo) parts.push(`date_to=${filters.dateTo}`);
+  if (parts.length === 0) return "";
+  return `\nThe user pinned retrieval filters: ${parts.join(", ")}. Pass these to search_documents unless they contradict the question.`;
+}
 
 const SYSTEM_PROMPT = `You are OreBase, a mining-intelligence research assistant.
 
@@ -44,9 +69,10 @@ export async function POST(request: Request) {
     return Response.json({ error: "Invalid JSON body." }, { status: 400 });
   }
 
-  const record = body as { id?: unknown; messages?: unknown };
+  const record = body as { id?: unknown; messages?: unknown; filters?: unknown };
   const chatId = typeof record.id === "string" ? record.id : "";
   const messages = record.messages as OreBaseUIMessage[] | undefined;
+  const filters = parseFilters(record.filters);
 
   if (!isDocumentUuid(chatId)) {
     return Response.json({ error: "A valid chat id is required." }, { status: 400 });
@@ -75,10 +101,21 @@ export async function POST(request: Request) {
   }
 
   const tools = {
-    search_documents: searchDocumentsTool,
+    search_documents: createSearchDocumentsTool(filters),
     get_document: getDocumentTool,
     query_database: queryDatabaseTool,
   };
+
+  if (process.env.NODE_ENV !== "production") {
+    console.debug("[chat] request filters", {
+      chatId,
+      company: filters.company ?? null,
+      docType: filters.docType ?? null,
+      dateFrom: filters.dateFrom ?? null,
+      dateTo: filters.dateTo ?? null,
+      messageCount: messages.length,
+    });
+  }
 
   const modelMessages = await convertToModelMessages(messages, {
     tools,
@@ -87,7 +124,7 @@ export async function POST(request: Request) {
 
   const result = streamText({
     model: anthropic(ANTHROPIC_MODEL),
-    system: SYSTEM_PROMPT,
+    system: SYSTEM_PROMPT + filterPrompt(filters),
     messages: modelMessages,
     tools,
     stopWhen: stepCountIs(MAX_TOOL_STEPS),

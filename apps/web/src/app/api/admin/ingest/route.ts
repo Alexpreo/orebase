@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
+import { adminApiGuard } from "@/lib/admin-auth";
 import { getSql } from "@/lib/db";
 import { putDocumentObject } from "@/lib/s3";
 
@@ -12,6 +13,9 @@ const MAX_UPLOAD_BYTES = 40 * 1024 * 1024;
 const DOC_TYPES = new Set(["ni43101", "pea", "pfs", "fs", "press_release", "mda", "financials"]);
 
 export async function POST(request: Request) {
+  const denied = await adminApiGuard();
+  if (denied) return denied;
+
   const sql = getSql();
   if (!sql) {
     return NextResponse.json({ error: "Database is not configured." }, { status: 503 });

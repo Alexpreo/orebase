@@ -7,6 +7,7 @@ import type {
   EconomicsRow,
   EventRow,
   FilingRow,
+  FilingsMonthRow,
   GeoOccurrence,
   ProjectSummary,
   ResourceRow,
@@ -146,6 +147,22 @@ export async function listProjectEvents(projectId: string): Promise<EventRow[]> 
   return [...rows];
 }
 
+export async function listCompanyEvents(companyId: string): Promise<EventRow[]> {
+  const sql = getSql();
+  if (!sql) return [];
+  const rows = await sql<EventRow[]>`
+    SELECT e.id, e.project_id, p.name AS project_name, c.name AS company_name,
+           e.document_id, e.event_type, e.event_date, e.summary
+    FROM core.project_events e
+    JOIN core.projects p ON p.id = e.project_id
+    LEFT JOIN core.companies c ON c.id = p.company_id
+    WHERE p.company_id = ${companyId}
+    ORDER BY e.event_date DESC NULLS LAST, e.id DESC
+    LIMIT ${LIST_LIMIT}
+  `;
+  return [...rows];
+}
+
 export async function listProjectFilings(projectId: string): Promise<FilingRow[]> {
   const sql = getSql();
   if (!sql) return [];
@@ -172,6 +189,8 @@ export async function listScreener(filters: ScreenerFilters): Promise<ScreenerRo
   const minGrade = active(filters.minGrade);
   const minGradeNum = minGrade ? Number(minGrade) : null;
   const filedSince = active(filters.filedSince);
+  const sortKey = active(filters.sort) ?? "tonnes";
+  const dir = filters.dir === "asc" ? "asc" : "desc";
 
   try {
     const rows = await sql<ScreenerRow[]>`
@@ -214,7 +233,17 @@ export async function listScreener(filters: ScreenerFilters): Promise<ScreenerRo
           WHERE d.project_id = p.id AND d.filed_at >= ${filedSince}::date
         )
       )
-    ORDER BY r.tonnes DESC NULLS LAST, p.name
+    ORDER BY
+      CASE WHEN ${sortKey} = 'irr_pct' AND ${dir} = 'desc' THEN e.irr_pct END DESC NULLS LAST,
+      CASE WHEN ${sortKey} = 'irr_pct' AND ${dir} = 'asc' THEN e.irr_pct END ASC NULLS LAST,
+      CASE WHEN ${sortKey} = 'resource_date' AND ${dir} = 'desc' THEN r.effective_date END DESC NULLS LAST,
+      CASE WHEN ${sortKey} = 'resource_date' AND ${dir} = 'asc' THEN r.effective_date END ASC NULLS LAST,
+      CASE WHEN ${sortKey} = 'name' AND ${dir} = 'desc' THEN p.name END DESC,
+      CASE WHEN ${sortKey} = 'name' AND ${dir} = 'asc' THEN p.name END ASC,
+      CASE WHEN ${sortKey} = 'tonnes' AND ${dir} = 'asc' THEN r.tonnes END ASC NULLS LAST,
+      CASE WHEN ${sortKey} <> 'irr_pct' AND ${sortKey} <> 'resource_date' AND ${sortKey} <> 'name' AND ${dir} = 'asc' THEN NULL END,
+      r.tonnes DESC NULLS LAST,
+      p.name
     LIMIT ${LIST_LIMIT}
   `;
     return [...rows];
@@ -397,11 +426,36 @@ export async function researchAggregates(): Promise<{
   return { byStage: [...byStage], byCommodity: [...byCommodity], byDocType: [...byDocType] };
 }
 
+export async function listFilingsByMonth(): Promise<FilingsMonthRow[]> {
+  const sql = getSql();
+  if (!sql) return [];
+  try {
+    const rows = await sql<FilingsMonthRow[]>`
+      SELECT to_char(date_trunc('month', filed_at), 'YYYY-MM') AS month,
+             source,
+             count(*)::int AS total
+      FROM raw.documents
+      WHERE filed_at IS NOT NULL
+      GROUP BY 1, 2
+      ORDER BY 1, 2
+    `;
+    if (process.env.NODE_ENV !== "production") {
+      console.debug("[research] filings by month", {
+        monthCount: new Set(rows.map((row) => row.month)).size,
+        rowCount: rows.length,
+      });
+    }
+    return [...rows];
+  } catch {
+    return [];
+  }
+}
+
 export async function listWatchlists(userId: string): Promise<WatchlistRecord[]> {
   const sql = getSql();
   if (!sql) return [];
   const rows = await sql<WatchlistRecord[]>`
-    SELECT id, name, created_at FROM app.watchlists
+    SELECT id, name, created_at, last_seen_at FROM app.watchlists
     WHERE user_id = ${userId}
     ORDER BY created_at
   `;
@@ -423,12 +477,16 @@ export async function listWatchlistItems(watchlistId: string): Promise<Watchlist
   return [...rows];
 }
 
-export async function listWatchlistEvents(watchlistId: string): Promise<EventRow[]> {
+export async function listWatchlistEvents(
+  watchlistId: string,
+  lastSeenAt?: string | Date | null,
+): Promise<EventRow[]> {
   const sql = getSql();
   if (!sql) return [];
-  const rows = await sql<EventRow[]>`
+  try {
+    const rows = await sql<(EventRow & { created_at: string | Date | null })[]>`
     SELECT e.id, e.project_id, p.name AS project_name, co.name AS company_name,
-           e.document_id, e.event_type, e.event_date, e.summary
+           e.document_id, e.event_type, e.event_date, e.summary, e.created_at
     FROM core.project_events e
     JOIN core.projects p ON p.id = e.project_id
     LEFT JOIN core.companies co ON co.id = p.company_id
@@ -442,7 +500,18 @@ export async function listWatchlistEvents(watchlistId: string): Promise<EventRow
     ORDER BY e.event_date DESC NULLS LAST, e.id DESC
     LIMIT 100
   `;
-  return [...rows];
+    const seenMs = lastSeenAt ? new Date(lastSeenAt).getTime() : null;
+    return rows.map(({ created_at, ...event }) => ({
+      ...event,
+      isNew:
+        seenMs != null &&
+        created_at != null &&
+        Number.isFinite(new Date(created_at).getTime()) &&
+        new Date(created_at).getTime() > seenMs,
+    }));
+  } catch {
+    return [];
+  }
 }
 
 export async function ensureDefaultWatchlist(userId: string): Promise<WatchlistRecord> {
@@ -455,9 +524,23 @@ export async function ensureDefaultWatchlist(userId: string): Promise<WatchlistR
   const rows = await sql<WatchlistRecord[]>`
     INSERT INTO app.watchlists (user_id, name)
     VALUES (${userId}, 'Default')
-    RETURNING id, name, created_at
+    RETURNING id, name, created_at, last_seen_at
   `;
   return rows[0];
+}
+
+export async function markWatchlistSeen(watchlistId: string, userId: string): Promise<void> {
+  const sql = getSql();
+  if (!sql) return;
+  try {
+    await sql`
+      UPDATE app.watchlists
+         SET last_seen_at = now()
+       WHERE id = ${watchlistId} AND user_id = ${userId}
+    `;
+  } catch {
+    // Column missing until phase5 migration is applied.
+  }
 }
 
 export async function extractionSpend(): Promise<{ daily: number; monthly: number; queue: number }> {

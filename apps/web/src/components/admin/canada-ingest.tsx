@@ -67,8 +67,9 @@ export function CanadaIngestForm() {
         <CardTitle className="text-base">Canada filing (NI 43-101)</CardTitle>
         <CardDescription>
           Download the PDF in Chrome from SEDAR+ or the issuer IR page, then
-          drop it here. Automated SEDAR+ search is blocked by Radware. Hosted
-          Vercel uploads are size-capped; for a full 43-101 use{" "}
+          drop it here. Automated search needs a headed profile and
+          SEDAR_JSON_SEARCH_URL — status is on this page. Hosted Vercel uploads
+          are size-capped; for a full 43-101 use{" "}
           <code className="text-xs">
             uv run python -m sedar.ingest_local --file report.pdf
           </code>
