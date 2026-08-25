@@ -9,6 +9,7 @@ export function EventFeedItem({ event }: { event: EventRow }) {
     <li className="flex flex-col gap-1 border-b py-3 last:border-b-0">
       <div className="flex flex-wrap items-center gap-2 text-sm">
         <Badge variant="secondary">{event.event_type ?? "event"}</Badge>
+        {event.isNew ? <Badge>New</Badge> : null}
         <span className="text-muted-foreground">{formatDate(event.event_date)}</span>
         <Link href={`/projects/${event.project_id}`} className="font-medium hover:underline">
           {event.project_name}

@@ -1,7 +1,8 @@
 # Phase 2 + Phase 3 — from unrun code to a testable product
 
-**Historical.** This phase is complete. Remaining ingest, ops, and map work lives in
-[phase-4-plan.md](phase-4-plan.md). The “Not built” SEDAR/newswire note below is stale.
+**Historical.** This phase is complete. Remaining ingest, ops, and daily-use work
+lives in [phase-5-plan.md](phase-5-plan.md). The “Not built” SEDAR/newswire note
+below is stale.
 
 Working plan for the next build phase. Scope and architecture source of truth remains
 [mining-intel-platform-build-plan.md](../mining-intel-platform-build-plan.md); this document

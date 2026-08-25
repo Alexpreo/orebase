@@ -6,8 +6,9 @@ Working plan for finishing Phase 4. Scope and architecture source of truth remai
 [phase-2-3-plan.md](phase-2-3-plan.md) is historical: its “Not built” SEDAR/newswire
 line is stale. Use this document for remaining Phase 4 work.
 
-**Parked:** ASX, Slack alerts, orgs/Stripe (Phase 5), research charts, chat filter
-panel, multi-watchlist CRUD.
+**Parked (moved to Phase 5):** ASX, Slack alerts, orgs/Stripe, research charts,
+chat filter panel, multi-watchlist CRUD. Remaining work lives in
+[phase-5-plan.md](phase-5-plan.md).
 
 **Baseline:** commit the existing Phase 3 + incremental Phase 4 tree before relying
 on this close-out as the next delta.

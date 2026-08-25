@@ -90,6 +90,7 @@ export type EventRow = {
   event_type: string | null;
   event_date: string | Date | null;
   summary: string | null;
+  isNew?: boolean;
 };
 
 export type FilingRow = {
@@ -127,6 +128,14 @@ export type ScreenerFilters = {
   minGradeKey?: string;
   minGrade?: string;
   filedSince?: string;
+  sort?: string;
+  dir?: string;
+};
+
+export type FilingsMonthRow = {
+  month: string;
+  source: string | null;
+  total: number;
 };
 
 export type SavedFilter = {
@@ -170,6 +179,7 @@ export type WatchlistRecord = {
   id: string;
   name: string;
   created_at: string | Date;
+  last_seen_at: string | Date | null;
 };
 
 export type WatchlistItemRecord = {

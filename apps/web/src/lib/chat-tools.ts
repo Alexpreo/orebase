@@ -9,6 +9,7 @@ import {
   embedQuery,
   hybridRetrieve,
 } from "@/lib/retrieval";
+import type { ChatSearchFilters } from "@/lib/chat-types";
 
 const GET_DOCUMENT_MAX_CHUNKS = 20;
 const MAX_SQL_ROWS = 50;
@@ -38,9 +39,15 @@ function assertReadOnlySelect(sqlText: string): string {
   return trimmed;
 }
 
-export const searchDocumentsTool = tool({
+function nonempty(value: string | undefined): string | undefined {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : undefined;
+}
+
+export function createSearchDocumentsTool(defaults: ChatSearchFilters = {}) {
+  return tool({
   description:
-    "Hybrid search over indexed technical-report chunks. Use this first for any factual question. Filter by company name, document type, or filing date when the user specifies them.",
+    "Hybrid search over indexed technical-report chunks. Use this first for any factual question. Filter by company name, document type, or filing date when the user specifies them. Panel filters are applied automatically when omitted.",
   inputSchema: z.object({
     query: z.string().min(1).describe("Search query in natural language or keywords."),
     company: z
@@ -59,6 +66,10 @@ export const searchDocumentsTool = tool({
     if (!sql) {
       return { error: "Database is not configured.", chunks: [] };
     }
+    const companyFilter = nonempty(company) ?? nonempty(defaults.company);
+    const docTypeFilter = nonempty(doc_type) ?? nonempty(defaults.docType);
+    const dateFromFilter = nonempty(date_from) ?? nonempty(defaults.dateFrom);
+    const dateToFilter = nonempty(date_to) ?? nonempty(defaults.dateTo);
     let embedding: number[];
     try {
       embedding = await embedQuery(query);
@@ -69,10 +80,10 @@ export const searchDocumentsTool = tool({
       };
     }
     const chunks = await hybridRetrieve(sql, embedding, query, DEFAULT_TOP_K, {
-      company,
-      docType: doc_type,
-      dateFrom: date_from,
-      dateTo: date_to,
+      company: companyFilter,
+      docType: docTypeFilter,
+      dateFrom: dateFromFilter,
+      dateTo: dateToFilter,
     });
 
     if (process.env.NODE_ENV !== "production") {
@@ -82,16 +93,19 @@ export const searchDocumentsTool = tool({
         expectedDims: VOYAGE_EMBEDDING_DIM,
         topK: DEFAULT_TOP_K,
         totalChunks: chunks.length,
-        company: company ?? null,
-        docType: doc_type ?? null,
-        dateFrom: date_from ?? null,
-        dateTo: date_to ?? null,
+        company: companyFilter ?? null,
+        docType: docTypeFilter ?? null,
+        dateFrom: dateFromFilter ?? null,
+        dateTo: dateToFilter ?? null,
       });
     }
 
     return { chunks };
   },
 });
+}
+
+export const searchDocumentsTool = createSearchDocumentsTool();
 
 export const getDocumentTool = tool({
   description:

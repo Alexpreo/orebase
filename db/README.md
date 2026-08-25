@@ -60,6 +60,7 @@ Embeddings are `vector(1024)` to match Voyage `voyage-4` output. The index uses
 | `..._phase3_extraction.sql` | `reviewed` on drill/economics, unique `companies.cik`, `documents.summary`, `app.saved_filters` |
 | `..._alert_deliveries.sql` | `app.alert_deliveries` for idempotent watchlist emails |
 | `..._phase4_closeout.sql` | Watchlist unique indexes, event dedupe, scrape checkpoint, `core.geo_occurrences` |
+| `..._phase5_daily_use.sql` | `app.watchlists.last_seen_at`, `core.project_events.created_at` |
 
 `raw.documents.company_id` / `project_id` and `sedar.sedar_issuers.company_id` reference
 `core.*`, which is created later, so those foreign keys are added via `ALTER TABLE` inside

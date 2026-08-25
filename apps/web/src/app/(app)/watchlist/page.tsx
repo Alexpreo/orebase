@@ -14,6 +14,7 @@ import {
   ensureDefaultWatchlist,
   listWatchlistEvents,
   listWatchlistItems,
+  markWatchlistSeen,
 } from "@/lib/intel";
 
 export const dynamic = "force-dynamic";
@@ -34,9 +35,10 @@ export default async function WatchlistPage() {
   const watchlist = await ensureDefaultWatchlist(userId);
   const [items, events, alertsOn] = await Promise.all([
     listWatchlistItems(watchlist.id),
-    listWatchlistEvents(watchlist.id),
+    listWatchlistEvents(watchlist.id, watchlist.last_seen_at),
     alertsEnabled(userId),
   ]);
+  await markWatchlistSeen(watchlist.id, userId);
 
   return (
     <div className="flex flex-col gap-6 p-6">
@@ -44,7 +46,8 @@ export default async function WatchlistPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Watchlist</h1>
           <p className="text-sm text-muted-foreground">
-            Track companies and projects. Alerts are in-app and email when Resend is configured.
+            Track companies and projects. Events newer than your last visit are
+            marked New. Alerts are in-app and email when Resend is configured.
           </p>
         </div>
         <WatchlistControls alertsOn={alertsOn} />
@@ -86,7 +89,7 @@ export default async function WatchlistPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Activity</CardTitle>
-          <CardDescription>Events for watched companies and projects.</CardDescription>
+          <CardDescription>Events for watched companies and projects since last visit.</CardDescription>
         </CardHeader>
         <CardContent>
           <EventFeed events={events} />

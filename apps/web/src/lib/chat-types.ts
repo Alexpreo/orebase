@@ -18,3 +18,10 @@ export type ChatSummary = {
   title: string | null;
   created_at: string | Date;
 };
+
+export type ChatSearchFilters = {
+  company?: string;
+  docType?: string;
+  dateFrom?: string;
+  dateTo?: string;
+};

@@ -38,9 +38,18 @@ const NAV_ITEMS = [
   { title: "Admin", href: "/admin", icon: ShieldCheck },
 ] as const;
 
-export function AppSidebar({ chats = [] }: { chats?: ChatSummary[] }) {
+export function AppSidebar({
+  chats = [],
+  showAdmin = true,
+}: {
+  chats?: ChatSummary[];
+  showAdmin?: boolean;
+}) {
   const pathname = usePathname();
   const hasClerk = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
+  const navItems = showAdmin
+    ? NAV_ITEMS
+    : NAV_ITEMS.filter((item) => item.href !== "/admin");
 
   return (
     <Sidebar>
@@ -57,7 +66,7 @@ export function AppSidebar({ chats = [] }: { chats?: ChatSummary[] }) {
           <SidebarGroupLabel>Platform</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {NAV_ITEMS.map((item) => {
+              {navItems.map((item) => {
                 const isActive =
                   pathname === item.href || pathname.startsWith(`${item.href}/`);
                 return (

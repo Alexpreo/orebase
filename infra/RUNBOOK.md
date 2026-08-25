@@ -53,7 +53,31 @@ Use the topic ARN from `terraform output ingest_alarm_topic_arn`.
 Create a Clerk application (email + Google). Local web runs without keys.
 Any public Vercel deploy **must** set `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and
 `CLERK_SECRET_KEY`. `apps/web/src/proxy.ts` refuses to skip auth when
-`NODE_ENV=production`.
+`NODE_ENV=production`. Set `ADMIN_CLERK_IDS` to your Clerk user id (comma-separated)
+or `/admin` and `/api/admin/*` stay closed. `/api/ingest/*` stays public.
+
+## Prove the unattended Canada loop
+
+After Path 1 env and a headed profile (see `workers/sedar/NOTES.md`):
+
+1. `uv run python -m sedar.incremental --headful --limit 1` (or `--nightly` once
+   the profile is solved). Confirm `/admin` shows a `source=sedar` row or a
+   `pending_fetches` count.
+2. Smoke-test the webhook:
+
+```bash
+curl -sS -X POST "http://localhost:3000/api/ingest/sedar-alert?secret=$SEDAR_ALERT_WEBHOOK_SECRET" \
+  -H "content-type: application/json" \
+  -d '{"subject":"NI 43-101 filed","text":"https://www.sedarplus.ca/csa-party/viewInstance/resource.html?node=W517&drmKey=test"}'
+```
+
+A test `drmKey` will enqueue then fail download. A real alert URL is required
+for the full fetch. Then drain with `sedar.incremental`, `processor.py`,
+`extractor.py --once`. The project page and a watchlist email (`alerts.py --once`
+with `RESEND_API_KEY`) complete the loop.
+
+3. After the first real SEDAR document: `enable_sedar_alarm = true` and
+   `terraform apply`.
 
 ## Canadian NI 43-101s (no search)
 
@@ -97,7 +121,25 @@ Confirmed matches write `core.projects.lat/lng`. Unmatched rows stay on `/admin/
 
 ## What this compose does not run
 
-- `python -m sedar.backfill --confirm-backfill` — historical NI 43-101 slices
-- Full EDGAR SK-1300 harvest since 2021 (`edgar_poller.py --date-from 2021-06-01`
-  with a high `--limit`) — wait until review stays empty. Do not change the
-  15-minute compose loop to that range.
+These stay opt-in after `/admin/review` is quiet. Do not add them as compose
+services.
+
+**EDGAR SK-1300 since mid-2021** (complete US set; SK-1300 took effect then):
+
+```bash
+cd /opt/orebase/workers
+uv run python edgar_poller.py --date-from 2021-06-01 --limit 500
+```
+
+Leave the 15-minute compose `edgar-poller` loop on the default incremental
+window.
+
+**SEDAR Slice 1** (NI 43-101 2024–present). Needs a headed-capable profile:
+
+```bash
+cd /opt/orebase/workers
+uv run python -m sedar.backfill --confirm-backfill --slice ni43101_2024_present
+```
+
+**Geo coordinates:** download [BC MinFile](https://catalogue.data.gov.bc.ca/dataset/minfile-mineral-occurrence-database)
+and USGS MRDS CSVs, then `geo.load` as above. Unmatched rows stay on `/admin/review`.

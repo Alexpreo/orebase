@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FilingsChart } from "@/components/intel/filings-chart";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -9,6 +10,7 @@ import {
 } from "@/components/ui/card";
 import {
   listDrillHighlights,
+  listFilingsByMonth,
   listRecentFilings,
   researchAggregates,
 } from "@/lib/intel";
@@ -17,10 +19,11 @@ import { formatDate, formatGrade, formatNumber } from "@/lib/utils";
 export const dynamic = "force-dynamic";
 
 export default async function ResearchPage() {
-  const [filings, drills, aggregates] = await Promise.all([
+  const [filings, drills, aggregates, byMonth] = await Promise.all([
     listRecentFilings(),
     listDrillHighlights(),
     researchAggregates(),
+    listFilingsByMonth(),
   ]);
 
   return (
@@ -28,9 +31,19 @@ export default async function ResearchPage() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Research</h1>
         <p className="text-sm text-muted-foreground">
-          Recent filings, drill highlights, and simple corpus aggregates.
+          Recent filings, drill highlights, and corpus aggregates.
         </p>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Filings over time</CardTitle>
+          <CardDescription>Monthly counts by source from raw.documents.filed_at.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <FilingsChart rows={byMonth} />
+        </CardContent>
+      </Card>
 
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
@@ -111,7 +124,11 @@ export default async function ResearchPage() {
                     </Link>
                   ) : null}
                   <Link
-                    href={`/chat?q=${encodeURIComponent(question)}`}
+                    href={`/chat?q=${encodeURIComponent(question)}${
+                      filing.company_name
+                        ? `&company=${encodeURIComponent(filing.company_name)}`
+                        : ""
+                    }${filing.doc_type ? `&doc_type=${encodeURIComponent(filing.doc_type)}` : ""}`}
                     className="hover:underline"
                   >
                     Ask in chat
