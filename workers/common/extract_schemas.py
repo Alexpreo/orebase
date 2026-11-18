@@ -33,6 +33,47 @@ RESOURCE_CATEGORIES = frozenset(
 TECHNICAL_DOC_TYPES = frozenset({"sk1300", "ni43101", "jorc", "pea", "pfs", "fs"})
 
 MAX_TONNES = 1e12
+# Below this a resource row is far more likely a missed Mt/kt conversion than a real deposit.
+MIN_PLAUSIBLE_TONNES = 10_000
+TONNAGE_UNITS = {"t": 1.0, "kt": 1e3, "mt": 1e6}
+
+_BASE_WORDS = r"(measured|indicated|inferred|proven|proved|probable)"
+_COMBINED = (
+    (re.compile(r"\bm\s*(?:\+|&|and)\s*i\b"), "measured+indicated"),
+    (re.compile(r"\b(?:p\s*(?:\+|&|and)\s*p|2p)\b"), "2p"),
+)
+_NOISE = re.compile(
+    _BASE_WORDS + r"|\bmineral\b|\btotal\b|\bm\s*(?:\+|&)\s*i\b|\bp\s*(?:\+|&)\s*p\b|\b2p\b"
+    r"|(?<!of )(?<!inclusive )(?<!exclusive )\b(?:resources?|reserves?)\b"
+)
+
+
+def split_category(label: str) -> tuple[str, Optional[str]]:
+    """'Indicated - Upper Zone (exclusive of reserves)' -> ('indicated', 'upper zone (exclusive of reserves)').
+
+    The base is one of RESOURCE_CATEGORIES when the label names exactly one class or a
+    standard pair (M+I, P+P); otherwise the cleaned label is returned unchanged as base.
+    """
+    text = " ".join(label.strip().lower().split())
+    found = {"proven" if w == "proved" else w for w in re.findall(_BASE_WORDS, text)}
+    for pattern, combined in _COMBINED:
+        if pattern.search(text):
+            found |= {"measured", "indicated"} if combined == "measured+indicated" else {"proven", "probable"}
+    if found == {"measured", "indicated"}:
+        base = "measured+indicated"
+    elif found == {"proven", "probable"}:
+        base = "2p"
+    elif len(found) == 1:
+        base = found.pop()
+    else:
+        return text, None
+    rest = _NOISE.sub(" ", text)
+    rest = re.sub(r"\(\s*\)", " ", rest)
+    rest = re.sub(r"^(?:[\s\-+&,;:/]|and\b)+|(?:[\s\-+&,;:/]|\band)+$", "", rest)
+    rest = " ".join(rest.split())
+    if rest.startswith("(") and rest.endswith(")") and rest.count("(") == 1:
+        rest = rest[1:-1].strip()
+    return base, rest or None
 MAX_IRR_PCT = 500.0
 
 
@@ -106,7 +147,9 @@ class TriageResult(BaseModel):
 
 class ResourceEstimate(BaseModel):
     category: str
+    domain: Optional[str] = None
     tonnes: float
+    tonnage_unit: Optional[str] = None  # unit `tonnes` was printed in; None = already tonnes
     grade: dict[str, float] = Field(default_factory=dict)
     contained_metal: dict[str, float] = Field(default_factory=dict)
     cutoff: Optional[str] = None
@@ -120,23 +163,6 @@ class ResourceEstimate(BaseModel):
     def _standard(cls, value: Optional[str]) -> Optional[str]:
         return normalize_standard(value)
 
-    @field_validator("category")
-    @classmethod
-    def _category(cls, value: str) -> str:
-        key = value.strip().lower().replace(" ", "")
-        mapping = {
-            "measuredtotal": "measured",
-            "indicatedtotal": "indicated",
-            "mi": "measured+indicated",
-            "m+i": "measured+indicated",
-            "measuredandindicated": "measured+indicated",
-            "provenandprobable": "2p",
-            "p+p": "2p",
-        }
-        mapped = mapping.get(key, value.strip().lower())
-        if mapped not in RESOURCE_CATEGORIES:
-            return mapped  # keep unknown labels; confidence will be lowered
-        return mapped
 
     @field_validator("effective_date", mode="before")
     @classmethod
@@ -151,8 +177,20 @@ class ResourceEstimate(BaseModel):
     @model_validator(mode="after")
     def _sanity(self) -> ResourceEstimate:
         confidence = self.extraction_confidence
+        base, qualifier = split_category(self.category)
+        object.__setattr__(self, "category", base)
+        object.__setattr__(self, "domain", self.domain or qualifier)
+        if self.tonnage_unit is not None:
+            factor = TONNAGE_UNITS.get(self.tonnage_unit.strip().lower())
+            if factor is None:
+                confidence = min(confidence, 0.3)
+            else:
+                object.__setattr__(self, "tonnes", self.tonnes * factor)
+            object.__setattr__(self, "tonnage_unit", None)
         if self.tonnes <= 0 or self.tonnes > MAX_TONNES:
             confidence = min(confidence, 0.3)
+        elif self.tonnes < MIN_PLAUSIBLE_TONNES:
+            confidence = min(confidence, 0.5)
         if self.category not in RESOURCE_CATEGORIES:
             confidence = min(confidence, 0.3)
         cleaned_grade: dict[str, float] = {}
@@ -339,10 +377,28 @@ RESOURCE_TOOL: dict[str, Any] = {
                 "items": {
                     "type": "object",
                     "additionalProperties": False,
-                    "required": ["category", "tonnes", "grade"],
+                    "required": ["category", "tonnes", "tonnage_unit", "grade"],
                     "properties": {
-                        "category": {"type": "string"},
-                        "tonnes": {"type": "number"},
+                        "category": {
+                            "type": "string",
+                            "description": "Classification only: measured, indicated, inferred, "
+                            "measured+indicated, proven, probable or 2p.",
+                        },
+                        "domain": {
+                            "type": "string",
+                            "description": "Short qualifier (a few words) naming the zone, deposit, "
+                            "pit/underground or inclusive/exclusive of reserves, if any. No notes.",
+                        },
+                        "tonnes": {
+                            "type": "number",
+                            "description": "Tonnage exactly as printed in the table; do not convert.",
+                        },
+                        "tonnage_unit": {
+                            "type": "string",
+                            "enum": ["t", "kt", "Mt"],
+                            "description": "Unit of the printed tonnage (check the column header "
+                            "and table notes, e.g. '000 t' = kt, 'Mt' or 'millions of tonnes' = Mt).",
+                        },
                         "grade": {"type": "object", "additionalProperties": {"type": "number"}},
                         "contained_metal": {
                             "type": "object",

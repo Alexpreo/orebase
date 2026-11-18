@@ -39,6 +39,7 @@ export type ResourceRow = {
   document_id: string | null;
   effective_date: string | Date | null;
   category: string | null;
+  domain: string | null;
   tonnes: number | string | null;
   grade: JsonMap | null;
   contained_metal: JsonMap | null;

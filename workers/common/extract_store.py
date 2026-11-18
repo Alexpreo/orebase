@@ -70,15 +70,16 @@ def _insert_resources(
         cur.execute(
             """
             INSERT INTO core.resource_estimates (
-                project_id, document_id, effective_date, category, tonnes, grade,
+                project_id, document_id, effective_date, category, domain, tonnes, grade,
                 contained_metal, cutoff, standard, extraction_confidence, reviewed
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, false);
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, false);
             """,
             (
                 project_id,
                 document_id,
                 row.effective_date,
                 row.category,
+                row.domain,
                 row.tonnes,
                 Jsonb(row.grade),
                 Jsonb(row.contained_metal),

@@ -171,7 +171,7 @@ export const getDocumentTool = tool({
 
 export const queryDatabaseTool = tool({
   description:
-    "Run a read-only SQL SELECT against structured core views (core.v_companies, core.v_projects, core.v_resource_estimates, core.v_drill_results, core.v_project_economics, core.v_qualified_persons, core.v_document_qps, core.v_project_events). These tables are empty until structured extraction runs. Prefer search_documents for filing questions.",
+    "Run a read-only SQL SELECT against structured core views (core.v_companies, core.v_projects, core.v_resource_estimates, core.v_drill_results, core.v_project_economics, core.v_qualified_persons, core.v_document_qps, core.v_project_events). In v_resource_estimates, category is the class (measured, indicated, inferred, measured+indicated, proven, probable, 2p) and domain is the zone or inclusive/exclusive-of-reserves qualifier. Prefer search_documents for filing questions.",
   inputSchema: z.object({
     sql: z
       .string()

@@ -263,15 +263,16 @@ class ExtractionCapExceeded(RuntimeError):
 
 
 def assert_extraction_cap() -> None:
-    """Refuse new extract work once either dollar cap is hit. Call before claiming."""
+    """Refuse new extract work once the monthly cap is hit. Call before claiming.
+
+    Daily spend above the alert threshold is logged (and shown on /admin) but never halts.
+    """
     daily = extraction_spend_usd("day")
     monthly = extraction_spend_usd("month")
-    daily_cap = Decimal(str(settings.extraction_daily_cap_usd))
+    daily_alert = Decimal(str(settings.extraction_daily_alert_usd))
     monthly_cap = Decimal(str(settings.extraction_monthly_cap_usd))
-    if daily >= daily_cap:
-        raise ExtractionCapExceeded(
-            f"daily extraction cap hit (${daily} >= ${daily_cap})"
-        )
+    if daily >= daily_alert:
+        logger.warning("ALERT daily extraction spend ${%s} >= ${%s} alert threshold", daily, daily_alert)
     if monthly >= monthly_cap:
         raise ExtractionCapExceeded(
             f"monthly extraction cap hit (${monthly} >= ${monthly_cap})"

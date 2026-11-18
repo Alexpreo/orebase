@@ -33,14 +33,19 @@ class Settings(BaseSettings):
         default=0, alias="VOYAGE_MAX_TOKENS_PER_REQUEST"
     )
     anthropic_api_key: str = Field(default="", alias="ANTHROPIC_API_KEY")
-    extract_haiku_model: str = Field(default="claude-haiku-4-5", alias="EXTRACT_HAIKU_MODEL")
-    extract_sonnet_model: str = Field(
-        default="claude-sonnet-4-5", alias="EXTRACT_SONNET_MODEL"
+    # One model for every extraction schema; numeric tables that come back below the
+    # escalation threshold are re-extracted with the stronger model.
+    extract_model: str = Field(default="claude-sonnet-5-5", alias="EXTRACT_MODEL")
+    extract_escalation_model: str = Field(
+        default="claude-opus-5-5", alias="EXTRACT_ESCALATION_MODEL"
     )
-    # Hard stop before claiming an extract job. Defaults match the Phase 3 bring-up caps.
-    extraction_daily_cap_usd: float = Field(default=5.0, alias="EXTRACTION_DAILY_CAP_USD")
+    extract_escalate_below: float = Field(default=0.7, alias="EXTRACT_ESCALATE_BELOW")
+    # Monthly spend is a hard stop before claiming. Daily spend only alerts (never halts).
     extraction_monthly_cap_usd: float = Field(
-        default=50.0, alias="EXTRACTION_MONTHLY_CAP_USD"
+        default=80.0, alias="EXTRACTION_MONTHLY_CAP_USD"
+    )
+    extraction_daily_alert_usd: float = Field(
+        default=15.0, alias="EXTRACTION_DAILY_ALERT_USD"
     )
     # Full numeric extract auto-runs for watchlisted entities and filings newer than this.
     extract_auto_months: int = Field(default=18, alias="EXTRACT_AUTO_MONTHS")

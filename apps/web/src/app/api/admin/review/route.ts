@@ -17,6 +17,7 @@ const TABLES = {
 const EDITABLE: Record<(typeof KINDS)[number], Set<string>> = {
   resource: new Set([
     "category",
+    "domain",
     "tonnes",
     "grade",
     "contained_metal",

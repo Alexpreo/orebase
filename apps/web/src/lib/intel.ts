@@ -109,11 +109,11 @@ export async function listProjectResources(projectId: string): Promise<ResourceR
   const sql = getSql();
   if (!sql) return [];
   const rows = await sql<ResourceRow[]>`
-    SELECT id, project_id, document_id, effective_date, category, tonnes, grade,
+    SELECT id, project_id, document_id, effective_date, category, domain, tonnes, grade,
            contained_metal, cutoff, standard, extraction_confidence, reviewed
     FROM core.resource_estimates
     WHERE project_id = ${projectId}
-    ORDER BY effective_date DESC NULLS LAST, category
+    ORDER BY effective_date DESC NULLS LAST, category, domain NULLS FIRST
   `;
   return [...rows];
 }
@@ -543,9 +543,13 @@ export async function markWatchlistSeen(watchlistId: string, userId: string): Pr
   }
 }
 
-export async function extractionSpend(): Promise<{ daily: number; monthly: number; queue: number }> {
+type ExtractionSpend = { daily: number; monthly: number; queue: number; dailyAlert: number };
+
+export async function extractionSpend(): Promise<ExtractionSpend> {
+  // Mirrors the worker's EXTRACTION_DAILY_ALERT_USD; the alert never halts extraction.
+  const dailyAlert = Number(process.env.EXTRACTION_DAILY_ALERT_USD ?? 15);
   const sql = getSql();
-  if (!sql) return { daily: 0, monthly: 0, queue: 0 };
+  if (!sql) return { daily: 0, monthly: 0, queue: 0, dailyAlert };
   try {
     const [daily, monthly, queue] = await Promise.all([
       sql<{ spent: string | number }[]>`
@@ -568,9 +572,10 @@ export async function extractionSpend(): Promise<{ daily: number; monthly: numbe
       daily: Number(daily[0]?.spent ?? 0),
       monthly: Number(monthly[0]?.spent ?? 0),
       queue: queue[0]?.n ?? 0,
+      dailyAlert,
     };
   } catch {
-    return { daily: 0, monthly: 0, queue: 0 };
+    return { daily: 0, monthly: 0, queue: 0, dailyAlert };
   }
 }
 

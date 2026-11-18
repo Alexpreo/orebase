@@ -38,6 +38,9 @@ export function ResourceTable({ rows }: { rows: ResourceRow[] }) {
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <span className="capitalize">{row.category ?? "—"}</span>
+                    {row.domain ? (
+                      <span className="text-xs text-muted-foreground">{row.domain}</span>
+                    ) : null}
                     {!row.reviewed ? (
                       <Badge variant="outline">unreviewed</Badge>
                     ) : null}

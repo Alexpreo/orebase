@@ -28,7 +28,12 @@ from typing import Any, Iterable, Optional
 import httpx
 
 from common.config import settings
-from common.db import document_exists_by_sha256, enqueue_job, insert_document
+from common.db import (
+    document_exists_by_external_id,
+    document_exists_by_sha256,
+    enqueue_job,
+    insert_document,
+)
 from common.render import RENDER_ENGINE, html_to_pdf
 from common.s3 import PDF_CONTENT_TYPE, upload_object
 
@@ -295,7 +300,7 @@ def process_hit(
     file_types: tuple[str, ...],
 ) -> str:
     """Return one of: 'skipped_file_type' | 'skipped_sic' | 'skipped_unsupported' |
-    'skipped_dupe' | 'ingested' | 'error'.
+    'skipped_known' | 'skipped_dupe' | 'ingested' | 'error'.
     """
     if not _matches_file_types(hit, file_types):
         return "skipped_file_type"
@@ -315,6 +320,10 @@ def process_hit(
     content_type = _content_type_for(hit.filename)
     if content_type is None:
         return "skipped_unsupported"
+
+    # Known filing: skip before paying the download (sha256 below still catches re-filings).
+    if document_exists_by_external_id("edgar", hit.external_id):
+        return "skipped_known"
 
     try:
         data = client.download(hit.primary_url)
@@ -385,6 +394,7 @@ def run(
     counts = {
         "ingested": 0,
         "skipped_dupe": 0,
+        "skipped_known": 0,
         "skipped_file_type": 0,
         "skipped_sic": 0,
         "skipped_unsupported": 0,

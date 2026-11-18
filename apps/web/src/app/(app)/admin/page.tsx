@@ -158,10 +158,16 @@ export default async function AdminPage() {
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Extract spend today</CardTitle>
-            <CardDescription>Sum of app.extraction_costs since midnight.</CardDescription>
+            <CardDescription>
+              Sum of app.extraction_costs since midnight. Alert at ${formatNumber(spend.dailyAlert, 0)}
+              /day (does not stop the queue).
+            </CardDescription>
           </CardHeader>
           <CardContent className="text-2xl font-semibold tabular-nums">
             ${formatNumber(spend.daily, 4)}
+            {spend.daily >= spend.dailyAlert ? (
+              <p className="mt-1 text-sm font-medium text-destructive">Above daily alert threshold</p>
+            ) : null}
           </CardContent>
         </Card>
         <Card>

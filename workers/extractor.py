@@ -56,10 +56,13 @@ logger = logging.getLogger("extractor")
 
 MAX_ATTEMPTS = 5
 BACKOFF_BASE_SECONDS = 2.0
-SECTION_CHAR_BUDGET = 80_000
+# Sized from the corpus: the largest resource section map is ~420k chars (~105k tokens),
+# well inside the 1M context. The budget only guards against a runaway keyword match.
+SECTION_CHAR_BUDGET = 480_000
+FALLBACK_CHUNKS = 40
 NEAR_DUPE_JACCARD = 0.6
-TRIAGE_PAGE_LIMIT = 2
-MAX_DRILL_ROWS = 40
+TRIAGE_PAGE_LIMIT = 5
+MAX_DRILL_ROWS = 200
 
 RESOURCE_HINTS = (
     "mineral resource",
@@ -112,7 +115,8 @@ def should_full_extract(doc: dict[str, Any], *, force: bool) -> bool:
     if isinstance(filed, date):
         cutoff = date.today() - timedelta(days=int(settings.extract_auto_months * 30.44))
         return filed >= cutoff
-    return False
+    # Undated filings today are hand-uploaded SEDAR reports: someone chose them, so extract.
+    return filed is None
 
 
 def _fallback_triage(doc: dict[str, Any]) -> TriageResult:
@@ -269,6 +273,30 @@ def _call_rows(
     return _parse_rows(model_cls, payload)
 
 
+def _call_rows_escalating(
+    *,
+    tool: dict[str, Any],
+    chunks: list[dict[str, Any]],
+    model_cls,
+    document_id: str,
+    use_batch: bool,
+    force_escalate: bool = False,
+) -> tuple[list, bool]:
+    """Numeric tables: default model first; re-extract with the escalation model when
+    any row is below the confidence threshold (or when forced for a low-confidence re-run).
+    Returns (rows, escalated)."""
+    common = dict(purpose="extract", tool=tool, chunks=chunks, model_cls=model_cls,
+                  document_id=document_id, dry_run=False, use_batch=use_batch)
+    rows: list = []
+    if not force_escalate:
+        rows = _call_rows(model=settings.extract_model, **common)
+        if not any(r.extraction_confidence < settings.extract_escalate_below for r in rows):
+            return rows, False
+    stronger = _call_rows(model=settings.extract_escalation_model, **common)
+    # An empty escalation result is not evidence the first rows were wrong; keep them.
+    return (stronger or rows), True
+
+
 def triage_document(
     doc: dict[str, Any], chunks: list[dict[str, Any]], dry_run: bool
 ) -> TriageResult:
@@ -279,7 +307,7 @@ def triage_document(
         "First pages of the filing:\n"
     )
     payload = complete_tool(
-        model=settings.extract_haiku_model,
+        model=settings.extract_model,
         system=TRIAGE_SYSTEM,
         user=intro + _format_chunks(_first_pages(chunks, TRIAGE_PAGE_LIMIT)),
         tools=[TRIAGE_TOOL],
@@ -303,6 +331,7 @@ def process_document(
     *,
     force_full: bool = False,
     use_batch: bool = False,
+    escalate: bool = False,
 ) -> dict[str, Any]:
     doc = get_document(document_id)
     if doc is None:
@@ -322,9 +351,9 @@ def process_document(
         resource_chunks = _select_chunks(chunks, RESOURCE_HINTS)
         econ_chunks = _select_chunks(chunks, ECONOMICS_HINTS)
         est = (
-            estimate_cost_usd(settings.extract_haiku_model, max(1, 2000))
+            estimate_cost_usd(settings.extract_model, max(1, 6000))
             + estimate_cost_usd(
-                settings.extract_sonnet_model,
+                settings.extract_model,
                 max(1, (len(_format_chunks(resource_chunks)) + len(_format_chunks(econ_chunks))) // 4),
             )
         )
@@ -382,38 +411,43 @@ def process_document(
         except Exception as exc:  # noqa: BLE001 - HTML parse must not fail the job
             logger.warning("HTML table parse failed for %s: %s", document_id, exc)
 
-    resources = list(html_resources)
-    economics = list(html_economics)
+    # Deterministic table rows are kept only when all clear the threshold; otherwise the
+    # parser misread the table (e.g. contained metal in a grade column) and Claude re-reads it.
+    def _trusted(rows: list) -> list:
+        ok = all(r.extraction_confidence >= settings.extract_escalate_below for r in rows)
+        return list(rows) if ok else []
+
+    resources = _trusted(html_resources)
+    economics = _trusted(html_economics)
+    stats["html_rows_discarded"] = (len(html_resources) - len(resources)) + (
+        len(html_economics) - len(economics)
+    )
     batch_mode = use_batch or settings.extract_use_batch
     if not resources:
-        resources = _call_rows(
-            model=settings.extract_sonnet_model,
-            purpose="extract",
+        resources, stats["escalated_resources"] = _call_rows_escalating(
             tool=RESOURCE_TOOL,
-            chunks=_select_chunks(chunks, RESOURCE_HINTS) or chunks[:12],
+            chunks=_select_chunks(chunks, RESOURCE_HINTS) or chunks[:FALLBACK_CHUNKS],
             model_cls=ResourceEstimate,
             document_id=document_id,
-            dry_run=False,
             use_batch=batch_mode,
+            force_escalate=escalate,
         )
     if not economics:
         econ_chunks = _select_chunks(chunks, ECONOMICS_HINTS)
         if econ_chunks:
-            economics = _call_rows(
-                model=settings.extract_sonnet_model,
-                purpose="extract",
+            economics, stats["escalated_economics"] = _call_rows_escalating(
                 tool=ECONOMICS_TOOL,
                 chunks=econ_chunks,
                 model_cls=ProjectEconomics,
                 document_id=document_id,
-                dry_run=False,
                 use_batch=batch_mode,
+                force_escalate=escalate,
             )
     drill_chunks = _select_chunks(chunks, DRILL_HINTS)
     drills: list[DrillResult] = []
     if drill_chunks:
         drills = _call_rows(
-            model=settings.extract_haiku_model,
+            model=settings.extract_model,
             purpose="extract",
             tool=DRILL_TOOL,
             chunks=drill_chunks,
@@ -426,7 +460,7 @@ def process_document(
     qps: list[QualifiedPerson] = []
     if qp_chunks:
         qps = _call_rows(
-            model=settings.extract_haiku_model,
+            model=settings.extract_model,
             purpose="extract",
             tool=QP_TOOL,
             chunks=qp_chunks,
@@ -493,6 +527,31 @@ def _handle_job(job: dict[str, Any], dry_run: bool, *, use_batch: bool = False) 
             time.sleep(backoff)
 
 
+def low_confidence_documents() -> list[str]:
+    """Documents with unreviewed resource/economics rows below the escalation threshold."""
+    with connection() as conn, conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT document_id FROM core.resource_estimates
+             WHERE NOT reviewed AND extraction_confidence < %(t)s
+            UNION
+            SELECT document_id FROM core.project_economics
+             WHERE NOT reviewed AND extraction_confidence < %(t)s;
+            """,
+            {"t": settings.extract_escalate_below},
+        )
+        return [str(row["document_id"]) for row in cur.fetchall()]
+
+
+def rerun_low_confidence(*, use_batch: bool = False) -> None:
+    for document_id in low_confidence_documents():
+        assert_extraction_cap()
+        stats = process_document(
+            document_id, force_full=True, use_batch=use_batch, escalate=True
+        )
+        logger.info("low-confidence re-run doc=%s stats=%s", document_id, stats)
+
+
 def run(
     *,
     once: bool,
@@ -555,11 +614,20 @@ def main() -> None:
     )
     parser.add_argument("--idle-sleep", type=float, default=5.0)
     parser.add_argument(
+        "--rerun-low-confidence",
+        action="store_true",
+        help="re-extract documents with unreviewed numeric rows below EXTRACT_ESCALATE_BELOW, "
+        "using the escalation model",
+    )
+    parser.add_argument(
         "--batch",
         action="store_true",
         help="use Anthropic Message Batches (50% off) for structured extract calls",
     )
     args = parser.parse_args()
+    if args.rerun_low_confidence:
+        rerun_low_confidence(use_batch=args.batch)
+        return
     run(
         once=args.once,
         dry_run=args.dry_run,
