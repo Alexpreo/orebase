@@ -13,8 +13,15 @@ export function adminAllowlist(): string[] {
     .filter(Boolean);
 }
 
+// Explicit opt-in for keyless local development only; never honoured in production.
+export function devAdminBypass(): boolean {
+  return process.env.DEV_ADMIN_BYPASS === "true" && process.env.NODE_ENV !== "production";
+}
+
 export async function isAdmin(): Promise<boolean> {
-  if (!clerkAuthEnabled()) return true;
+  if (devAdminBypass()) return true;
+  // Fail closed: without Clerk there is no identity to check against the allowlist.
+  if (!clerkAuthEnabled()) return false;
   const allow = adminAllowlist();
   if (allow.length === 0) return false;
   try {
@@ -27,5 +34,11 @@ export async function isAdmin(): Promise<boolean> {
 
 export async function adminApiGuard(): Promise<NextResponse | null> {
   if (await isAdmin()) return null;
+  if (!clerkAuthEnabled() && !devAdminBypass()) {
+    return NextResponse.json(
+      { error: "Admin is unavailable: authentication is not configured." },
+      { status: 503 },
+    );
+  }
   return NextResponse.json({ error: "Admin access required." }, { status: 403 });
 }

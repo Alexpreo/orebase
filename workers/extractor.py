@@ -46,14 +46,7 @@ from common.extract_schemas import (
     ResourceEstimate,
     TriageResult,
 )
-from common.extract_store import (
-    clear_document_facts,
-    insert_drills,
-    insert_economics,
-    insert_project_event,
-    insert_qps,
-    insert_resources,
-)
+from common.extract_store import insert_project_event, replace_document_facts
 from common.html_tables import extract_from_html
 from common.resolve import parse_cik, parse_title_company, resolve_document
 from common.s3 import download_object
@@ -271,41 +264,37 @@ def _call_rows(
             use_batch=use_batch,
         )
     except ClaudeUnavailable as exc:
-        logger.warning("Claude unavailable for %s on %s: %s", purpose, document_id, exc)
-        return []
+        # Propagate: an outage must fail the job (and retry), never look like "no rows found".
+        raise ClaudeUnavailable(f"{purpose} on {document_id}: {exc}") from exc
     return _parse_rows(model_cls, payload)
 
 
 def triage_document(
     doc: dict[str, Any], chunks: list[dict[str, Any]], dry_run: bool
-) -> tuple[TriageResult, bool]:
+) -> TriageResult:
     intro = (
         f"Title: {doc.get('title')}\n"
         f"Doc type: {doc.get('doc_type')}\n"
         f"Filed: {doc.get('filed_at')}\n\n"
         "First pages of the filing:\n"
     )
-    try:
-        payload = complete_tool(
-            model=settings.extract_haiku_model,
-            system=TRIAGE_SYSTEM,
-            user=intro + _format_chunks(_first_pages(chunks, TRIAGE_PAGE_LIMIT)),
-            tools=[TRIAGE_TOOL],
-            tool_choice=TRIAGE_TOOL["name"],
-            purpose="triage",
-            document_id=str(doc["id"]),
-            dry_run=dry_run,
-        )
-    except ClaudeUnavailable as exc:
-        logger.warning("triage API failed for %s: %s; using title fallback", doc["id"], exc)
-        return _fallback_triage(doc), False
+    payload = complete_tool(
+        model=settings.extract_haiku_model,
+        system=TRIAGE_SYSTEM,
+        user=intro + _format_chunks(_first_pages(chunks, TRIAGE_PAGE_LIMIT)),
+        tools=[TRIAGE_TOOL],
+        tool_choice=TRIAGE_TOOL["name"],
+        purpose="triage",
+        document_id=str(doc["id"]),
+        dry_run=dry_run,
+    )
     if payload.get("_dry_run"):
-        return _fallback_triage(doc), True
+        return _fallback_triage(doc)
     try:
-        return TriageResult.model_validate(payload), True
+        return TriageResult.model_validate(payload)
     except ValidationError:
         logger.warning("triage validation failed for %s; using title fallback", doc["id"])
-        return _fallback_triage(doc), True
+        return _fallback_triage(doc)
 
 
 def process_document(
@@ -328,7 +317,7 @@ def process_document(
         "full_extract": False,
     }
 
-    triage, claude_ok = triage_document(doc, chunks, dry_run)
+    triage = triage_document(doc, chunks, dry_run)
     if dry_run:
         resource_chunks = _select_chunks(chunks, RESOURCE_HINTS)
         econ_chunks = _select_chunks(chunks, ECONOMICS_HINTS)
@@ -396,7 +385,7 @@ def process_document(
     resources = list(html_resources)
     economics = list(html_economics)
     batch_mode = use_batch or settings.extract_use_batch
-    if not resources and claude_ok:
+    if not resources:
         resources = _call_rows(
             model=settings.extract_sonnet_model,
             purpose="extract",
@@ -407,7 +396,7 @@ def process_document(
             dry_run=False,
             use_batch=batch_mode,
         )
-    if not economics and claude_ok:
+    if not economics:
         econ_chunks = _select_chunks(chunks, ECONOMICS_HINTS)
         if econ_chunks:
             economics = _call_rows(
@@ -422,7 +411,7 @@ def process_document(
             )
     drill_chunks = _select_chunks(chunks, DRILL_HINTS)
     drills: list[DrillResult] = []
-    if claude_ok and drill_chunks:
+    if drill_chunks:
         drills = _call_rows(
             model=settings.extract_haiku_model,
             purpose="extract",
@@ -435,7 +424,7 @@ def process_document(
         )[:MAX_DRILL_ROWS]
     qp_chunks = _select_chunks(chunks, QP_HINTS)
     qps: list[QualifiedPerson] = []
-    if claude_ok and qp_chunks:
+    if qp_chunks:
         qps = _call_rows(
             model=settings.extract_haiku_model,
             purpose="extract",
@@ -447,17 +436,21 @@ def process_document(
             use_batch=batch_mode,
         )
 
-    clear_document_facts(document_id)
     insert_project_event(project_id, document_id, event_type, event_date, triage.summary)
-    stats["resources"] = insert_resources(project_id, document_id, resources)
-    stats["economics"] = insert_economics(project_id, document_id, economics)
-    stats["drills"] = insert_drills(project_id, document_id, drills)
-    stats["qps"] = insert_qps(document_id, qps)
-    if stats["resources"]:
+    written = replace_document_facts(
+        project_id, document_id,
+        resources=resources, economics=economics, drills=drills, qps=qps,
+    )
+    if written is None:
+        logger.warning("document %s: extraction produced no rows; existing facts kept", document_id)
+        stats["kept_existing"] = True
+    else:
+        stats.update(written)
+    if stats["resources"] > 0:
         insert_project_event(
             project_id, document_id, "resource_update", event_date, triage.summary
         )
-    if stats["drills"]:
+    if stats["drills"] > 0:
         insert_project_event(
             project_id, document_id, "drill_results", event_date, triage.summary
         )
