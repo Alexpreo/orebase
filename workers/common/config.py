@@ -55,7 +55,10 @@ class Settings(BaseSettings):
     sedar_headful: bool = Field(default=False, alias="SEDAR_HEADFUL")
     sedar_daily_fetch_cap: int = Field(default=20, alias="SEDAR_DAILY_FETCH_CAP")
     sedar_search_url: str = Field(
-        default="https://www.sedarplus.ca/csa-party/viewInstance/view.html?id=0c11f8b7998bcd96fb9cb36b800b9dfdd7cbf07b7cf2bde3",
+        default=(
+            "https://www.sedarplus.ca/csa-party/service/create.html"
+            "?targetAppCode=csa-party&service=searchDocuments&_locale=en"
+        ),
         alias="SEDAR_SEARCH_URL",
     )
     sedar_alert_webhook_secret: str = Field(default="", alias="SEDAR_ALERT_WEBHOOK_SECRET")
@@ -71,8 +74,9 @@ class Settings(BaseSettings):
 
     newswire_feeds: str = Field(
         default=(
-            "https://www.globenewswire.com/RssFeed/subjectcode/26-Mining/feedTitle/GlobeNewswire%20-%20Mining,"
-            "https://www.newsfilecorp.com/rss/newsfile-all"
+            "https://www.globenewswire.com/RssFeed/industry/1777-Gold%20Mining/feedTitle/GlobeNewswire%20-%20Industry%20News%20on%20Gold%20Mining,"
+            "https://www.globenewswire.com/RssFeed/industry/1775-General%20Mining/feedTitle/GlobeNewswire%20-%20Industry%20News%20on%20General%20Mining,"
+            "https://feeds.newsfilecorp.com/industry/mining-metals"
         ),
         alias="NEWSWIRE_FEEDS",
     )

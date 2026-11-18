@@ -77,12 +77,20 @@ _HEADING_PATTERNS = (
 )
 
 
+def _without_nuls(text: str) -> str:
+    """Postgres text columns reject NUL bytes that some PDF extractors leave in."""
+    return text.replace("\x00", "") if text else text
+
+
 @dataclass
 class Block:
     """An atomic unit of page content. Table blocks are never split across chunks."""
 
     text: str
     is_table: bool = False
+
+    def __post_init__(self) -> None:
+        self.text = _without_nuls(self.text)
 
 
 @dataclass
@@ -253,6 +261,11 @@ class Chunk:
     page_end: int
     content: str
     section_title: Optional[str]
+
+    def __post_init__(self) -> None:
+        self.content = _without_nuls(self.content)
+        if self.section_title:
+            self.section_title = _without_nuls(self.section_title)
 
 
 def chunk_pages(pages: list[Page]) -> list[Chunk]:

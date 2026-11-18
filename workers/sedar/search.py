@@ -19,6 +19,13 @@ from .session import SedarSession
 
 logger = logging.getLogger(__name__)
 
+# SEDAR+ Select2 values for nightly TARGET_TYPES. The visible widget hides #DocumentType.
+_DOCUMENT_TYPE_VALUES = {
+    "NI 43-101": "TECHNICAL_REPORT_NI_43101",
+    "Material change": "MATERIAL_CHANGE_REPORT",
+    "News release": "NEWS_RELEASE",
+}
+
 
 class SearchContractError(RuntimeError):
     """Path 1/2 response did not match the documented contract. Stop rather than invent rows."""
@@ -241,8 +248,8 @@ class DomSearch:
         date_from: date,
         date_to: date,
     ) -> list[FilingResult]:
-        page = self.session.goto(settings.sedar_search_url or DEFAULT_SEARCH_URL)
-        self.session.detect_challenge(page)
+        page = self.session.warmup()
+        page = self._ensure_search_form(page)
         self._fill(page, document_type, date_from, date_to)
         self.session.limiter.wait()
         search_btn = page.get_by_role("button", name="Search")
@@ -252,6 +259,18 @@ class DomSearch:
         page.wait_for_timeout(2_000)
         self.session.detect_challenge(page)
         return self._parse_table(page)
+
+    def _ensure_search_form(self, page: Page) -> Page:
+        """Landing page after a captcha, then the stable searchDocuments entry."""
+        if page.get_by_label("Document type", exact=False).count():
+            return page
+        page = self.session.goto(settings.sedar_search_url or DEFAULT_SEARCH_URL)
+        try:
+            page.get_by_label("Document type", exact=False).first.wait_for(timeout=15_000)
+        except Exception as exc:  # noqa: BLE001
+            raise SearchContractError(f"DOM search: search form did not load: {exc}") from exc
+        self.session.detect_challenge(page)
+        return page
 
     def next_page(self, page: Page) -> bool:
         nxt = page.get_by_role("button", name="Next")
@@ -269,15 +288,39 @@ class DomSearch:
         return True
 
     def _fill(self, page: Page, document_type: str, date_from: date, date_to: date) -> None:
-        type_box = page.get_by_label("Document type", exact=False)
-        if type_box.count() == 0:
+        if page.locator("#DocumentType").count() == 0:
             raise SearchContractError("DOM search: no Document type field")
-        type_box.first.fill(document_type)
-        dates = page.locator("input[type='date']")
-        if dates.count() < 2:
-            raise SearchContractError("DOM search: expected two date inputs")
-        dates.nth(0).fill(date_from.isoformat())
-        dates.nth(1).fill(date_to.isoformat())
+        mapped = _DOCUMENT_TYPE_VALUES.get(document_type)
+        selected = page.evaluate(
+            """([value, label]) => {
+                const sel = document.querySelector('#DocumentType');
+                if (!sel) throw new Error('no DocumentType select');
+                let v = value;
+                if (!v) {
+                    const skip = /amended|certificate|consent|foreign/i;
+                    const opt = Array.from(sel.options).find((o) => {
+                        const text = (o.textContent || '').trim();
+                        return text.toLowerCase().includes(label.toLowerCase()) && !skip.test(text);
+                    });
+                    if (!opt) throw new Error('no option for ' + label);
+                    v = opt.value;
+                }
+                const $ = window.jQuery;
+                if ($) { $(sel).val([v]).trigger('change'); }
+                else {
+                    sel.value = v;
+                    sel.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+                return v;
+            }""",
+            [mapped, document_type],
+        )
+        logger.info("DOM DocumentType=%s (%s)", selected, document_type)
+        from_date = date_from.strftime("%d/%m/%Y")
+        to_date = date_to.strftime("%d/%m/%Y")
+        page.locator("#SubmissionDate").fill(from_date)
+        page.locator("#SubmissionDate2").fill(to_date)
+        page.wait_for_timeout(1_000)
 
     def _parse_table(self, page: Page) -> list[FilingResult]:
         table = page.locator("table").filter(has_text="Submitted date")

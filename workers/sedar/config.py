@@ -8,10 +8,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-# Public search landing page. Override with SEDAR_SEARCH_URL if CSA rotates the id.
+# Public document search. The viewInstance id in the redirected URL is session-specific;
+# always enter through searchDocuments. Override with SEDAR_SEARCH_URL if CSA rotates it.
 DEFAULT_SEARCH_URL = (
-    "https://www.sedarplus.ca/csa-party/viewInstance/view.html"
-    "?id=0c11f8b7998bcd96fb9cb36b800b9dfdd7cbf07b7cf2bde3"
+    "https://www.sedarplus.ca/csa-party/service/create.html"
+    "?targetAppCode=csa-party&service=searchDocuments&_locale=en"
 )
 
 CHALLENGE_MARKERS = (
