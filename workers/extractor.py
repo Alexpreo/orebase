@@ -16,6 +16,7 @@ from types import SimpleNamespace
 from datetime import date, timedelta
 from typing import Any, Optional
 
+import psycopg
 from pydantic import ValidationError
 
 from common.claude import ClaudeUnavailable, complete_tool, estimate_cost_usd
@@ -651,13 +652,22 @@ def run(
     while True:
         try:
             assert_extraction_cap()
+        except psycopg.OperationalError as exc:  # DNS/network blip; PoolTimeout subclasses this
+            logger.warning("db unreachable, retrying in 30s: %s", exc)
+            time.sleep(30)
+            continue
         except ExtractionCapExceeded as exc:
             logger.error("%s; extractor sleeping", exc)
             if once:
                 break
             time.sleep(max(idle_sleep, 60.0))
             continue
-        job = claim_job("extract")
+        try:
+            job = claim_job("extract")
+        except psycopg.OperationalError as exc:
+            logger.warning("claim failed, retrying in 30s: %s", exc)
+            time.sleep(30)
+            continue
         if job is None:
             if once:
                 break

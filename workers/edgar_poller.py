@@ -73,6 +73,13 @@ DEFAULT_SIC_MAX = 1099
 DEFAULT_FILE_TYPES = "EX-96"
 ALL_FILE_TYPES = "all"
 
+# Canadian dual-listed issuers file NI 43-101 reports as EX-99 exhibits on 6-K/40-F. A bare
+# "NI 43-101" query is mostly press releases and QP certificates; requiring headings that
+# Form 43-101F1 mandates keeps it to full technical reports, filtered server-side.
+NI43101_QUERY = '"adjacent properties" "interpretation and conclusions" "data verification" "NI 43-101"'
+NI43101_FORMS = "6-K,40-F"
+NI43101_FILE_TYPES = "EX-99"
+
 
 class RateLimiter:
     """Thread-safe minimum-interval limiter to stay under SEC's request ceiling."""
@@ -298,6 +305,7 @@ def process_hit(
     sic_min: int,
     sic_max: int,
     file_types: tuple[str, ...],
+    doc_type_override: Optional[str] = None,
 ) -> str:
     """Return one of: 'skipped_file_type' | 'skipped_sic' | 'skipped_unsupported' |
     'skipped_known' | 'skipped_dupe' | 'ingested' | 'error'.
@@ -309,7 +317,9 @@ def process_hit(
     # registrants, so the exhibit type is better evidence than the filer's SIC code. Real
     # technical reports come from filers coded outside 1000-1099 (deep-sea miners land under
     # 4400, for instance), and dropping those on SIC alone loses genuine mining reports.
-    is_technical_report = _is_technical_report(hit.file_type, hit.filename)
+    is_technical_report = doc_type_override is not None or _is_technical_report(
+        hit.file_type, hit.filename
+    )
 
     # SIC comes from the search response, so filtering costs no extra request. A filing with
     # no SIC is kept rather than dropped: better a stray document than a missed miner.
@@ -362,7 +372,7 @@ def process_hit(
         source="edgar",
         source_url=hit.primary_url,
         external_id=hit.external_id,
-        doc_type=_doc_type_for(hit.form, hit.file_type, hit.filename),
+        doc_type=doc_type_override or _doc_type_for(hit.form, hit.file_type, hit.filename),
         title=hit.title,
         filed_at=hit.filed_at,
         sha256=sha,
@@ -389,6 +399,7 @@ def run(
     sic_min: int,
     sic_max: int,
     file_types: tuple[str, ...] = (),
+    doc_type_override: Optional[str] = None,
 ) -> dict[str, int]:
     client = EdgarClient()
     counts = {
@@ -422,7 +433,7 @@ def run(
                 if counts["seen"] >= limit:
                     break
                 counts["seen"] += 1
-                counts[process_hit(client, hit, sic_min, sic_max, file_types)] += 1
+                counts[process_hit(client, hit, sic_min, sic_max, file_types, doc_type_override)] += 1
 
             # Advance by what EDGAR actually returned. The page size is not part of the
             # documented contract, and assuming a smaller one re-walks hits already
@@ -471,6 +482,12 @@ def _build_arg_parser() -> argparse.ArgumentParser:
             f"(default {DEFAULT_FILE_TYPES}; pass '{ALL_FILE_TYPES}' to keep every type)"
         ),
     )
+    parser.add_argument(
+        "--ni43101",
+        action="store_true",
+        help="search 6-K/40-F EX-99 exhibits for NI 43-101 technical reports (Canadian "
+        "dual-listed issuers); overrides --query/--forms/--file-types",
+    )
     return parser
 
 
@@ -481,6 +498,8 @@ def main() -> None:
         parts = args.sic.split("-")
         sic_min = int(parts[0])
         sic_max = int(parts[1]) if len(parts) > 1 else sic_min
+    if args.ni43101:
+        args.query, args.forms, args.file_types = NI43101_QUERY, NI43101_FORMS, NI43101_FILE_TYPES
     run(
         limit=args.limit,
         query=args.query,
@@ -490,6 +509,7 @@ def main() -> None:
         sic_min=sic_min,
         sic_max=sic_max,
         file_types=parse_file_types(args.file_types),
+        doc_type_override="ni43101" if args.ni43101 else None,
     )
 
 

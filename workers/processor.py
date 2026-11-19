@@ -17,6 +17,7 @@ from dataclasses import dataclass, field
 from typing import Any, Optional
 
 import fitz  # PyMuPDF
+import psycopg
 import pdfplumber
 
 from common.config import settings
@@ -406,7 +407,12 @@ def _handle_job(job: dict[str, Any]) -> None:
 def run(once: bool, idle_sleep: float) -> None:
     logger.info("processor started (once=%s)", once)
     while True:
-        job = claim_job("parse")
+        try:
+            job = claim_job("parse")
+        except psycopg.OperationalError as exc:  # DNS/network blip; PoolTimeout subclasses this
+            logger.warning("claim failed, retrying in 30s: %s", exc)
+            time.sleep(30)
+            continue
         if job is None:
             if once:
                 break
