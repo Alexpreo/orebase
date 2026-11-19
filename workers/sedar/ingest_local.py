@@ -361,14 +361,20 @@ def ingest_inbox(inbox: Path, extra_csvs: list[Path], *, dry_run: bool, include_
                     continue
                 company = row.profile_name if row else folder
                 doc_title = re.sub(r"\.pdf$", "", document, flags=re.I)
-                ingest_bytes(
+                # SEDAR+ splits a large report into several same-named PDFs; only the
+                # " (hex)" suffix tells the parts apart, so it must be part of the id.
+                part = info.filename.rsplit("/", 1)[-1]
+                new_id = ingest_bytes(
                     data=data,
                     filing_url="manual-upload",
-                    external_id=f"sedar:{profile_number}:{filing_id}:{document}",
+                    external_id=f"sedar:{profile_number}:{filing_id}:{part}",
                     title=f"{company} — {doc_title}",
                     filed_at=row.submitted_date if row else None,
                     doc_type=_doc_type_from_path(Path(info.filename), "ni43101"),
                 )
+                if new_id is None:
+                    stats["not_ingested"] += 1
+                    unmatched.append(f"{zip_path.name}: NOT INGESTED (duplicate id) {info.filename}")
                 if row and row.profile_number:
                     upsert_issuer(
                         profile_number=row.profile_number,
@@ -379,6 +385,8 @@ def ingest_inbox(inbox: Path, extra_csvs: list[Path], *, dry_run: bool, include_
                     )
         span = f"{min(dates)}..{max(dates)}" if dates else "-"
         extra = f" (+{stats['dated_existing']} old undated rows dated)" if stats["dated_existing"] else ""
+        if stats["not_ingested"]:
+            extra += f" ({stats['not_ingested']} NOT INGESTED)"
         print(
             f"{zip_path.name:34} {stats['pdfs']:5} {stats['matched']:5} {stats['unmatched']:5} "
             f"{stats['french']:6} {stats['in_db']:5}  {span}{extra}",
