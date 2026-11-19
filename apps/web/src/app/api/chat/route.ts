@@ -1,4 +1,4 @@
-import { anthropic } from "@ai-sdk/anthropic";
+import { createAnthropic } from "@ai-sdk/anthropic";
 import {
   convertToModelMessages,
   createUIMessageStreamResponse,
@@ -18,6 +18,16 @@ import type { ChatSearchFilters, OreBaseUIMessage } from "@/lib/chat-types";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
+
+// @ai-sdk/anthropic appends /messages to the base URL directly, so a proxy URL set
+// without /v1 (e.g. http://127.0.0.1:8787) would 404. Unset keeps the SDK default.
+function anthropicBaseURL(): string | undefined {
+  const raw = process.env.ANTHROPIC_BASE_URL?.trim().replace(/\/+$/, "");
+  if (!raw) return undefined;
+  return raw.endsWith("/v1") ? raw : `${raw}/v1`;
+}
+
+const anthropic = createAnthropic({ baseURL: anthropicBaseURL() });
 
 const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL ?? "claude-sonnet-5-5";
 const MAX_OUTPUT_TOKENS = 2048;
@@ -136,7 +146,11 @@ export async function POST(request: Request) {
       stream: result.stream,
       tools,
       originalMessages: messages,
-      onError: () => "Something went wrong.",
+      onError: (error) => {
+        // Client still gets a generic message; the real cause goes to the server log.
+        console.error("[chat] stream error", error);
+        return "Something went wrong.";
+      },
       onEnd: async ({ messages: nextMessages }) => {
         const persisted = nextMessages.map((message) => {
           if (message.role !== "assistant") return message;
