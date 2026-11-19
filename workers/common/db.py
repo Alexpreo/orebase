@@ -3,6 +3,7 @@ insert/update helpers used by the pollers and the processor."""
 
 from __future__ import annotations
 
+import json
 import logging
 from contextlib import contextmanager
 from decimal import Decimal
@@ -420,6 +421,22 @@ def _vector_literal(embedding: list[float]) -> str:
     return "[" + ",".join(repr(float(x)) for x in embedding) + "]"
 
 
+def embeddings_by_content_md5(hashes: list[str]) -> dict[str, list[float]]:
+    """Stored embedding per md5(content), for chunk text that was embedded before."""
+    if not hashes:
+        return {}
+    with connection() as conn, conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT DISTINCT ON (md5(content)) md5(content) AS h, embedding::text AS e
+              FROM raw.document_chunks
+             WHERE md5(content) = ANY(%s) AND embedding IS NOT NULL;
+            """,
+            (list(set(hashes)),),
+        )
+        return {r["h"]: json.loads(r["e"]) for r in cur.fetchall()}
+
+
 def replace_document_chunks(document_id: str, chunks: list[dict[str, Any]]) -> int:
     """Idempotently (re)write all chunks for a document. Returns the number written."""
     with connection() as conn, conn.cursor() as cur:
@@ -429,7 +446,7 @@ def replace_document_chunks(document_id: str, chunks: list[dict[str, Any]]) -> i
                 """
                 INSERT INTO raw.document_chunks
                     (document_id, chunk_index, page_start, page_end, content, section_title, embedding)
-                VALUES (%s, %s, %s, %s, %s, %s, %s::vector);
+                VALUES (%s, %s, %s, %s, %s, %s, %s::halfvec);
                 """,
                 (
                     document_id,

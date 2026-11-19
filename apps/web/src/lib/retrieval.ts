@@ -91,7 +91,7 @@ export async function hybridRetrieve(
   const rows = await sql<RetrievedChunk[]>`
     WITH params AS (
       SELECT
-        ${vectorLiteral}::vector AS query_embedding,
+        ${vectorLiteral}::halfvec(1024) AS query_embedding,
         plainto_tsquery('english', ${query}) AS query_ts
     ),
     filtered_chunks AS (

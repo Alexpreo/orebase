@@ -9,6 +9,7 @@ last_error and re-queue with exponential backoff.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import io
 import logging
 import re
@@ -22,6 +23,7 @@ import pdfplumber
 
 from common.config import settings
 from common.db import (
+    embeddings_by_content_md5,
     claim_job,
     complete_job,
     enqueue_job_if_absent,
@@ -350,7 +352,14 @@ def process_document(document_id: str) -> dict[str, int]:
         )
 
     chunks = chunk_pages(pages)
-    embeddings = embed_texts([c.content for c in chunks]) if chunks else []
+    # Identical text (refiled reports, repeated sections) reuses its stored embedding.
+    hashes = [hashlib.md5(c.content.encode("utf-8")).hexdigest() for c in chunks]
+    known = embeddings_by_content_md5(hashes)
+    todo = [c.content for c, h in zip(chunks, hashes) if h not in known]
+    fresh = iter(embed_texts(todo) if todo else [])
+    embeddings = [known[h] if h in known else next(fresh) for h in hashes]
+    if known:
+        logger.info("document %s: reused %d of %d chunk embeddings", document_id, len(chunks) - len(todo), len(chunks))
 
     chunk_rows = [
         {
