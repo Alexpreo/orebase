@@ -24,7 +24,7 @@ EDITABLE = {  # mirrors apps/web/src/app/api/admin/review/route.ts
     "economics": {"study_type", "effective_date", "currency", "npv", "irr_pct", "capex_initial", "aisc", "mine_life_years", "payback_years", "metal_price_assumptions", "extraction_confidence"},
     "drill": {"hole_id", "announced_date", "from_m", "to_m", "interval_m", "assays", "true_width_noted", "extraction_confidence"},
 }
-JSON_FIELDS = {"grade", "contained_metal", "npv", "metal_price_assumptions", "assays"}
+JSON_FIELDS = {"grade", "contained_metal", "npv", "metal_price_assumptions", "assays", "aisc"}
 
 
 def main() -> None:
