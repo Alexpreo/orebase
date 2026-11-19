@@ -547,7 +547,7 @@ def rerun_low_confidence(*, use_batch: bool = False) -> None:
     for document_id in low_confidence_documents():
         assert_extraction_cap()
         stats = process_document(
-            document_id, force_full=True, use_batch=use_batch, escalate=True
+            document_id, force_full=True, use_batch=use_batch
         )
         logger.info("low-confidence re-run doc=%s stats=%s", document_id, stats)
 
