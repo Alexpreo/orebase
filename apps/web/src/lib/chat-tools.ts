@@ -100,7 +100,7 @@ export function createSearchDocumentsTool(defaults: ChatSearchFilters = {}) {
       });
     }
 
-    return { chunks };
+    return { chunks: jsonRows(chunks) };
   },
 });
 }
@@ -164,10 +164,16 @@ export const getDocumentTool = tool({
     return {
       document_id,
       title: rows[0].title,
-      chunks: rows,
+      chunks: jsonRows(rows),
     };
   },
 });
+
+// Tool output must be plain JSON: postgres returns Date objects (filed_at, created_at…),
+// which fail the AI SDK's prompt schema on the next step and abort the stream.
+function jsonRows<T>(rows: readonly T[]): T[] {
+  return JSON.parse(JSON.stringify(rows));
+}
 
 export const queryDatabaseTool = tool({
   description:
@@ -214,12 +220,11 @@ export const queryDatabaseTool = tool({
       }
 
       return {
-        rows: list,
+        rows: jsonRows(list),
         rowCount: list.length,
-        emptyReason:
-          list.length === 0
-            ? "No matching rows. Structured extraction has not populated these tables yet."
-            : undefined,
+        ...(list.length === 0
+          ? { emptyReason: "No matching rows. Structured extraction has not populated these tables yet." }
+          : {}),
       };
     } catch (error) {
       return {

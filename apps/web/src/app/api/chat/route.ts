@@ -138,6 +138,10 @@ export async function POST(request: Request) {
     messages: modelMessages,
     tools,
     stopWhen: stepCountIs(MAX_TOOL_STEPS),
+    // The last allowed step can't call tools, so the model always writes an answer
+    // instead of ending the run mid-research with no text.
+    prepareStep: ({ stepNumber }) =>
+      stepNumber >= MAX_TOOL_STEPS - 1 ? { toolChoice: "none" as const } : undefined,
     maxOutputTokens: MAX_OUTPUT_TOKENS,
   });
 
