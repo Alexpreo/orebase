@@ -296,7 +296,7 @@ def match_row(
 
 def _existing_by_sha(sha: str) -> Optional[dict]:
     with connection() as conn, conn.cursor() as cur:
-        cur.execute("SELECT id, filed_at FROM raw.documents WHERE sha256 = %s;", (sha,))
+        cur.execute("SELECT id, filed_at, created_at FROM raw.documents WHERE sha256 = %s;", (sha,))
         return cur.fetchone()
 
 
@@ -344,7 +344,10 @@ def ingest_inbox(inbox: Path, extra_csvs: list[Path], *, dry_run: bool, include_
                 existing = _existing_by_sha(hashlib.sha256(data).hexdigest())
                 if existing:
                     stats["in_db"] += 1
-                    if row and existing["filed_at"] is None:
+                    # A later refiling of identical bytes (another issuer, an amendment) is
+                    # not when we first had the file: never date a doc after its ingest.
+                    if (row and existing["filed_at"] is None
+                            and row.submitted_date <= existing["created_at"].date()):
                         stats["dated_existing"] += 1
                         if not dry_run:
                             _set_filed_at(str(existing["id"]), row.submitted_date)
