@@ -184,21 +184,21 @@ export async function POST(request: Request) {
       const [resources, economics, drills] = await Promise.all([
         sql`
           UPDATE core.resource_estimates
-             SET reviewed = true
+             SET reviewed = true, review_source = 'human'
            WHERE reviewed = false
              AND extraction_confidence >= ${min}
           RETURNING id
         `,
         sql`
           UPDATE core.project_economics
-             SET reviewed = true
+             SET reviewed = true, review_source = 'human'
            WHERE reviewed = false
              AND extraction_confidence >= ${min}
           RETURNING id
         `,
         sql`
           UPDATE core.drill_results
-             SET reviewed = true
+             SET reviewed = true, review_source = 'human'
            WHERE reviewed = false
              AND extraction_confidence >= ${min}
           RETURNING id
@@ -227,7 +227,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: true });
     }
     if (action === "approve") {
-      await sql.unsafe(`UPDATE ${table} SET reviewed = true WHERE id = $1`, [id]);
+      await sql.unsafe(`UPDATE ${table} SET reviewed = true, review_source = 'human' WHERE id = $1`, [id]);
       return NextResponse.json({ ok: true });
     }
 
@@ -255,7 +255,7 @@ export async function POST(request: Request) {
       return String(value);
     });
     await sql.unsafe(
-      `UPDATE ${table} SET ${assignments.join(", ")}, reviewed = true WHERE id = $1`,
+      `UPDATE ${table} SET ${assignments.join(", ")}, reviewed = true, review_source = 'human' WHERE id = $1`,
       [id, ...values],
     );
     return NextResponse.json({ ok: true });

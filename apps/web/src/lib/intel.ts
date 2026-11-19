@@ -110,7 +110,7 @@ export async function listProjectResources(projectId: string): Promise<ResourceR
   if (!sql) return [];
   const rows = await sql<ResourceRow[]>`
     SELECT id, project_id, document_id, effective_date, category, domain, tonnes, grade,
-           contained_metal, cutoff, standard, extraction_confidence, reviewed
+           contained_metal, cutoff, standard, extraction_confidence, reviewed, review_source
     FROM core.resource_estimates
     WHERE project_id = ${projectId}
     ORDER BY effective_date DESC NULLS LAST, category, domain NULLS FIRST
@@ -124,7 +124,7 @@ export async function listProjectEconomics(projectId: string): Promise<Economics
   const rows = await sql<EconomicsRow[]>`
     SELECT id, project_id, document_id, study_type, effective_date, currency, npv,
            irr_pct, capex_initial, aisc, mine_life_years, payback_years,
-           metal_price_assumptions, extraction_confidence, reviewed
+           metal_price_assumptions, extraction_confidence, reviewed, review_source
     FROM core.project_economics
     WHERE project_id = ${projectId}
     ORDER BY effective_date DESC NULLS LAST

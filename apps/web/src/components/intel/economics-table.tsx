@@ -52,6 +52,10 @@ export function EconomicsTable({ rows }: { rows: EconomicsRow[] }) {
                     ) : null}
                     {!row.reviewed ? (
                       <Badge variant="outline">unreviewed</Badge>
+                    ) : row.review_source && row.review_source !== "human" ? (
+                      <Badge variant="outline" title="Checked against the source document by machine, not by a person">
+                        machine-checked
+                      </Badge>
                     ) : null}
                   </div>
                 </TableCell>

@@ -47,6 +47,7 @@ export type ResourceRow = {
   standard: string | null;
   extraction_confidence: number | string | null;
   reviewed: boolean;
+  review_source?: string | null;
 };
 
 export type EconomicsRow = {
@@ -65,6 +66,7 @@ export type EconomicsRow = {
   metal_price_assumptions: JsonMap | null;
   extraction_confidence: number | string | null;
   reviewed: boolean;
+  review_source?: string | null;
 };
 
 export type DrillRow = {
