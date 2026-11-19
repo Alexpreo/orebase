@@ -94,6 +94,11 @@ Read these first:
 4. **Extraction depth for old filings:** done; see item 2 (latest report per project).
 5. **Schedule it.** Run processor, extractor, EDGAR and newswire as long-running local processes (launchd or tmux), or on EC2 via `make deploy`. Turn on the silent-death alarm.
 6. **SEDAR+ backfill** is blocked on automated search (Radware; `sedar/NOTES.md`). The manual path works: the owner downloads zip files from SEDAR+, then run `python -m sedar.ingest_local --zip …`. Don't build scraping that evades bot protection.
+   - **Dated inbox import (2026-11-19):** put the `requested_documents (N).zip` files and the SEDAR+ search-result CSV exports in one folder, then run `python -m sedar.ingest_local --inbox ~/SEDAR/inbox --dry-run`, then again without `--dry-run`.
+     - Every PDF is matched to a CSV row by profile number (taken from the zip folder name), document name and file size, and gets that row's `submitted_date`.
+     - A PDF with no match, or with more than one candidate, goes in undated and is listed in the output. Dates are never guessed.
+     - `--fix-undated` dates older undated SEDAR docs from the same CSV index.
+     - Self-check: `uv run python -m tests.test_sedar_inbox`.
 
 **Data cleanup the owner asked about**
 - **`4c5f0bfc` (Ivanhoe):** 38 bad rows from the old HTML table parser, kept because 9 rows were human-reviewed. Delete only with the owner's OK.
