@@ -32,6 +32,8 @@ const anthropic = createAnthropic({ baseURL: anthropicBaseURL() });
 const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL ?? "claude-sonnet-5-5";
 const MAX_OUTPUT_TOKENS = 2048;
 const MAX_TOOL_STEPS = 8;
+const FINAL_STEP_PROMPT =
+  "\n\nYou have used every research step. Do not call any tools. Write the final answer now from the tool results above, citing them as instructed. If they are not enough, say what is missing.";
 
 function parseFilters(raw: unknown): ChatSearchFilters {
   if (!raw || typeof raw !== "object") return {};
@@ -132,16 +134,20 @@ export async function POST(request: Request) {
     ignoreIncompleteToolCalls: true,
   });
 
+  const system = SYSTEM_PROMPT + filterPrompt(filters);
   const result = streamText({
     model: anthropic(ANTHROPIC_MODEL),
-    system: SYSTEM_PROMPT + filterPrompt(filters),
+    system,
     messages: modelMessages,
     tools,
     stopWhen: stepCountIs(MAX_TOOL_STEPS),
-    // The last allowed step can't call tools, so the model always writes an answer
-    // instead of ending the run mid-research with no text.
+    // The last allowed step gets no tools and an explicit instruction to answer, so a run
+    // that spends every step researching still ends with text. Removing tools alone
+    // isn't enough: the model can still emit tool calls from the conversation history.
     prepareStep: ({ stepNumber }) =>
-      stepNumber >= MAX_TOOL_STEPS - 1 ? { toolChoice: "none" as const } : undefined,
+      stepNumber >= MAX_TOOL_STEPS - 1
+        ? { toolChoice: "none" as const, system: system + FINAL_STEP_PROMPT }
+        : undefined,
     maxOutputTokens: MAX_OUTPUT_TOKENS,
   });
 

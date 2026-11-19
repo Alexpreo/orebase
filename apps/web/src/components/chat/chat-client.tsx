@@ -396,6 +396,12 @@ export function ChatClient({
                       ) : null}
 
                       {text ? <div className="rise d2 flex flex-col gap-3.5">{renderAnswer(text)}</div> : null}
+                      {!text && steps.length > 0 && !(busy && message.id === messages[messages.length - 1]?.id) ? (
+                        <p role="status" className="text-[15px] leading-[1.7] text-fg-3">
+                          Stopped after {steps.length} research steps without writing an answer. Try a narrower
+                          question, or name the project or company.
+                        </p>
+                      ) : null}
 
                       {extra.length > 0 ? (
                         <div className="flex flex-wrap items-center gap-1 text-xs text-fg-4">
