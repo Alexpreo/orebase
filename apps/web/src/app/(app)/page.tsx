@@ -1,178 +1,345 @@
 import Link from "next/link";
-import { EventFeed } from "@/components/intel/event-feed";
-import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { StackedBars, MiniBars, SERIES } from "@/components/charts/charts";
+import { CountUp } from "@/components/kit/count-up";
+import { EmptyState } from "@/components/kit/empty-state";
+import { PageHeader } from "@/components/kit/page-header";
+import { Panel, PanelLink } from "@/components/kit/panel";
+import { Delta, StatTile } from "@/components/kit/stat-tile";
+import { PipelineStatusChip } from "@/components/kit/status";
 import { ensureUserId, resolveClerkId } from "@/lib/chat";
 import {
-  corpusCounts,
-  ensureDefaultWatchlist,
-  listRecentEvents,
-  listRecentFilings,
+  extractionMonthlyCap,
+  extractionSpend,
+  homeBriefing,
+  listLatestReports,
+  listWatchlists,
   listWatchlistEvents,
 } from "@/lib/intel";
-import type { FilingRow } from "@/lib/intel-types";
-import { documentHref, formatDate, formatNumber } from "@/lib/utils";
+import type { EventRow } from "@/lib/intel-types";
+import { formatAgo, formatShortDate } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
-const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+const ASK_PROMPTS = [
+  "Summarize this week's new NI 43-101 reports",
+  "Rank BC copper projects by contained metal",
+  "Which PEAs this quarter have IRR above 30%?",
+];
+
+const REPORT_LABEL: Record<string, string> = {
+  ni43101: "NI 43-101 report",
+  sk1300: "S-K 1300 summary",
+  pea: "PEA",
+  pfs: "Pre-feasibility study",
+  fs: "Feasibility study",
+};
+
+const EVENT_TONE: Record<string, { text: string; dot: string }> = {
+  resource_update: { text: "text-copper-2", dot: "bg-copper" },
+  drill_result: { text: "text-slate-2", dot: "bg-slate" },
+  drill_results: { text: "text-slate-2", dot: "bg-slate" },
+};
+
+async function watchlistActivity(): Promise<{ watching: boolean; events: EventRow[] }> {
+  try {
+    const userId = await ensureUserId(await resolveClerkId());
+    const [list] = await listWatchlists(userId);
+    if (!list) return { watching: false, events: [] };
+    // Read-only: the watchlist page owns markWatchlistSeen, so unread state survives.
+    return { watching: true, events: await listWatchlistEvents(list.id, list.last_seen_at) };
+  } catch {
+    return { watching: false, events: [] };
+  }
+}
 
 // Server component renders once per request, so reading the clock here is fine.
-function filedThisWeek(filings: FilingRow[]): FilingRow[] {
-  const weekAgo = Date.now() - WEEK_MS;
-  return filings.filter((f) => f.filed_at && new Date(f.filed_at).getTime() >= weekAgo);
+function now() {
+  return Date.now();
 }
 
 export default async function HomePage() {
-  const userId = await ensureUserId(await resolveClerkId());
-  const watchlist = await ensureDefaultWatchlist(userId);
-  const [counts, filings, resourceEvents, watchEvents] = await Promise.all([
-    corpusCounts(),
-    listRecentFilings(),
-    listRecentEvents("resource_update", 6),
-    // Read-only: the watchlist page owns markWatchlistSeen, so New badges survive.
-    listWatchlistEvents(watchlist.id, watchlist.last_seen_at),
+  const [briefing, reports, spend, watch] = await Promise.all([
+    homeBriefing(),
+    listLatestReports(7),
+    extractionSpend(),
+    watchlistActivity(),
   ]);
+  const nowMs = now();
+  const cap = extractionMonthlyCap();
 
-  const thisWeek = filedThisWeek(filings);
-  const shownFilings = (thisWeek.length > 0 ? thisWeek : filings).slice(0, 6);
-
-  const questions = [
-    ...resourceEvents.slice(0, 3).map(
-      (e) => `What is the latest measured and indicated resource at ${e.project_name}?`,
-    ),
-    "Which projects have the highest-grade drill intercepts this year?",
-  ];
-
-  const stats = [
-    { label: "Filings", value: counts.documents, href: "/documents" },
-    { label: "Companies", value: counts.companies, href: "/companies" },
-    { label: "Projects", value: counts.projects, href: "/screener" },
-    { label: "Resource rows", value: counts.resources, href: "/screener" },
-    { label: "Drill intercepts", value: counts.drills, href: "/research" },
-  ];
+  const week = briefing.last7.reduce((a, d) => a + d.n, 0);
+  const unread = watch.events.filter((e) => e.isNew);
+  const unreadResource = unread.filter((e) => e.event_type === "resource_update").length;
+  const pulseTotal = briefing.pulse.reduce((a, w) => a + w.sedar + w.edgar, 0);
+  const month = new Date(nowMs).toLocaleDateString("en-US", { month: "long", timeZone: "UTC" });
+  const today = new Date(nowMs).toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+  const spendPct = Math.min(100, (spend.monthly / cap) * 100);
 
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Overview</h1>
-        <p className="text-sm text-muted-foreground">
-          What changed in the corpus, and where to start.
-        </p>
-      </div>
-
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-        {stats.map((s) => (
-          <Link key={s.label} href={s.href}>
-            <Card size="sm" className="transition-colors hover:bg-muted/50">
-              <CardContent>
-                <div className="text-2xl font-semibold tabular-nums">
-                  {formatNumber(s.value)}
-                </div>
-                <div className="text-xs text-muted-foreground">{s.label}</div>
-              </CardContent>
-            </Card>
+    <main className="flex flex-col gap-6 px-[clamp(16px,3vw,44px)] pt-8 pb-14">
+      <PageHeader
+        eyebrow={today}
+        title="Daily briefing"
+        subtitle={
+          <>
+            <span className="num text-fg">{week}</span> technical reports filed in the last 7 days ·{" "}
+            <span className="num text-copper-2">{unread.length}</span> new watchlist events
+          </>
+        }
+        actions={
+          <Link
+            href="/chat"
+            className="inline-flex h-10 items-center gap-2 rounded-[10px] bg-copper px-4 text-[13px] font-semibold text-on-copper transition-colors hover:bg-copper-hover"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+              <path d="M21 12a8 8 0 0 1-11.6 7.1L3 21l1.9-6.4A8 8 0 1 1 21 12z" />
+            </svg>
+            Ask OreBase
           </Link>
-        ))}
-      </div>
+        }
+      />
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Ask OreBase</CardTitle>
-          <CardDescription>Answers cite the filing and page they came from.</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-wrap gap-2">
-          {questions.map((q) => (
-            <Link
-              key={q}
-              href={`/chat?q=${encodeURIComponent(q)}`}
-              className="rounded-full border px-3 py-1.5 text-sm hover:bg-muted"
-            >
-              {q}
-            </Link>
-          ))}
-        </CardContent>
-      </Card>
-
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">
-              {thisWeek.length > 0 ? "New filings this week" : "Latest filings"}
-            </CardTitle>
-            <CardDescription>
-              {thisWeek.length > 0
-                ? `${thisWeek.length} filed in the last 7 days.`
-                : "Nothing filed in the last 7 days."}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {shownFilings.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No filings yet.</p>
+      <section aria-label="Key figures" className="grid grid-cols-[repeat(auto-fit,minmax(230px,1fr))] gap-3.5">
+        <StatTile
+          className="rise d1"
+          label="New technical reports · 7d"
+          value={<CountUp value={week} />}
+          chart={
+            <MiniBars
+              values={briefing.last7.map((d) => d.n)}
+              label={`Reports per day, last 7 days: ${briefing.last7.map((d) => d.n).join(", ")}`}
+            />
+          }
+          foot={<Delta value={week - briefing.prior7} suffix="vs prior week" />}
+        />
+        <StatTile
+          className="rise d2"
+          label="Resource estimates extracted"
+          value={<CountUp value={briefing.resources.total} />}
+          foot={
+            <>
+              Avg confidence{" "}
+              <span className="num text-fg">
+                {briefing.resources.avg_confidence == null ? "—" : briefing.resources.avg_confidence.toFixed(2)}
+              </span>{" "}
+              · {briefing.resources.unreviewed} in review
+            </>
+          }
+        />
+        <StatTile
+          className="rise d3"
+          label="Watchlist events"
+          value={<CountUp value={unread.length} />}
+          unit="unread"
+          foot={
+            !watch.watching || watch.events.length === 0 ? (
+              "Nothing watched yet"
+            ) : unreadResource > 0 ? (
+              <span className="text-copper-2">{unreadResource} high-signal: resource updates</span>
             ) : (
-              <ul>
-                {shownFilings.map((f) => {
-                  const href = documentHref(f.id);
-                  return (
-                    <li key={f.id} className="flex flex-col gap-1 border-b py-3 last:border-b-0">
-                      <div className="flex flex-wrap items-center gap-2 text-sm">
-                        {f.doc_type ? <Badge variant="secondary">{f.doc_type}</Badge> : null}
-                        <span className="text-muted-foreground">{formatDate(f.filed_at)}</span>
-                        {f.company_name ? <span className="font-medium">{f.company_name}</span> : null}
-                      </div>
-                      {href ? (
-                        <Link href={href} className="text-sm hover:underline">
-                          {f.title ?? f.project_name ?? "Untitled filing"}
-                        </Link>
-                      ) : null}
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
+              `${watch.events.length} events on watched projects`
+            )
+          }
+        />
+        <StatTile
+          className="rise d4"
+          label={`Extraction spend · ${month}`}
+          value={<CountUp value={spend.monthly} decimals={2} prefix="$" />}
+          unit={<span className="num">/ ${cap}</span>}
+          foot={
+            <div
+              className="h-1.5 overflow-hidden rounded-full bg-track"
+              role="meter"
+              aria-label="Share of monthly extraction cap used"
+              aria-valuemin={0}
+              aria-valuemax={cap}
+              aria-valuenow={Number(spend.monthly.toFixed(2))}
+            >
+              <div className="h-full rounded-full bg-copper" style={{ width: `${spendPct}%` }} />
+            </div>
+          }
+        />
+      </section>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Latest resource and reserve updates</CardTitle>
-            <CardDescription>From extracted technical reports.</CardDescription>
-          </CardHeader>
-          <CardContent className="[&_p]:line-clamp-2">
-            <EventFeed events={resourceEvents} />
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Watchlist activity</CardTitle>
-          <CardDescription>
-            <Link href="/watchlist" className="hover:underline">
-              Open watchlist
-            </Link>
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {watchEvents.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              Nothing watched yet. Find projects in the{" "}
-              <Link href="/screener" className="underline">
-                screener
-              </Link>{" "}
-              and add them from their page.
-            </p>
+      <section className="flex flex-wrap gap-3.5">
+        <Panel
+          className="rise d5 flex-[2_1_560px]"
+          title="Filings pulse"
+          subtitle="Technical reports filed per week, last 12 weeks"
+          action={
+            <div className="flex gap-4 text-xs text-fg-2">
+              <Legend color={SERIES.copper} label="SEDAR+" />
+              <Legend color={SERIES.slate} label="EDGAR" />
+            </div>
+          }
+        >
+          {pulseTotal === 0 ? (
+            <EmptyState title="No technical reports filed in the last 12 weeks">
+              New filings appear here as the pollers ingest them.
+            </EmptyState>
           ) : (
-            <EventFeed events={watchEvents.slice(0, 5)} />
+            <StackedBars
+              series={[
+                { name: "SEDAR+", color: SERIES.copper },
+                { name: "EDGAR", color: SERIES.slate },
+              ]}
+              data={briefing.pulse.map((w, i) => ({
+                label: i === briefing.pulse.length - 1 ? "Now" : i % 2 === 0 ? formatShortDate(w.week_start) : "",
+                highlight: i === briefing.pulse.length - 1,
+                values: [w.sedar, w.edgar],
+              }))}
+              label={`Weekly technical report filings over 12 weeks, ${pulseTotal} in total: ${briefing.pulse
+                .map((w) => `week of ${formatShortDate(w.week_start)} ${w.sedar} SEDAR+ and ${w.edgar} EDGAR`)
+                .join("; ")}`}
+            />
           )}
-        </CardContent>
-      </Card>
-    </div>
+        </Panel>
+
+        <section className="rise d6 flex min-w-0 flex-[1_1_320px] flex-col gap-3.5 rounded-2xl border border-[#2E2419] bg-[linear-gradient(180deg,#16120E_0%,#12151A_60%)] p-5">
+          <h2 className="font-heading text-lg font-semibold">Ask OreBase</h2>
+          <form action="/chat" className="flex flex-col gap-3.5">
+            <label htmlFor="home-ask" className="text-[13px] text-fg-3">
+              Every answer cites the exact page it came from.
+            </label>
+            <div className="relative">
+              <textarea
+                id="home-ask"
+                name="q"
+                rows={3}
+                required
+                placeholder="Ask about any filing, project or company…"
+                className="block w-full resize-none rounded-[10px] border border-line-3 bg-nav p-3 pr-12 text-sm text-fg placeholder:text-fg-4 focus-visible:border-copper focus-visible:outline-none"
+              />
+              <button
+                type="submit"
+                aria-label="Ask"
+                className="absolute right-2 bottom-2 grid size-8 place-items-center rounded-lg bg-copper text-on-copper transition-colors hover:bg-copper-hover"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M12 19V5M5 12l7-7 7 7" />
+                </svg>
+              </button>
+            </div>
+          </form>
+          <div className="flex flex-col gap-2">
+            {ASK_PROMPTS.map((q) => (
+              <Link
+                key={q}
+                href={`/chat?q=${encodeURIComponent(q)}`}
+                className="block rounded-[10px] border border-line-3 px-3 py-2.5 text-[13px] text-fg-2 transition-colors duration-(--duration-quick) hover:border-copper hover:text-copper-2"
+              >
+                {q}
+              </Link>
+            ))}
+          </div>
+        </section>
+      </section>
+
+      <section className="flex flex-wrap gap-3.5">
+        <Panel
+          flush
+          className="rise d6 flex-[3_1_600px] pb-2"
+          title="Latest technical reports"
+          action={<PanelLink href="/documents">View all documents →</PanelLink>}
+        >
+          {reports.length === 0 ? (
+            <div className="px-5 pb-3">
+              <EmptyState title="No technical reports yet" />
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[600px] border-collapse text-[13px]">
+                <thead>
+                  <tr className="text-left text-[11px] tracking-[0.06em] text-fg-4 uppercase">
+                    <th scope="col" className="px-5 py-2 font-semibold">Company</th>
+                    <th scope="col" className="px-3 py-2 font-semibold">Document</th>
+                    <th scope="col" className="px-3 py-2 font-semibold">Filed</th>
+                    <th scope="col" className="px-3 py-2 font-semibold">Jurisdiction</th>
+                    <th scope="col" className="px-5 py-2 text-right font-semibold">Pipeline</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {reports.map((r) => (
+                    <tr key={r.id} className="border-t border-line-soft transition-colors hover:bg-hover">
+                      <td className="px-5 py-3 font-medium">
+                        <Link href={`/documents/${r.id}`} className="text-fg hover:text-copper-2">
+                          {r.company_name ?? r.title ?? "Unknown issuer"}
+                        </Link>
+                      </td>
+                      <td className="px-3 py-3 whitespace-nowrap text-fg-2">{REPORT_LABEL[r.doc_type ?? ""] ?? "Technical report"}</td>
+                      <td className="num px-3 py-3 whitespace-nowrap text-fg-2">{formatShortDate(r.filed_at)}</td>
+                      <td className="px-3 py-3 text-fg-2">{r.region ?? r.country ?? "—"}</td>
+                      <td className="px-5 py-3 text-right">
+                        <PipelineStatusChip status={r.status} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </Panel>
+
+        <Panel
+          className="rise d7 flex-[2_1_380px] gap-1"
+          title="Watchlist activity"
+          action={<PanelLink href="/watchlist">Open →</PanelLink>}
+        >
+          {watch.events.length === 0 ? (
+            <EmptyState title="Nothing watched yet" className="mt-2">
+              Find projects in the{" "}
+              <Link href="/screener" className="text-copper hover:text-copper-2">
+                Screener
+              </Link>{" "}
+              and watch them from their page.
+            </EmptyState>
+          ) : (
+            <ul className="flex flex-col pt-2">
+              {watch.events.slice(0, 4).map((e) => {
+                const tone = EVENT_TONE[e.event_type ?? ""] ?? { text: "text-fg-2", dot: "bg-fg-4" };
+                return (
+                  <li key={e.id}>
+                    <Link
+                      href={`/projects/${e.project_id}`}
+                      className="flex gap-3 rounded-[10px] px-2 py-3 text-fg transition-colors hover:bg-hover"
+                    >
+                      <span aria-hidden="true" className={`mt-1.5 size-2 flex-none rounded-full ${tone.dot}`} />
+                      <span className="flex min-w-0 flex-1 flex-col gap-[3px]">
+                        <span className={`text-[11px] font-semibold tracking-[0.06em] uppercase ${tone.text}`}>
+                          {(e.event_type ?? "event").replaceAll("_", " ")}
+                        </span>
+                        <span className="text-sm font-medium">
+                          {e.project_name}
+                          {e.company_name ? ` · ${e.company_name}` : ""}
+                        </span>
+                        {e.summary ? <span className="line-clamp-2 text-[13px] text-fg-3">{e.summary}</span> : null}
+                      </span>
+                      <span className="num text-xs whitespace-nowrap text-fg-4">
+                        {e.event_date ? formatAgo(e.event_date, nowMs) : ""}
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </Panel>
+      </section>
+    </main>
+  );
+}
+
+function Legend({ color, label }: { color: string; label: string }) {
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <span aria-hidden="true" className="size-2.5 rounded-[3px]" style={{ background: color }} />
+      {label}
+    </span>
   );
 }
