@@ -43,7 +43,7 @@ _CACHE_WRITE_MULT = Decimal("1.25")
 _BATCH_MULT = Decimal("0.50")
 _MILLION = Decimal("1000000")
 BATCH_POLL_SECONDS = 20
-BATCH_TIMEOUT_SECONDS = 3600
+BATCH_TIMEOUT_SECONDS = 24 * 3600  # Message Batches expire after 24h
 
 # Thinking is always on for Sonnet 5.5 / Opus 5.5 and counts against max_tokens.
 DEFAULT_MAX_TOKENS = 32000
@@ -224,6 +224,7 @@ def _complete_via_batch(params: dict[str, Any]) -> Any:
             break
         time.sleep(BATCH_POLL_SECONDS)
     else:
+        client.messages.batches.cancel(batch.id)  # stop billing before the job retries
         raise ClaudeUnavailable(f"batch {batch.id} timed out")
     for item in client.messages.batches.results(batch.id):
         result = getattr(item, "result", None)

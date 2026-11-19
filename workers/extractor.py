@@ -11,6 +11,8 @@ import argparse
 import hashlib
 import logging
 import time
+from concurrent.futures import ThreadPoolExecutor
+from types import SimpleNamespace
 from datetime import date, timedelta
 from typing import Any, Optional
 
@@ -29,6 +31,7 @@ from common.db import (
     get_document,
     get_document_chunks,
     list_pending_jobs,
+    newer_technical_report_exists,
     set_document_status,
 )
 from common.extract_schemas import (
@@ -106,17 +109,51 @@ def classify_event_type(doc_type: Optional[str], title: Optional[str], summary: 
     return "new_report"
 
 
-def should_full_extract(doc: dict[str, Any], *, force: bool) -> bool:
+def _is_backfill(doc: dict[str, Any]) -> bool:
+    """Filings older than EXTRACT_AUTO_MONTHS. Undated (hand-uploaded) filings count as live."""
+    filed = doc.get("filed_at")
+    if not isinstance(filed, date):
+        return False
+    return filed < date.today() - timedelta(days=int(settings.extract_auto_months * 30.44))
+
+
+def _models_for(doc: dict[str, Any], use_batch: bool) -> SimpleNamespace:
+    """Which model reads each part of this filing. Live filings: Sonnet, Opus re-check.
+    Backfill: Haiku for triage/resources/QPs, Sonnet for economics/drills and re-checks, Batch."""
+    if _is_backfill(doc):
+        return SimpleNamespace(
+            backfill=True,
+            light=settings.backfill_model,
+            numeric=settings.backfill_numeric_model,
+            escalation=settings.backfill_numeric_model,
+            batch=True,
+        )
+    return SimpleNamespace(
+        backfill=False,
+        light=settings.extract_model,
+        numeric=settings.extract_model,
+        escalation=settings.extract_escalation_model,
+        batch=use_batch or settings.extract_use_batch,
+    )
+
+
+def should_full_extract(
+    doc: dict[str, Any], *, force: bool, project_id: Optional[str] = None
+) -> bool:
     if force:
         return True
     if document_on_watchlist(str(doc["id"])):
         return True
     filed = doc.get("filed_at")
-    if isinstance(filed, date):
-        cutoff = date.today() - timedelta(days=int(settings.extract_auto_months * 30.44))
-        return filed >= cutoff
-    # Undated filings today are hand-uploaded SEDAR reports: someone chose them, so extract.
-    return filed is None
+    if not isinstance(filed, date):
+        # Undated filings today are hand-uploaded SEDAR reports: someone chose them, so extract.
+        return True
+    if not _is_backfill(doc):
+        return True
+    # Backfill: full numbers only for each project's latest report; superseded ones get triage.
+    # shortcut: undated reports don't count as newer, and two workers on the same project at
+    # once may both extract; fine at backfill volume, revisit if duplicate spend shows up.
+    return project_id is None or not newer_technical_report_exists(str(doc["id"]), project_id, filed)
 
 
 def _fallback_triage(doc: dict[str, Any]) -> TriageResult:
@@ -275,6 +312,8 @@ def _call_rows(
 
 def _call_rows_escalating(
     *,
+    model: str,
+    escalation_model: str,
     tool: dict[str, Any],
     chunks: list[dict[str, Any]],
     model_cls,
@@ -289,16 +328,22 @@ def _call_rows_escalating(
                   document_id=document_id, dry_run=False, use_batch=use_batch)
     rows: list = []
     if not force_escalate:
-        rows = _call_rows(model=settings.extract_model, **common)
-        if not any(r.extraction_confidence < settings.extract_escalate_below for r in rows):
+        rows = _call_rows(model=model, **common)
+        low = any(r.extraction_confidence < settings.extract_escalate_below for r in rows)
+        if not low or escalation_model == model:
             return rows, False
-    stronger = _call_rows(model=settings.extract_escalation_model, **common)
+    stronger = _call_rows(model=escalation_model, **common)
     # An empty escalation result is not evidence the first rows were wrong; keep them.
     return (stronger or rows), True
 
 
 def triage_document(
-    doc: dict[str, Any], chunks: list[dict[str, Any]], dry_run: bool
+    doc: dict[str, Any],
+    chunks: list[dict[str, Any]],
+    dry_run: bool,
+    *,
+    model: Optional[str] = None,
+    use_batch: bool = False,
 ) -> TriageResult:
     intro = (
         f"Title: {doc.get('title')}\n"
@@ -307,7 +352,7 @@ def triage_document(
         "First pages of the filing:\n"
     )
     payload = complete_tool(
-        model=settings.extract_model,
+        model=model or settings.extract_model,
         system=TRIAGE_SYSTEM,
         user=intro + _format_chunks(_first_pages(chunks, TRIAGE_PAGE_LIMIT)),
         tools=[TRIAGE_TOOL],
@@ -315,6 +360,7 @@ def triage_document(
         purpose="triage",
         document_id=str(doc["id"]),
         dry_run=dry_run,
+        use_batch=use_batch,
     )
     if payload.get("_dry_run"):
         return _fallback_triage(doc)
@@ -346,14 +392,16 @@ def process_document(
         "full_extract": False,
     }
 
-    triage = triage_document(doc, chunks, dry_run)
+    models = _models_for(doc, use_batch)
+    stats["tier"] = "backfill" if models.backfill else "live"
+    triage = triage_document(doc, chunks, dry_run, model=models.light, use_batch=models.batch)
     if dry_run:
         resource_chunks = _select_chunks(chunks, RESOURCE_HINTS)
         econ_chunks = _select_chunks(chunks, ECONOMICS_HINTS)
         est = (
-            estimate_cost_usd(settings.extract_model, max(1, 6000))
+            estimate_cost_usd(models.light, max(1, 6000))
             + estimate_cost_usd(
-                settings.extract_model,
+                models.light,
                 max(1, (len(_format_chunks(resource_chunks)) + len(_format_chunks(econ_chunks))) // 4),
             )
         )
@@ -387,7 +435,7 @@ def process_document(
         stats["reason"] = "unresolved_project"
         return stats
 
-    if not should_full_extract(doc, force=force_full):
+    if not should_full_extract(doc, force=force_full, project_id=project_id):
         insert_project_event(project_id, document_id, event_type, event_date, triage.summary)
         set_document_status(document_id, "triaged")
         stats["reason"] = "deferred_full_extract"
@@ -422,9 +470,11 @@ def process_document(
     stats["html_rows_discarded"] = (len(html_resources) - len(resources)) + (
         len(html_economics) - len(economics)
     )
-    batch_mode = use_batch or settings.extract_use_batch
+    batch_mode = models.batch
     if not resources:
         resources, stats["escalated_resources"] = _call_rows_escalating(
+            model=models.light,
+            escalation_model=models.escalation,
             tool=RESOURCE_TOOL,
             chunks=_select_chunks(chunks, RESOURCE_HINTS) or chunks[:FALLBACK_CHUNKS],
             model_cls=ResourceEstimate,
@@ -436,6 +486,8 @@ def process_document(
         econ_chunks = _select_chunks(chunks, ECONOMICS_HINTS)
         if econ_chunks:
             economics, stats["escalated_economics"] = _call_rows_escalating(
+                model=models.numeric,
+                escalation_model=models.escalation,
                 tool=ECONOMICS_TOOL,
                 chunks=econ_chunks,
                 model_cls=ProjectEconomics,
@@ -447,7 +499,7 @@ def process_document(
     drills: list[DrillResult] = []
     if drill_chunks:
         drills = _call_rows(
-            model=settings.extract_model,
+            model=models.numeric,
             purpose="extract",
             tool=DRILL_TOOL,
             chunks=drill_chunks,
@@ -460,7 +512,7 @@ def process_document(
     qps: list[QualifiedPerson] = []
     if qp_chunks:
         qps = _call_rows(
-            model=settings.extract_model,
+            model=models.light,
             purpose="extract",
             tool=QP_TOOL,
             chunks=qp_chunks,
@@ -560,7 +612,21 @@ def run(
     backfill: bool,
     idle_sleep: float,
     use_batch: bool = False,
+    workers: int = 1,
 ) -> None:
+    if workers > 1 and not (once or dry_run or document_id):
+        # Backfill Batch calls block for minutes to hours; run several documents at once.
+        if backfill:
+            logger.info("backfilled %d extract jobs", enqueue_extract_for_indexed())
+        with ThreadPoolExecutor(max_workers=workers) as pool:
+            futures = [
+                pool.submit(run, once=False, dry_run=False, document_id=None, backfill=False,
+                            idle_sleep=idle_sleep, use_batch=use_batch)
+                for _ in range(workers)
+            ]
+            for future in futures:
+                future.result()  # surface a worker crash (e.g. monthly cap) instead of hiding it
+        return
     if backfill:
         n = enqueue_extract_for_indexed()
         logger.info("backfilled %d extract jobs", n)
@@ -622,7 +688,13 @@ def main() -> None:
     parser.add_argument(
         "--batch",
         action="store_true",
-        help="use Anthropic Message Batches (50% off) for structured extract calls",
+        help="use Anthropic Message Batches (50%% off) for structured extract calls",
+    )
+    parser.add_argument(
+        "--workers",
+        type=int,
+        default=1,
+        help="documents in flight at once; use ~20 for backfill, where Batch calls wait",
     )
     args = parser.parse_args()
     if args.rerun_low_confidence:
@@ -635,6 +707,7 @@ def main() -> None:
         backfill=args.backfill,
         idle_sleep=args.idle_sleep,
         use_batch=args.batch,
+        workers=args.workers,
     )
 
 

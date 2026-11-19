@@ -50,6 +50,13 @@ class Settings(BaseSettings):
     # Full numeric extract auto-runs for watchlisted entities and filings newer than this.
     extract_auto_months: int = Field(default=18, alias="EXTRACT_AUTO_MONTHS")
     extract_use_batch: bool = Field(default=False, alias="EXTRACT_USE_BATCH")
+    # Backfill tier: filings older than EXTRACT_AUTO_MONTHS. Haiku reads triage, resources
+    # and QPs (matched Sonnet on grades in a 10-report test); Sonnet reads economics and
+    # drills and re-checks any Haiku row below EXTRACT_ESCALATE_BELOW. Always via Batch (50% off).
+    backfill_model: str = Field(default="claude-haiku-5-5", alias="BACKFILL_MODEL")
+    backfill_numeric_model: str = Field(
+        default="claude-sonnet-5-5", alias="BACKFILL_NUMERIC_MODEL"
+    )
 
     # SEC requires a declared User-Agent that identifies the app and a contact email.
     edgar_user_agent: str = Field(

@@ -6,6 +6,7 @@ from __future__ import annotations
 import logging
 from contextlib import contextmanager
 from decimal import Decimal
+from datetime import date
 from typing import Any, Iterator, Literal, Optional
 
 from psycopg.rows import dict_row
@@ -131,6 +132,21 @@ def document_on_watchlist(document_id: str) -> bool:
              LIMIT 1;
             """,
             (document_id,),
+        )
+        return cur.fetchone() is not None
+
+
+def newer_technical_report_exists(document_id: str, project_id: str, filed_at: date) -> bool:
+    """True when the project already has a technical report filed after this one."""
+    with connection() as conn, conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT 1 FROM raw.documents
+             WHERE project_id = %s AND id <> %s AND filed_at > %s
+               AND doc_type IN ('sk1300', 'ni43101', 'jorc', 'pea', 'pfs', 'fs')
+             LIMIT 1;
+            """,
+            (project_id, document_id, filed_at),
         )
         return cur.fetchone() is not None
 

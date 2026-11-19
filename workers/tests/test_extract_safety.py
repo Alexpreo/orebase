@@ -20,7 +20,7 @@ def _patch_document(calls: list) -> None:
     extractor.get_document = lambda _id: doc
     extractor.get_document_chunks = lambda _id: chunks
     extractor.resolve_document = lambda _doc, _triage: ("co-1", "proj-1")
-    extractor.should_full_extract = lambda _doc, force: True
+    extractor.should_full_extract = lambda _doc, force, **_k: True
     extractor._is_near_duplicate = lambda *_a: False
     extractor.insert_project_event = lambda *a, **k: calls.append(("event", a))
     extractor.set_document_status = lambda _id, status, **k: calls.append(("status", status))
