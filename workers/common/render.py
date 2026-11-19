@@ -31,7 +31,7 @@ _MARGIN = "0.4in"
 _SCALE = 1.0
 # Assets are fetched one at a time to respect SEC's rate limit, so a figure-heavy report
 # needs well beyond the few seconds an unthrottled load would take.
-_LOAD_TIMEOUT_MS = 120_000
+_LOAD_TIMEOUT_MS = 300_000
 
 # (body, content_type) for a fetched asset, or None when it could not be retrieved.
 AssetFetcher = Callable[[str], Optional[tuple[bytes, str]]]
@@ -53,7 +53,7 @@ def html_to_pdf(
     with no error raised. Routing assets through a throttled fetcher keeps them within the
     request ceiling. Without one, the page fetches its own assets and figures may be lost.
     """
-    from playwright.sync_api import sync_playwright
+    from playwright.sync_api import TimeoutError as PlaywrightTimeoutError, sync_playwright
 
     text = html.decode("utf-8", errors="replace")
 
@@ -89,7 +89,14 @@ def html_to_pdf(
                 # Serving the document at its original URL keeps relative <img>/<link>
                 # references resolvable instead of silently dropping figures.
                 page.route("**/*", handle)
-                page.goto(base_url, wait_until="load", timeout=_LOAD_TIMEOUT_MS)
+                try:
+                    page.goto(base_url, wait_until="load", timeout=_LOAD_TIMEOUT_MS)
+                except PlaywrightTimeoutError:
+                    # The text is in the DOM; only late figures are missing. Abort the rest
+                    # (never let them go unthrottled to SEC) and print what loaded.
+                    logger.warning("render load timed out for %s; printing without late assets", base_url)
+                    page.unroute_all(behavior="ignoreErrors")
+                    page.route("**/*", lambda route: route.abort())
             else:
                 page.set_content(text, wait_until="load", timeout=_LOAD_TIMEOUT_MS)
 
