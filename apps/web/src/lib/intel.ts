@@ -629,3 +629,41 @@ export async function listUnmatchedOccurrences(): Promise<GeoOccurrence[]> {
     return [];
   }
 }
+
+export type CorpusCounts = {
+  documents: number;
+  companies: number;
+  projects: number;
+  resources: number;
+  drills: number;
+};
+
+export async function corpusCounts(): Promise<CorpusCounts> {
+  const sql = getSql();
+  const empty = { documents: 0, companies: 0, projects: 0, resources: 0, drills: 0 };
+  if (!sql) return empty;
+  const rows = await sql<CorpusCounts[]>`
+    SELECT (SELECT count(*) FROM raw.documents)::int AS documents,
+           (SELECT count(*) FROM core.companies)::int AS companies,
+           (SELECT count(*) FROM core.projects)::int AS projects,
+           (SELECT count(*) FROM core.resource_estimates)::int AS resources,
+           (SELECT count(*) FROM core.drill_results)::int AS drills
+  `;
+  return rows[0] ?? empty;
+}
+
+export async function listRecentEvents(eventType: string | null, limit = 8): Promise<EventRow[]> {
+  const sql = getSql();
+  if (!sql) return [];
+  const rows = await sql<EventRow[]>`
+    SELECT e.id, e.project_id, p.name AS project_name, co.name AS company_name,
+           e.document_id, e.event_type, e.event_date, e.summary
+    FROM core.project_events e
+    JOIN core.projects p ON p.id = e.project_id
+    LEFT JOIN core.companies co ON co.id = p.company_id
+    WHERE ${eventType}::text IS NULL OR e.event_type = ${eventType}
+    ORDER BY e.event_date DESC NULLS LAST, e.created_at DESC
+    LIMIT ${limit}
+  `;
+  return [...rows];
+}
