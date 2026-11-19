@@ -155,3 +155,29 @@ export async function getDocument(id: string): Promise<DocumentDetail | null> {
     return null;
   }
 }
+
+export type DocumentMeta = {
+  id: string;
+  title: string | null;
+  source: string | null;
+  filed_at: string | Date | null;
+  page_count: number | null;
+  company_name: string | null;
+};
+
+/** Header facts for cited documents (chat source panel). */
+export async function getDocumentMeta(ids: string[]): Promise<Record<string, DocumentMeta>> {
+  const sql = getSql();
+  if (!sql || ids.length === 0) return {};
+  try {
+    const rows = await sql<DocumentMeta[]>`
+      SELECT d.id, d.title, d.source, d.filed_at, d.page_count, c.name AS company_name
+      FROM raw.documents d
+      LEFT JOIN core.companies c ON c.id = d.company_id
+      WHERE d.id = ANY(${ids}::uuid[])
+    `;
+    return Object.fromEntries(rows.map((r) => [r.id, r]));
+  } catch {
+    return {};
+  }
+}

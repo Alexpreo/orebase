@@ -1,7 +1,9 @@
 import { notFound } from "next/navigation";
 import { ChatClient } from "@/components/chat/chat-client";
 import { getChatMessages } from "@/lib/chat";
-import { isDocumentUuid } from "@/lib/citations";
+import { collectCitations, isDocumentUuid } from "@/lib/citations";
+import { getDocumentMeta } from "@/lib/documents";
+import { corpusCounts } from "@/lib/intel";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +15,7 @@ type ChatIdPageProps = {
     doc_type?: string;
     date_from?: string;
     date_to?: string;
+    src?: string;
   }>;
 };
 
@@ -23,10 +26,16 @@ export default async function ChatIdPage({ params, searchParams }: ChatIdPagePro
   }
 
   const query = await searchParams;
-  const initialMessages = await getChatMessages(id);
+  const [initialMessages, counts] = await Promise.all([getChatMessages(id), corpusCounts().catch(() => null)]);
+  const cited = new Set<string>();
+  for (const m of initialMessages) {
+    for (const c of m.metadata?.citations ?? collectCitations([m])) cited.add(c.documentId);
+  }
+  const docMeta = await getDocumentMeta([...cited]);
+  const src = Number.parseInt(query.src ?? "", 10);
 
   return (
-    <div className="h-[calc(100svh-3.5rem)]">
+    <div className="h-[calc(100dvh-3.5rem)] md:h-dvh">
       <ChatClient
         key={id}
         chatId={id}
@@ -38,6 +47,9 @@ export default async function ChatIdPage({ params, searchParams }: ChatIdPagePro
           dateFrom: query.date_from,
           dateTo: query.date_to,
         }}
+        initialSource={Number.isFinite(src) && src > 0 ? src : null}
+        docMeta={docMeta}
+        documentCount={counts?.documents ?? null}
       />
     </div>
   );

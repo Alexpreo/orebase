@@ -5,7 +5,7 @@ import type { Citation } from "@/lib/chat-types";
 export const DOCUMENT_UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-const INLINE_CITATION_RE =
+export const INLINE_CITATION_RE =
   /\[([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\s+p\.(\d+)(?:-(\d+))?\]/gi;
 
 export function isDocumentUuid(value: string): boolean {

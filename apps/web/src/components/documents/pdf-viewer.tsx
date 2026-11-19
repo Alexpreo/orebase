@@ -27,6 +27,8 @@ type PdfViewerProps = {
   fileUrl: string;
   /** 1-based page to open at, so a citation can deep-link to its source page. */
   initialPage?: number;
+  /** Starting zoom; narrow panels (chat sources) open smaller. */
+  initialScale?: number;
   className?: string;
 };
 
@@ -45,7 +47,7 @@ async function loadPdfJs() {
   return pdfjs;
 }
 
-export function PdfViewer({ fileUrl, initialPage = 1, className }: PdfViewerProps) {
+export function PdfViewer({ fileUrl, initialPage = 1, initialScale = DEFAULT_SCALE, className }: PdfViewerProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const documentRef = useRef<PDFDocumentProxy | null>(null);
   const renderTaskRef = useRef<RenderTask | null>(null);
@@ -53,7 +55,7 @@ export function PdfViewer({ fileUrl, initialPage = 1, className }: PdfViewerProp
   const [pageCount, setPageCount] = useState(0);
   const [page, setPage] = useState(Math.max(1, initialPage));
   const [pageInput, setPageInput] = useState(String(Math.max(1, initialPage)));
-  const [scale, setScale] = useState(DEFAULT_SCALE);
+  const [scale, setScale] = useState(initialScale);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [loadedUrl, setLoadedUrl] = useState(fileUrl);
