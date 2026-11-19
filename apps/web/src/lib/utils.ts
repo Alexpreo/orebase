@@ -51,3 +51,40 @@ export function documentHref(documentId: string | null | undefined): string | nu
   if (!documentId) return null
   return `/documents/${documentId}`
 }
+
+/** "Nov 17" (UTC, so server and client agree). */
+export function formatShortDate(value: string | Date | null | undefined): string {
+  if (!value) return "—"
+  const date = value instanceof Date ? value : new Date(value)
+  if (Number.isNaN(date.getTime())) return "—"
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" })
+}
+
+/** Compact age: "12 min", "5h", "2d". `nowMs` is passed in so render stays pure. */
+export function formatAgo(value: string | Date | null | undefined, nowMs: number): string {
+  if (!value) return "—"
+  const t = (value instanceof Date ? value : new Date(value)).getTime()
+  if (!Number.isFinite(t)) return "—"
+  const min = Math.max(0, Math.round((nowMs - t) / 60_000))
+  if (min < 60) return `${min} min`
+  const h = Math.round(min / 60)
+  if (h < 48) return `${h}h`
+  return `${Math.round(h / 24)}d`
+}
+
+export const SOURCE_LABEL: Record<string, string> = {
+  sedar: "SEDAR+",
+  edgar: "EDGAR",
+  newswire: "Newswire",
+}
+
+export const DOC_TYPE_LABEL: Record<string, string> = {
+  ni43101: "NI 43-101 technical report",
+  sk1300: "S-K 1300 technical report summary",
+  pea: "Preliminary economic assessment",
+  pfs: "Pre-feasibility study",
+  fs: "Feasibility study",
+  press_release: "Press release",
+  mda: "MD&A",
+  financials: "Financial statements",
+}

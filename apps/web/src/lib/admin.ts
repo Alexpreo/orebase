@@ -166,3 +166,38 @@ export async function getSedarIngestStatus(): Promise<SedarIngestStatus> {
     return empty;
   }
 }
+
+export type IngestionStatus = {
+  /** Jobs running now, or touched in the last 15 minutes. */
+  active: number;
+  pending: number;
+  lastBySource: { source: string; last: string }[];
+};
+
+export async function ingestionStatus(): Promise<IngestionStatus> {
+  const empty: IngestionStatus = { active: 0, pending: 0, lastBySource: [] };
+  const sql = getSql();
+  if (!sql) return empty;
+  try {
+    const [jobs, sources] = await Promise.all([
+      sql<{ active: number; pending: number }[]>`
+        SELECT count(*) FILTER (WHERE status = 'running'
+                  OR (status = 'done' AND updated_at >= now() - interval '15 minutes'))::int AS active,
+               count(*) FILTER (WHERE status = 'pending')::int AS pending
+        FROM raw.processing_jobs
+      `,
+      sql<{ source: string; last: Date }[]>`
+        SELECT source, max(created_at) AS last
+        FROM raw.documents WHERE source IS NOT NULL
+        GROUP BY source ORDER BY last DESC
+      `,
+    ]);
+    return {
+      active: jobs[0]?.active ?? 0,
+      pending: jobs[0]?.pending ?? 0,
+      lastBySource: sources.map((s) => ({ source: s.source, last: new Date(s.last).toISOString() })),
+    };
+  } catch {
+    return empty;
+  }
+}

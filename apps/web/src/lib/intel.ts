@@ -667,3 +667,117 @@ export async function listRecentEvents(eventType: string | null, limit = 8): Pro
   `;
   return [...rows];
 }
+
+// Technical-report doc types (excludes press releases, MD&A, financials).
+const REPORT_TYPES = ["ni43101", "sk1300", "pea", "pfs", "fs"];
+
+export type BriefingData = {
+  /** Oldest → newest; week_start is a Monday (ISO date). */
+  pulse: { week_start: string; sedar: number; edgar: number }[];
+  /** Oldest → newest, one entry per day for the last 7 days including today. */
+  last7: { day: string; n: number }[];
+  prior7: number;
+  resources: { total: number; avg_confidence: number | null; unreviewed: number };
+};
+
+export async function homeBriefing(): Promise<BriefingData> {
+  const empty: BriefingData = {
+    pulse: [],
+    last7: [],
+    prior7: 0,
+    resources: { total: 0, avg_confidence: null, unreviewed: 0 },
+  };
+  const sql = getSql();
+  if (!sql) return empty;
+  try {
+    const [pulse, last7, prior, resources] = await Promise.all([
+      sql<{ week_start: string; sedar: number; edgar: number }[]>`
+        SELECT to_char(w, 'YYYY-MM-DD') AS week_start,
+               count(d.id) FILTER (WHERE d.source = 'sedar')::int AS sedar,
+               count(d.id) FILTER (WHERE d.source = 'edgar')::int AS edgar
+        FROM generate_series(date_trunc('week', now()) - interval '11 weeks',
+                             date_trunc('week', now()), interval '1 week') AS w
+        LEFT JOIN raw.documents d
+          ON d.filed_at >= w AND d.filed_at < w + interval '1 week'
+         AND d.doc_type = ANY(${REPORT_TYPES})
+        GROUP BY w ORDER BY w
+      `,
+      sql<{ day: string; n: number }[]>`
+        SELECT to_char(g, 'YYYY-MM-DD') AS day, count(d.id)::int AS n
+        FROM generate_series(current_date - 6, current_date, interval '1 day') AS g
+        LEFT JOIN raw.documents d
+          ON d.filed_at::date = g::date AND d.doc_type = ANY(${REPORT_TYPES})
+        GROUP BY g ORDER BY g
+      `,
+      sql<{ n: number }[]>`
+        SELECT count(*)::int AS n FROM raw.documents
+        WHERE doc_type = ANY(${REPORT_TYPES})
+          AND filed_at >= current_date - 13 AND filed_at < current_date - 6
+      `,
+      sql<{ total: number; avg_confidence: string | null; unreviewed: number }[]>`
+        SELECT count(*)::int AS total,
+               avg(extraction_confidence) AS avg_confidence,
+               count(*) FILTER (WHERE reviewed = false)::int AS unreviewed
+        FROM core.resource_estimates
+      `,
+    ]);
+    const r = resources[0];
+    return {
+      pulse: [...pulse],
+      last7: [...last7],
+      prior7: prior[0]?.n ?? 0,
+      resources: {
+        total: r?.total ?? 0,
+        avg_confidence: r?.avg_confidence == null ? null : Number(r.avg_confidence),
+        unreviewed: r?.unreviewed ?? 0,
+      },
+    };
+  } catch {
+    return empty;
+  }
+}
+
+export type HomeFiling = FilingRow & { source: string | null; region: string | null; country: string | null };
+
+export async function listLatestReports(limit = 7): Promise<HomeFiling[]> {
+  const sql = getSql();
+  if (!sql) return [];
+  try {
+    const rows = await sql<HomeFiling[]>`
+      SELECT d.id, d.title, d.doc_type, d.filed_at, d.status, d.source, d.company_id,
+             c.name AS company_name, d.project_id, p.name AS project_name, d.summary,
+             p.region, p.country
+      FROM raw.documents d
+      LEFT JOIN core.companies c ON c.id = d.company_id
+      LEFT JOIN core.projects p ON p.id = d.project_id
+      WHERE d.doc_type = ANY(${REPORT_TYPES})
+      ORDER BY d.filed_at DESC NULLS LAST, d.created_at DESC
+      LIMIT ${limit}
+    `;
+    return [...rows];
+  } catch {
+    return [];
+  }
+}
+
+/** Unreviewed extracted rows across resources, economics and drills (sidebar badge). */
+export async function reviewQueueCount(): Promise<number> {
+  const sql = getSql();
+  if (!sql) return 0;
+  try {
+    const rows = await sql<{ n: number }[]>`
+      SELECT ((SELECT count(*) FROM core.resource_estimates WHERE reviewed = false)
+            + (SELECT count(*) FROM core.project_economics WHERE reviewed = false)
+            + (SELECT count(*) FROM core.drill_results WHERE reviewed = false))::int AS n
+    `;
+    return rows[0]?.n ?? 0;
+  } catch {
+    return 0;
+  }
+}
+
+/** Mirrors the worker's EXTRACTION_MONTHLY_CAP_USD default (workers/common/config.py). */
+export function extractionMonthlyCap(): number {
+  const cap = Number(process.env.EXTRACTION_MONTHLY_CAP_USD ?? 80);
+  return Number.isFinite(cap) && cap > 0 ? cap : 80;
+}
