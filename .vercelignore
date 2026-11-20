@@ -1,0 +1,10 @@
+# CLI deploys run from the repo root (Root Directory = apps/web); upload only the web app.
+/*
+!/apps
+/apps/*
+!/apps/web
+**/node_modules
+**/.next
+**/.env*
+!**/.env.example
+**/*.tsbuildinfo
