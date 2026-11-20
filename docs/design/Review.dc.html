@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>OreBase · Review queue</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0B0D10}
+a{color:#E0985A;text-decoration:none}a:hover{color:#F2B27C}
+.num{font-family:'JetBrains Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.rise{animation:rise .45s cubic-bezier(.2,.7,.2,1) both}
+.d1{animation-delay:.08s}.d2{animation-delay:.16s}
+@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.warn{animation:warn 1.8s ease-in-out .6s 2}
+@keyframes warn{0%,100%{box-shadow:0 0 0 0 rgba(242,160,124,0)}50%{box-shadow:0 0 0 4px rgba(242,160,124,.25)}}
+.q:hover{background:#151920}
+.ghost:hover{background:#171B21;color:#E8EBEF}
+input.field:focus{outline:2px solid #E0985A;outline-offset:1px}
+@media (prefers-reduced-motion:reduce){.rise,.warn{animation:none}}
+</style>
+</helmet>
+<div style="width: 100%; min-height: 1120px; background: #0B0D10; display: flex; flex-wrap: wrap; font-family: Inter, system-ui, sans-serif; color: #E8EBEF">
+  <div style="flex: 1 1 248px; display: flex">
+    <dc-import name="Sidebar" active="review" hint-size="100%,1000px"></dc-import>
+  </div>
+
+  <main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 28px clamp(20px, 3vw, 40px) 48px; display: flex; flex-direction: column; gap: 18px">
+    <header class="rise" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 14px">
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <h1 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 30px; font-weight: 600; letter-spacing: -0.02em">Review queue</h1>
+        <span style="font-size: 14px; color: #9AA3AE">Low-confidence facts wait here before they reach the screener</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px; min-width: 240px">
+        <span class="num" style="font-size: 13px; color: #9AA3AE">12 / 42 today</span>
+        <span style="flex: 1; height: 6px; background: #1E232B; border-radius: 999px; overflow: hidden"><span style="display: block; width: 29%; height: 100%; background: #6FD3A0; border-radius: 999px"></span></span>
+      </div>
+    </header>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
+      <aside aria-label="Queue" class="rise d1" style="flex: 1 1 260px; max-width: 300px; min-width: 0; background: #12151A; border: 1px solid #222831; border-radius: 14px; padding: 12px 8px; display: flex; flex-direction: column; gap: 2px">
+        <div style="display: flex; gap: 6px; padding: 4px 6px 10px">
+          <button type="button" style="height: 30px; padding: 0 10px; border-radius: 999px; border: 1px solid #E0985A; background: #1C1712; color: #F2B27C; font: 500 12px Inter, sans-serif; cursor: pointer">Lowest first</button>
+          <button type="button" style="height: 30px; padding: 0 10px; border-radius: 999px; border: 1px solid #2A313B; background: transparent; color: #B7C0CA; font: 500 12px Inter, sans-serif; cursor: pointer">Resources</button>
+        </div>
+        <sc-for list="{{queue}}" as="q" hint-placeholder-count="8">
+          <a class="q" href="#rec" style="{{q.style}}">
+            <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 13px; font-weight: 500">{{q.proj}}</span><span style="font-size: 12px; color: #7C8591">{{q.kind}}</span></span>
+            <span class="num" style="font-size: 12px; color: {{q.c}}">{{q.conf}}</span>
+          </a>
+        </sc-for>
+      </aside>
+
+      <section id="rec" aria-label="Record under review" style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+        <div class="rise d1" style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; align-items: center">
+          <div style="display: flex; flex-direction: column; gap: 3px">
+            <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #F2A07C">Resource estimate · confidence 0.61</span>
+            <span style="font: 600 20px 'Space Grotesk', sans-serif">Kestrel Lake · Inferred</span>
+            <span style="font-size: 12px; color: #9AA3AE">Halvard Metals · NI 43-101 PEA · <a href="DocumentViewer.dc.html">p.88</a></span>
+          </div>
+          <span style="padding: 8px 12px; border-radius: 10px; background: #2A1A14; color: #F2A07C; font-size: 12px; max-width: 360px; line-height: 1.45">Why flagged: the table header says tonnes are in thousands, but the extracted value reads as millions.</span>
+        </div>
+
+        <div style="display: flex; flex-wrap: wrap; gap: 14px">
+          <div class="rise d2" style="flex: 1 1 340px; min-width: 0; background: #EDEAE4; border-radius: 8px; padding: 22px; color: #2A2723; display: flex; flex-direction: column; gap: 8px">
+            <span style="font: 600 11px Inter, sans-serif">Table 14-6: Kestrel Lake Mineral Resources (0.15% Cu cut-off)</span>
+            <table class="num" style="width: 100%; border-collapse: collapse; font-size: 11px; text-align: right">
+              <thead><tr style="border-bottom: 1.5px solid #6E6A63"><th style="text-align: left; padding: 5px 3px">Class</th><th style="padding: 5px 3px">Tonnes (000s)</th><th style="padding: 5px 3px">Cu %</th><th style="padding: 5px 3px">Au g/t</th></tr></thead>
+              <tbody>
+                <tr><td style="text-align: left; padding: 5px 3px">Indicated</td><td style="padding: 5px 3px">212,400</td><td style="padding: 5px 3px">0.36</td><td style="padding: 5px 3px">0.09</td></tr>
+                <tr style="background: rgba(224,152,90,.28); outline: 2px solid #E0985A; outline-offset: -1px"><td style="text-align: left; padding: 5px 3px">Inferred</td><td style="padding: 5px 3px">96,800</td><td style="padding: 5px 3px">0.31</td><td style="padding: 5px 3px">0.06</td></tr>
+              </tbody>
+            </table>
+            <div style="height: 6px; background: #CFCBC3; border-radius: 2px; width: 92%; margin-top: 6px"></div>
+            <div style="height: 6px; background: #CFCBC3; border-radius: 2px; width: 74%"></div>
+          </div>
+
+          <form class="rise d2" style="flex: 1 1 340px; min-width: 0; background: #12151A; border: 1px solid #222831; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+            <sc-for list="{{fields}}" as="f" hint-placeholder-count="5">
+              <div style="display: flex; flex-direction: column; gap: 6px">
+                <label for="{{f.id}}" style="display: flex; justify-content: space-between; font-size: 12px; color: #9AA3AE"><span>{{f.label}}</span><span class="num" style="color: {{f.c}}">{{f.conf}}</span></label>
+                <input class="field {{f.cls}}" id="{{f.id}}" value="{{f.value}}" style="{{f.style}}">
+                <sc-if value="{{f.hasHint}}" hint-placeholder-val="{{false}}"><span style="font-size: 12px; color: #F2A07C">{{f.hint}}</span></sc-if>
+              </div>
+            </sc-for>
+          </form>
+        </div>
+
+        <div class="rise d2" style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 14px 16px; background: #0E1115; border: 1px solid #1E232B; border-radius: 14px">
+          <button type="button" style="height: 44px; padding: 0 18px; display: inline-flex; align-items: center; gap: 10px; background: #6FD3A0; border: 0; border-radius: 10px; color: #06170E; font: 600 14px Inter, sans-serif; cursor: pointer">Approve with fix <span class="num" style="font-size: 11px; background: rgba(6,23,14,.15); padding: 2px 6px; border-radius: 5px">A</span></button>
+          <button class="ghost" type="button" style="height: 44px; padding: 0 16px; display: inline-flex; align-items: center; gap: 10px; background: transparent; border: 1px solid #242A33; border-radius: 10px; color: #B7C0CA; font: 500 14px Inter, sans-serif; cursor: pointer">Re-extract with Opus <span class="num" style="font-size: 11px; border: 1px solid #2A313B; padding: 1px 6px; border-radius: 5px">O</span></button>
+          <button class="ghost" type="button" style="height: 44px; padding: 0 16px; display: inline-flex; align-items: center; gap: 10px; background: transparent; border: 1px solid #242A33; border-radius: 10px; color: #F2A07C; font: 500 14px Inter, sans-serif; cursor: pointer">Reject <span class="num" style="font-size: 11px; border: 1px solid #2A313B; padding: 1px 6px; border-radius: 5px">R</span></button>
+          <span style="margin-left: auto; font-size: 12px; color: #7C8591">Skip with <span class="num" style="color: #B7C0CA">J</span> · back with <span class="num" style="color: #B7C0CA">K</span></span>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1120}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const lo = '#F2A07C', mid = '#E8C55A', ok = '#6FD3A0';
+    const qs = (on) => 'display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 8px; color: #E8EBEF; ' + (on ? 'background: #1C1712; box-shadow: inset 0 0 0 1px #3A2A1C;' : '');
+    const q = (proj, kind, conf, on) => ({ proj, kind, conf: conf.toFixed(2), c: conf < 0.7 ? lo : conf < 0.8 ? mid : ok, style: qs(on) });
+    const inp = (warn) => 'height: 40px; box-sizing: border-box; padding: 0 12px; background: #0E1115; border: 1px solid ' + (warn ? '#F2A07C' : '#2A313B') + '; border-radius: 9px; color: #E8EBEF; font: 400 14px JetBrains Mono, monospace';
+    const f = (id, label, value, conf, hint) => ({ id, label, value, conf: conf.toFixed(2), c: conf < 0.7 ? lo : conf < 0.8 ? mid : ok, style: inp(Boolean(hint)), cls: hint ? 'warn' : '', hint: hint || '', hasHint: Boolean(hint) });
+    return {
+      queue: [
+        q('Kestrel Lake', 'Resource · Inferred', 0.61, true), q('Silverfox', 'Resource · Indicated', 0.64, false),
+        q('Sable Creek', 'Economics · NPV', 0.66, false), q('Granite Hollow', 'Drill result', 0.69, false),
+        q('Aurora Basin', 'Resource · Inferred', 0.72, false), q('Northstar', 'Economics · capex', 0.74, false),
+        q('Pinecrest', 'Qualified person', 0.77, false), q('Copperhead Flats', 'Resource · M&I', 0.79, false)
+      ],
+      fields: [
+        f('fcat', 'Category', 'Inferred', 0.97),
+        f('ftonnes', 'Tonnes', '96.8 Mt', 0.61, 'Extracted as 96,800 Mt. Table units are thousands of tonnes, so this should be 96.8 Mt.'),
+        f('fcu', 'Copper grade', '0.31% Cu', 0.92),
+        f('fau', 'Gold grade', '0.06 g/t Au', 0.88),
+        f('fdate', 'Effective date', '2024-09-30', 0.81)
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

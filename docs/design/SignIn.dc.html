@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sign in · OreBase</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0B0D10}
+a{color:#E0985A;text-decoration:none}a:hover{color:#F2B27C}
+.strata path{stroke-dasharray:1600;stroke-dashoffset:1600;animation:draw 2.4s cubic-bezier(.4,0,.2,1) forwards}
+.strata path:nth-child(2){animation-delay:.15s}.strata path:nth-child(3){animation-delay:.3s}.strata path:nth-child(4){animation-delay:.45s}.strata path:nth-child(5){animation-delay:.6s}.strata path:nth-child(6){animation-delay:.75s}.strata path:nth-child(7){animation-delay:.9s}.strata path:nth-child(8){animation-delay:1.05s}
+@keyframes draw{to{stroke-dashoffset:0}}
+.drift{animation:drift 14s ease-in-out infinite alternate}
+@keyframes drift{from{transform:translateY(0)}to{transform:translateY(-14px)}}
+.rise{animation:rise .6s cubic-bezier(.2,.7,.2,1) both}.d1{animation-delay:.2s}.d2{animation-delay:.35s}.d3{animation-delay:.5s}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.g:hover{background:#1A1F26}
+.p:hover{background:#EBA86E}
+@media (prefers-reduced-motion:reduce){.strata path{animation:none;stroke-dashoffset:0}.drift,.rise{animation:none}}
+</style>
+</helmet>
+<div style="width: 100%; min-height: 900px; background: #0B0D10; display: flex; flex-wrap: wrap; font-family: Inter, system-ui, sans-serif; color: #E8EBEF">
+  <section style="position: relative; flex: 1 1 520px; min-height: 420px; overflow: hidden; background: radial-gradient(ellipse at 20% 30%, #1A140F 0%, #0D0F12 65%); border-right: 1px solid #1C2128; box-sizing: border-box; padding: clamp(28px, 5vw, 64px); display: flex; flex-direction: column; justify-content: space-between; gap: 40px">
+    <svg class="strata drift" viewBox="0 0 800 900" preserveAspectRatio="xMidYMid slice" style="position: absolute; inset: 0; width: 100%; height: 100%" aria-hidden="true">
+      <g fill="none" stroke-linecap="round">
+        <path d="M-50 520C120 470 220 560 380 520S640 430 860 480" stroke="#3A2A1C" stroke-width="1.4"></path>
+        <path d="M-50 560C130 515 240 600 400 560S650 470 860 525" stroke="#4A3422" stroke-width="1.4"></path>
+        <path d="M-50 600C140 560 250 640 410 600S660 515 860 570" stroke="#5E4129" stroke-width="1.6"></path>
+        <path d="M-50 640C150 605 260 680 420 640S670 560 860 615" stroke="#8A5B35" stroke-width="1.8"></path>
+        <path d="M-50 680C160 650 270 720 430 680S680 605 860 660" stroke="#E0985A" stroke-width="2.2"></path>
+        <path d="M-50 720C170 695 280 760 440 720S690 650 860 705" stroke="#8A5B35" stroke-width="1.6"></path>
+        <path d="M-50 760C180 740 290 800 450 760S700 695 860 750" stroke="#4A3422" stroke-width="1.4"></path>
+        <path d="M-50 800C190 785 300 840 460 800S710 740 860 795" stroke="#2E241C" stroke-width="1.2"></path>
+      </g>
+    </svg>
+    <div style="position: relative; display: flex; align-items: center; gap: 12px">
+      <svg width="34" height="34" viewBox="0 0 28 28" aria-hidden="true"><path d="M14 2 25 8.5v11L14 26 3 19.5v-11z" fill="none" stroke="#E0985A" stroke-width="1.6"></path><path d="M3 12.5 14 19l11-6.5M3 16 14 22.5 25 16" fill="none" stroke="#E0985A" stroke-width="1.2" opacity=".55"></path><circle cx="14" cy="11" r="2.4" fill="#E0985A"></circle></svg>
+      <span style="font: 600 22px 'Space Grotesk', sans-serif; letter-spacing: -0.01em">OreBase</span>
+    </div>
+    <div style="position: relative; display: flex; flex-direction: column; gap: 22px; max-width: 520px">
+      <h1 class="rise" style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: clamp(34px, 4vw, 52px); line-height: 1.05; font-weight: 600; letter-spacing: -0.03em">Every filing.<br>Every figure.<br><span style="color: #E0985A">Cited to the page.</span></h1>
+      <div class="rise d1" style="display: flex; flex-direction: column; gap: 12px; font-size: 15px; color: #B7C0CA">
+        <span style="display: flex; gap: 10px; align-items: center"><span style="width: 6px; height: 6px; border-radius: 999px; background: #E0985A"></span>NI 43-101 and S-K 1300 reports, pulled in as they are filed</span>
+        <span style="display: flex; gap: 10px; align-items: center"><span style="width: 6px; height: 6px; border-radius: 999px; background: #E0985A"></span>Resources, economics and drill results as structured data</span>
+        <span style="display: flex; gap: 10px; align-items: center"><span style="width: 6px; height: 6px; border-radius: 999px; background: #E0985A"></span>Answers that link to the exact source page</span>
+      </div>
+    </div>
+  </section>
+
+  <section style="flex: 1 1 420px; box-sizing: border-box; padding: clamp(28px, 5vw, 64px); display: flex; align-items: center; justify-content: center">
+    <form class="rise d2" style="width: 100%; max-width: 380px; display: flex; flex-direction: column; gap: 18px">
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 26px; font-weight: 600">Sign in</h2>
+        <span style="font-size: 14px; color: #9AA3AE">Welcome back. Access is by invitation.</span>
+      </div>
+      <button class="g" type="button" style="height: 46px; display: flex; align-items: center; justify-content: center; gap: 10px; background: #13171C; border: 1px solid #2A313B; border-radius: 11px; color: #E8EBEF; font: 500 14px Inter, sans-serif; cursor: pointer">
+        Continue with Google
+      </button>
+      <div style="display: flex; align-items: center; gap: 12px; font-size: 12px; color: #5F6873"><span style="flex: 1; height: 1px; background: #1E232B"></span>or<span style="flex: 1; height: 1px; background: #1E232B"></span></div>
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <label for="email" style="font-size: 13px; color: #B7C0CA">Work email</label>
+        <input id="email" type="email" placeholder="you@company.com" style="height: 46px; box-sizing: border-box; padding: 0 14px; background: #0E1115; border: 1px solid #2A313B; border-radius: 11px; color: #E8EBEF; font: 400 15px Inter, sans-serif">
+      </div>
+      <a class="p" href="Main.dc.html" style="height: 46px; display: flex; align-items: center; justify-content: center; background: #E0985A; border-radius: 11px; color: #1A0F06; font: 600 14px Inter, sans-serif">Continue</a>
+      <span style="font-size: 12px; color: #7C8591; line-height: 1.5">Secured by Clerk. Intelligence only, not investment advice.</span>
+    </form>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

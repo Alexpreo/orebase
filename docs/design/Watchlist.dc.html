@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>OreBase · Watchlist</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0B0D10}
+a{color:#E0985A;text-decoration:none}a:hover{color:#F2B27C}
+.num{font-family:'JetBrains Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.rise{animation:rise .5s cubic-bezier(.2,.7,.2,1) both}
+.d1{animation-delay:.06s}.d2{animation-delay:.12s}.d3{animation-delay:.18s}.d4{animation-delay:.24s}.d5{animation-delay:.3s}.d6{animation-delay:.36s}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.seg{transform-origin:0 50%;animation:segin .9s cubic-bezier(.2,.7,.2,1) .4s both}
+@keyframes segin{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.row:hover{background:#151920}
+.ev{transition:border-color .2s}.ev:hover{border-color:#3A2A1C}
+input[type=checkbox]{accent-color:#E0985A;width:18px;height:18px}
+@media (prefers-reduced-motion:reduce){.rise,.seg{animation:none}}
+</style>
+</helmet>
+<div style="width: 100%; min-height: 1240px; background: #0B0D10; display: flex; flex-wrap: wrap; font-family: Inter, system-ui, sans-serif; color: #E8EBEF">
+  <div style="flex: 1 1 248px; display: flex">
+    <dc-import name="Sidebar" active="watchlist" hint-size="100%,1000px"></dc-import>
+  </div>
+
+  <main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 28px clamp(20px, 3vw, 40px) 56px; display: flex; flex-direction: column; gap: 20px">
+    <header class="rise" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 14px">
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <h1 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 30px; font-weight: 600; letter-spacing: -0.02em">Watchlist</h1>
+        <span style="font-size: 14px; color: #9AA3AE">Tracking <span class="num" style="color: #E8EBEF">12</span> projects and <span class="num" style="color: #E8EBEF">6</span> companies · <span style="color: #F2B27C">7 new since Monday</span></span>
+      </div>
+      <div style="display: flex; gap: 10px">
+        <button type="button" style="height: 40px; padding: 0 14px; background: transparent; border: 1px solid #242A33; border-radius: 10px; color: #B7C0CA; font: 500 13px Inter, sans-serif; cursor: pointer">Mark all read</button>
+        <button type="button" style="height: 40px; padding: 0 16px; background: #E0985A; border: 0; border-radius: 10px; color: #1A0F06; font: 600 13px Inter, sans-serif; cursor: pointer">Add to watchlist</button>
+      </div>
+    </header>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-start">
+      <aside aria-label="Watched items" class="rise d1" style="flex: 1 1 250px; max-width: 300px; min-width: 0; background: #12151A; border: 1px solid #222831; border-radius: 14px; padding: 14px 8px; display: flex; flex-direction: column; gap: 2px">
+        <div style="padding: 4px 10px 10px; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #7C8591">Projects</div>
+        <sc-for list="{{items}}" as="i" hint-placeholder-count="8">
+          <a class="row" href="Project.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 8px; color: #E8EBEF">
+            <span style="{{i.dot}}"></span>
+            <span style="flex: 1; min-width: 0; display: flex; flex-direction: column"><span style="font-size: 14px; font-weight: 500">{{i.name}}</span><span style="font-size: 12px; color: #7C8591">{{i.co}}</span></span>
+            <sc-if value="{{i.hasNew}}" hint-placeholder-val="{{false}}"><span class="num" style="font-size: 11px; background: #2A1E14; color: #F2B27C; border-radius: 999px; padding: 1px 7px">{{i.n}}</span></sc-if>
+          </a>
+        </sc-for>
+        <div style="padding: 14px 10px 10px; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #7C8591">Companies</div>
+        <a class="row" href="Company.dc.html" style="display: flex; justify-content: space-between; padding: 9px 10px; border-radius: 8px; color: #E8EBEF; font-size: 14px">Northgate Copper<span class="num" style="font-size: 11px; background: #2A1E14; color: #F2B27C; border-radius: 999px; padding: 1px 7px">2</span></a>
+        <a class="row" href="Company.dc.html" style="display: flex; justify-content: space-between; padding: 9px 10px; border-radius: 8px; color: #E8EBEF; font-size: 14px">Halvard Metals<span class="num" style="font-size: 11px; background: #2A1E14; color: #F2B27C; border-radius: 999px; padding: 1px 7px">1</span></a>
+        <a class="row" href="Company.dc.html" style="display: flex; justify-content: space-between; padding: 9px 10px; border-radius: 8px; color: #B7C0CA; font-size: 14px">Ardent Gold</a>
+      </aside>
+
+      <section aria-label="Activity" style="flex: 999 1 480px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+        <div class="rise d1" style="display: flex; flex-wrap: wrap; gap: 6px">
+          <button type="button" style="height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid #E0985A; background: #1C1712; color: #F2B27C; font: 500 12px Inter, sans-serif; cursor: pointer">All events</button>
+          <button type="button" style="height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid #2A313B; background: transparent; color: #B7C0CA; font: 500 12px Inter, sans-serif; cursor: pointer">Resource updates</button>
+          <button type="button" style="height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid #2A313B; background: transparent; color: #B7C0CA; font: 500 12px Inter, sans-serif; cursor: pointer">Drill results</button>
+          <button type="button" style="height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid #2A313B; background: transparent; color: #B7C0CA; font: 500 12px Inter, sans-serif; cursor: pointer">New reports</button>
+          <button type="button" style="height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid #2A313B; background: transparent; color: #B7C0CA; font: 500 12px Inter, sans-serif; cursor: pointer">Financings</button>
+        </div>
+
+        <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #7C8591; padding-top: 6px">Today</span>
+
+        <article class="ev rise d2" style="background: #12151A; border: 1px solid #3A2A1C; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 14px; background-image: linear-gradient(180deg, #17130F 0%, #12151A 55%)">
+          <div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px">
+            <div style="display: flex; flex-direction: column; gap: 4px">
+              <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #F2B27C">Resource update · high signal</span>
+              <a href="Project.dc.html" style="font: 600 18px 'Space Grotesk', sans-serif; color: #E8EBEF">Tamarack Ridge · Northgate Copper</a>
+            </div>
+            <span class="num" style="font-size: 12px; color: #7C8591">2 h ago</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px">
+            <div style="display: flex; align-items: center; gap: 12px; font-size: 12px"><span style="width: 74px; color: #9AA3AE">2024 PEA</span><span style="flex: 1; height: 10px; background: #1A1E24; border-radius: 999px; overflow: hidden"><span class="seg" style="display: block; width: 72%; height: 100%; background: #4A5462; border-radius: 999px"></span></span><span class="num" style="width: 90px; text-align: right; color: #B7C0CA">3,480 Mlb</span></div>
+            <div style="display: flex; align-items: center; gap: 12px; font-size: 12px"><span style="width: 74px; color: #9AA3AE">2026 PFS</span><span style="flex: 1; height: 10px; background: #1A1E24; border-radius: 999px; overflow: hidden"><span class="seg" style="display: block; width: 85%; height: 100%; background: #E0985A; border-radius: 999px"></span></span><span class="num" style="width: 90px; text-align: right; color: #F2B27C">4,106 Mlb</span></div>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; font-size: 13px; color: #B7C0CA">
+            M&amp;I contained copper up <span class="num" style="color: #6FD3A0">18%</span>; grade unchanged at <span class="num">0.42% Cu</span>.
+            <a href="DocumentViewer.dc.html" style="margin-left: auto; font-size: 12px">Source · PFS p.142 →</a>
+          </div>
+        </article>
+
+        <article class="ev rise d3" style="background: #12151A; border: 1px solid #222831; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+          <div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px">
+            <div style="display: flex; flex-direction: column; gap: 4px">
+              <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #8DBBF2">Drill results</span>
+              <a href="Project.dc.html" style="font: 600 18px 'Space Grotesk', sans-serif; color: #E8EBEF">Kestrel Lake · Halvard Metals</a>
+            </div>
+            <span class="num" style="font-size: 12px; color: #7C8591">5 h ago</span>
+          </div>
+          <div style="overflow-x: auto">
+            <table class="num" style="width: 100%; min-width: 460px; border-collapse: collapse; font-size: 12px; text-align: right">
+              <thead><tr style="color: #7C8591; font: 600 10px Inter, sans-serif; text-transform: uppercase; letter-spacing: 0.06em"><th style="text-align: left; padding: 6px 0">Hole</th><th style="padding: 6px">From (m)</th><th style="padding: 6px">Interval (m)</th><th style="padding: 6px">Cu %</th><th style="padding: 6px 0">Au g/t</th></tr></thead>
+              <tbody>
+                <tr style="border-top: 1px solid #1C2128; color: #F2B27C"><td style="text-align: left; padding: 7px 0">KL-26-041</td><td style="padding: 7px 6px">48</td><td style="padding: 7px 6px">212</td><td style="padding: 7px 6px">0.58</td><td style="padding: 7px 0">0.11</td></tr>
+                <tr style="border-top: 1px solid #1C2128"><td style="text-align: left; padding: 7px 0">  incl.</td><td style="padding: 7px 6px">96</td><td style="padding: 7px 6px">44</td><td style="padding: 7px 6px">1.02</td><td style="padding: 7px 0">0.19</td></tr>
+                <tr style="border-top: 1px solid #1C2128"><td style="text-align: left; padding: 7px 0">KL-26-042</td><td style="padding: 7px 6px">22</td><td style="padding: 7px 6px">138</td><td style="padding: 7px 6px">0.41</td><td style="padding: 7px 0">0.07</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
+
+        <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #7C8591; padding-top: 6px">Earlier this week</span>
+        <sc-for list="{{older}}" as="e" hint-placeholder-count="3">
+          <a class="ev rise d4" href="Project.dc.html" style="background: #12151A; border: 1px solid #222831; border-radius: 14px; padding: 16px 18px; display: flex; gap: 14px; align-items: center; color: #E8EBEF">
+            <span style="{{e.dot}}"></span>
+            <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px"><span style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #9AA3AE">{{e.type}}</span><span style="font-size: 15px; font-weight: 500">{{e.title}}</span><span style="font-size: 13px; color: #9AA3AE">{{e.detail}}</span></span>
+            <span class="num" style="font-size: 12px; color: #7C8591">{{e.ago}}</span>
+          </a>
+        </sc-for>
+      </section>
+
+      <aside aria-label="Alert rules" class="rise d2" style="flex: 1 1 260px; max-width: 320px; min-width: 0; background: #12151A; border: 1px solid #222831; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 16px">
+        <h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: 600">Alerts</h2>
+        <fieldset style="border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px">
+          <legend style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #7C8591; padding-bottom: 10px">Notify me about</legend>
+          <label style="display: flex; gap: 10px; align-items: flex-start; font-size: 13px"><input type="checkbox" checked=""><span>New technical reports<br><span style="color: #7C8591; font-size: 12px">NI 43-101 and S-K 1300</span></span></label>
+          <label style="display: flex; gap: 10px; align-items: flex-start; font-size: 13px"><input type="checkbox" checked=""><span>Resource or reserve changes<br><span style="color: #7C8591; font-size: 12px">Any change above 5%</span></span></label>
+          <label style="display: flex; gap: 10px; align-items: flex-start; font-size: 13px"><input type="checkbox" checked=""><span>Drill results<br><span style="color: #7C8591; font-size: 12px">Grade × metres above 50</span></span></label>
+          <label style="display: flex; gap: 10px; align-items: flex-start; font-size: 13px"><input type="checkbox"><span>Financings and M&amp;A</span></label>
+        </fieldset>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <label for="delivery" style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #7C8591">Delivery</label>
+          <select id="delivery" style="height: 40px; background: #0E1115; border: 1px solid #2A313B; border-radius: 9px; color: #E8EBEF; font: 400 13px Inter, sans-serif; padding: 0 10px"><option>Daily digest · 7:00 AM</option><option>Instant email</option><option>Weekly summary</option></select>
+        </div>
+        <div style="padding: 12px; border-radius: 10px; background: #0E1115; border: 1px solid #1E232B; font-size: 12px; color: #9AA3AE; line-height: 1.5">Next digest goes to alex@… at <span class="num" style="color: #E8EBEF">7:00 AM</span> with 7 events.</div>
+      </aside>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1240}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const color = { Cu: '#E0985A', Au: '#E8C55A', Li: '#8DBBF2', Ni: '#6FD3A0' };
+    const d = (c) => 'width: 9px; height: 9px; border-radius: 999px; flex: none; background: ' + c;
+    const item = (name, co, c, n) => ({ name, co, dot: d(color[c]), n: String(n), hasNew: n > 0 });
+    return {
+      items: [
+        item('Tamarack Ridge', 'Northgate Copper', 'Cu', 2), item('Kestrel Lake', 'Halvard Metals', 'Cu', 1),
+        item('Sable Creek', 'Coldwater Resources', 'Cu', 1), item('Wolverine Bend', 'Ardent Gold', 'Au', 0),
+        item('Pinecrest', 'Boreal Lithium', 'Li', 1), item('Northstar', 'Taiga Metals', 'Ni', 0),
+        item('Copperhead Flats', 'Ridgeline Minerals', 'Cu', 0), item('Granite Hollow', 'Ardent Gold', 'Au', 0)
+      ],
+      older: [
+        { type: 'New technical report', title: 'Sable Creek · Coldwater Resources', detail: 'Maiden resource estimate, 138 Mt Inferred at 0.51% Cu', ago: 'Mon', dot: d('#E0985A') },
+        { type: 'New technical report', title: 'Pinecrest · Boreal Lithium', detail: 'PEA filed: NPV C$1.05B, IRR 29.4%', ago: 'Mon', dot: d('#8DBBF2') },
+        { type: 'Financing', title: 'Halvard Metals', detail: 'C$22M bought deal, proceeds to Kestrel Lake drilling', ago: 'Sun', dot: d('#7C8591') }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>OreBase · Pipeline</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0B0D10}
+a{color:#E0985A;text-decoration:none}a:hover{color:#F2B27C}
+.num{font-family:'JetBrains Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.rise{animation:rise .5s cubic-bezier(.2,.7,.2,1) both}
+.d1{animation-delay:.05s}.d2{animation-delay:.1s}.d3{animation-delay:.15s}.d4{animation-delay:.2s}.d5{animation-delay:.25s}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.bar{transform-box:fill-box;transform-origin:50% 100%;animation:grow .7s cubic-bezier(.2,.7,.2,1) both}
+@keyframes grow{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+.hbar{transform-origin:0 50%;animation:growx .8s cubic-bezier(.2,.7,.2,1) .2s both}
+@keyframes growx{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.live{animation:live 2.2s ease-in-out infinite}
+@keyframes live{0%,100%{box-shadow:0 0 0 0 rgba(79,196,138,.55)}50%{box-shadow:0 0 0 6px rgba(79,196,138,0)}}
+.row:hover{background:#151920}
+.ghost:hover{background:#171B21;color:#E8EBEF}
+@media (prefers-reduced-motion:reduce){.rise,.bar,.hbar,.live{animation:none}}
+</style>
+</helmet>
+<div style="width: 100%; min-height: 1420px; background: #0B0D10; display: flex; flex-wrap: wrap; font-family: Inter, system-ui, sans-serif; color: #E8EBEF">
+  <div style="flex: 1 1 248px; display: flex">
+    <dc-import name="Sidebar" active="admin" hint-size="100%,1000px"></dc-import>
+  </div>
+
+  <main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 28px clamp(20px, 3vw, 40px) 56px; display: flex; flex-direction: column; gap: 18px">
+    <header class="rise" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 14px">
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <h1 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 30px; font-weight: 600; letter-spacing: -0.02em">Pipeline</h1>
+        <span style="font-size: 14px; color: #9AA3AE">Ingestion, processing and AI spend · updated live</span>
+      </div>
+      <div style="display: flex; gap: 10px">
+        <button class="ghost" type="button" style="height: 40px; padding: 0 14px; background: transparent; border: 1px solid #242A33; border-radius: 10px; color: #B7C0CA; font: 500 13px Inter, sans-serif; cursor: pointer">Pause extraction</button>
+        <a href="Review.dc.html" style="height: 40px; padding: 0 16px; display: inline-flex; align-items: center; background: #E0985A; border-radius: 10px; color: #1A0F06; font: 600 13px Inter, sans-serif">Review queue · 42</a>
+      </div>
+    </header>
+
+    <section style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px">
+      <sc-for list="{{sources}}" as="s" hint-placeholder-count="3">
+        <div class="rise d1" style="background: #12151A; border: 1px solid {{s.border}}; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+          <div style="display: flex; justify-content: space-between; align-items: center">
+            <span style="font: 600 16px 'Space Grotesk', sans-serif">{{s.name}}</span>
+            <span style="display: inline-flex; align-items: center; gap: 7px; font-size: 12px; color: {{s.color}}"><span class="{{s.cls}}" style="width: 8px; height: 8px; border-radius: 999px; background: {{s.color}}"></span>{{s.status}}</span>
+          </div>
+          <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 10px">
+            <div style="display: flex; flex-direction: column; gap: 2px"><span class="num" style="font-size: 26px; font-weight: 500">{{s.n}}</span><span style="font-size: 12px; color: #9AA3AE">{{s.nLabel}}</span></div>
+            <svg width="120" height="36" viewBox="0 0 120 36" aria-hidden="true"><path d="{{s.spark}}" fill="none" stroke="{{s.color}}" stroke-width="1.8" stroke-linejoin="round"></path></svg>
+          </div>
+          <span style="font-size: 12px; color: #7C8591">{{s.detail}}</span>
+        </div>
+      </sc-for>
+    </section>
+
+    <section style="display: flex; flex-wrap: wrap; gap: 14px">
+      <div class="rise d2" style="flex: 2 1 520px; min-width: 0; background: #12151A; border: 1px solid #222831; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+        <div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px">
+          <div><h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600">Extraction spend · November</h2><span style="font-size: 13px; color: #9AA3AE">Daily cost, with the $15/day alert line</span></div>
+          <div style="text-align: right"><span class="num" style="font-size: 24px">$38.20</span><span class="num" style="font-size: 13px; color: #9AA3AE"> / $80 cap</span></div>
+        </div>
+        <div style="height: 8px; background: #1E232B; border-radius: 999px; overflow: hidden; position: relative"><div class="hbar" style="width: 48%; height: 100%; background: #E0985A; border-radius: 999px"></div></div>
+        <div style="display: flex; justify-content: space-between; font-size: 11px; color: #7C8591"><span>$0</span><span>Projected month end <span class="num" style="color: #E8EBEF">$66</span></span><span>$80</span></div>
+        <div role="img" aria-label="Daily extraction spend stayed well under the 15 dollar alert line, peaking at 5.60" style="display: flex; flex-direction: column; gap: 6px">
+          <div style="position: relative; height: 150px; border-bottom: 1px solid #1E232B; display: flex; align-items: flex-end; gap: 6px">
+            <div style="position: absolute; left: 0; right: 0; top: 0; border-top: 1.5px dashed #F2A07C"></div>
+            <span class="num" style="position: absolute; right: 0; top: -16px; font-size: 10px; color: #F2A07C">$15 alert</span>
+            <sc-for list="{{days}}" as="d" hint-placeholder-count="18">
+              <div class="bar" style="{{d.style}}"></div>
+            </sc-for>
+          </div>
+          <div class="num" style="display: flex; justify-content: space-between; font-size: 10px; color: #7C8591"><span>Nov 1</span><span>Nov 10</span><span>Nov 18</span></div>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 16px; font-size: 12px; color: #9AA3AE">
+          <span><span style="display: inline-block; width: 9px; height: 9px; border-radius: 2px; background: #E0985A; margin-right: 6px"></span>Sonnet 5.5 · <span class="num" style="color: #E8EBEF">92%</span> of calls</span>
+          <span><span style="display: inline-block; width: 9px; height: 9px; border-radius: 2px; background: #5B8DEF; margin-right: 6px"></span>Opus 5.5 escalations · <span class="num" style="color: #E8EBEF">31</span> docs</span>
+          <span>Anthropic org limit <span class="num" style="color: #E8EBEF">$100</span>/mo</span>
+        </div>
+      </div>
+
+      <div class="rise d3" style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+        <div style="background: #12151A; border: 1px solid #222831; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+          <h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600">Job queue</h2>
+          <sc-for list="{{queue}}" as="q" hint-placeholder-count="4">
+            <div style="display: flex; flex-direction: column; gap: 6px">
+              <div style="display: flex; justify-content: space-between; font-size: 13px"><span style="color: #B7C0CA">{{q.name}}</span><span class="num">{{q.n}} <span style="color: #7C8591">{{q.note}}</span></span></div>
+              <div style="height: 6px; background: #1A1E24; border-radius: 999px; overflow: hidden"><div class="hbar" style="{{q.bar}}"></div></div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="background: #12151A; border: 1px solid #222831; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 10px">
+          <h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600">Embeddings</h2>
+          <div style="display: flex; justify-content: space-between; font-size: 13px"><span style="color: #9AA3AE">Passages indexed</span><span class="num">7,087</span></div>
+          <div style="display: flex; justify-content: space-between; font-size: 13px"><span style="color: #9AA3AE">Skipped as unchanged</span><span class="num" style="color: #6FD3A0">1,904</span></div>
+          <div style="display: flex; justify-content: space-between; font-size: 13px"><span style="color: #9AA3AE">Monthly quota used</span><span class="num">31%</span></div>
+          <div style="height: 6px; background: #1A1E24; border-radius: 999px; overflow: hidden"><div class="hbar" style="width: 31%; height: 100%; background: #5B8DEF; border-radius: 999px"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="rise d4" style="background: #12151A; border: 1px solid #222831; border-radius: 14px; padding: 20px 0 6px">
+      <div style="display: flex; justify-content: space-between; padding: 0 20px 10px"><h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600">Needs attention</h2><span class="num" style="font-size: 12px; color: #9AA3AE">3 failed jobs</span></div>
+      <div style="overflow-x: auto">
+        <table style="width: 100%; min-width: 760px; border-collapse: collapse; font-size: 13px">
+          <thead><tr style="color: #7C8591; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; text-align: left"><th style="padding: 8px 20px; font-weight: 600">Document</th><th style="padding: 8px 10px; font-weight: 600">Step</th><th style="padding: 8px 10px; font-weight: 600">Error</th><th style="padding: 8px 10px; font-weight: 600; text-align: right">Attempts</th><th style="padding: 8px 20px"></th></tr></thead>
+          <tbody>
+            <tr class="row" style="border-top: 1px solid #1C2128"><td style="padding: 12px 20px; font-weight: 500">Meridian Mining plc · Technical report</td><td style="padding: 12px 10px; color: #B7C0CA">parse</td><td style="padding: 12px 10px; color: #F2A07C">PDF over 100 MB: split into page ranges</td><td class="num" style="padding: 12px 10px; text-align: right">3 / 5</td><td style="padding: 12px 20px; text-align: right"><button class="ghost" type="button" style="height: 32px; padding: 0 12px; border: 1px solid #242A33; border-radius: 8px; background: transparent; color: #B7C0CA; font: 500 12px Inter, sans-serif; cursor: pointer">Retry</button></td></tr>
+            <tr class="row" style="border-top: 1px solid #1C2128"><td style="padding: 12px 20px; font-weight: 500">Nordique Critical Metals · Amended report</td><td style="padding: 12px 10px; color: #B7C0CA">ingest</td><td style="padding: 12px 10px; color: #E8C55A">French-only document set aside</td><td class="num" style="padding: 12px 10px; text-align: right">1 / 5</td><td style="padding: 12px 20px; text-align: right"><button class="ghost" type="button" style="height: 32px; padding: 0 12px; border: 1px solid #242A33; border-radius: 8px; background: transparent; color: #B7C0CA; font: 500 12px Inter, sans-serif; cursor: pointer">Ingest anyway</button></td></tr>
+            <tr class="row" style="border-top: 1px solid #1C2128"><td style="padding: 12px 20px; font-weight: 500">Kestrel Lake · PEA</td><td style="padding: 12px 10px; color: #B7C0CA">extract</td><td style="padding: 12px 10px; color: #F2A07C">Model unavailable: retrying with backoff, facts kept</td><td class="num" style="padding: 12px 10px; text-align: right">2 / 5</td><td style="padding: 12px 20px; text-align: right"><button class="ghost" type="button" style="height: 32px; padding: 0 12px; border: 1px solid #242A33; border-radius: 8px; background: transparent; color: #B7C0CA; font: 500 12px Inter, sans-serif; cursor: pointer">Retry</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1420}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const spend = [0.8, 1.2, 0.4, 2.1, 3.6, 1.1, 0.05, 0.6, 2.4, 4.8, 3.1, 1.9, 0.9, 2.2, 5.6, 3.4, 2.0, 2.1];
+    const opus = [10, 14];
+    const qb = (n, max, c) => 'height: 100%; border-radius: 999px; background: ' + c + '; width: ' + Math.max(2, n / max * 100).toFixed(0) + '%';
+    return {
+      sources: [
+        { name: 'EDGAR', status: 'Live', color: '#4FC48A', cls: 'live', border: '#222831', n: '6', nLabel: 'filings in 24h', spark: 'M0 28 L12 24 L24 26 L36 18 L48 22 L60 14 L72 20 L84 12 L96 16 L108 8 L120 10', detail: 'Polled 12 min ago · S-K 1300 + 8-K exhibits' },
+        { name: 'Newswire', status: 'Live', color: '#4FC48A', cls: 'live', border: '#222831', n: '31', nLabel: 'releases in 24h', spark: 'M0 20 L12 16 L24 22 L36 12 L48 18 L60 10 L72 14 L84 8 L96 18 L108 12 L120 6', detail: 'Polled 4 min ago · 3 feeds' },
+        { name: 'SEDAR+', status: 'Manual upload', color: '#E8C55A', cls: '', border: '#3A3220', n: '234', nLabel: 'reports processing', spark: 'M0 32 L12 32 L24 32 L36 30 L48 32 L60 32 L72 31 L84 32 L96 4 L108 6 L120 8', detail: 'Last batch 2 h ago · Q3 and Q4 2026 zips' }
+      ],
+      days: spend.map((v, i) => {
+        const pct = Math.max(1, v / 15 * 100).toFixed(1);
+        return { style: 'flex: 1; height: ' + pct + '%; border-radius: 3px 3px 0 0; background: ' + (opus.includes(i) ? '#5B8DEF' : '#E0985A') };
+      }),
+      queue: [
+        { name: 'Parse', n: 18, note: '· 2 running', bar: qb(18, 64, '#9AA3AE') },
+        { name: 'Embed', n: 64, note: '· deduped by hash', bar: qb(64, 64, '#5B8DEF') },
+        { name: 'Extract', n: 42, note: '· newest first', bar: qb(42, 64, '#E0985A') },
+        { name: 'Failed', n: 3, note: '', bar: qb(3, 64, '#F2A07C') }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

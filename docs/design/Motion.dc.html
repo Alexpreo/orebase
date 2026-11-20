@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>OreBase · Motion system</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0B0D10}
+.num{font-family:'JetBrains Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.rise{animation:rise .55s cubic-bezier(.2,.7,.2,1) both}
+.s1{animation-delay:.04s}.s2{animation-delay:.08s}.s3{animation-delay:.12s}.s4{animation-delay:.16s}.s5{animation-delay:.2s}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.draw{stroke-dasharray:500;stroke-dashoffset:500;animation:draw 1.4s .1s cubic-bezier(.4,0,.2,1) forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.fade{animation:fade .8s 1s both}@keyframes fade{from{opacity:0}to{opacity:1}}
+.chip{animation:chip .6s cubic-bezier(.2,.7,.2,1) .2s both}
+@keyframes chip{0%{transform:scale(1)}40%{transform:scale(1.18);background:#E0985A;color:#1A0F06}100%{transform:scale(1)}}
+.flash{animation:flash 2.2s ease-out .55s both}
+@keyframes flash{0%{background:rgba(224,152,90,.6)}100%{background:rgba(224,152,90,.12)}}
+.live{animation:live 2.2s ease-in-out infinite}
+@keyframes live{0%,100%{box-shadow:0 0 0 0 rgba(79,196,138,.55)}50%{box-shadow:0 0 0 7px rgba(79,196,138,0)}}
+.shim{background:linear-gradient(90deg,#1A1E24 0%,#262C35 50%,#1A1E24 100%);background-size:200% 100%;animation:shim 1.5s linear infinite}
+@keyframes shim{from{background-position:200% 0}to{background-position:0 0}}
+.slide{animation:slide .32s cubic-bezier(.2,.7,.2,1) .2s both}
+@keyframes slide{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:none}}
+.bar{transform-origin:50% 100%;animation:grow .7s cubic-bezier(.2,.7,.2,1) both}
+@keyframes grow{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+.b2{animation-delay:.06s}.b3{animation-delay:.12s}.b4{animation-delay:.18s}.b5{animation-delay:.24s}.b6{animation-delay:.3s}
+.replay:hover{background:#EBA86E}
+@media (prefers-reduced-motion:reduce){.rise,.fade,.chip,.flash,.live,.shim,.slide,.bar{animation:none}.draw{animation:none;stroke-dashoffset:0}}
+</style>
+</helmet>
+<div style="width: 1440px; height: 1180px; box-sizing: border-box; background: #0B0D10; padding: 56px 64px; display: flex; flex-direction: column; gap: 32px; font-family: Inter, system-ui, sans-serif; color: #E8EBEF">
+  <header style="display: flex; justify-content: space-between; align-items: flex-end; gap: 24px">
+    <div style="display: flex; flex-direction: column; gap: 10px; max-width: 760px">
+      <span style="font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #E0985A">OreBase · Motion system</span>
+      <h1 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 44px; font-weight: 600; letter-spacing: -0.025em">Motion confirms. It never decorates.</h1>
+      <p style="margin: 0; font-size: 16px; line-height: 1.6; color: #9AA3AE">Every movement answers a question: what changed, where it came from, what is still working. Nothing runs longer than 600 ms except chart reveals, and everything stops for prefers-reduced-motion.</p>
+    </div>
+    <button class="replay" type="button" onClick="{{replay}}" style="height: 48px; padding: 0 22px; display: inline-flex; align-items: center; gap: 10px; background: #E0985A; border: 0; border-radius: 12px; color: #1A0F06; font: 600 14px Inter, sans-serif; cursor: pointer">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5"></path></svg>
+      Replay all
+    </button>
+  </header>
+
+  <section aria-label="Tokens" style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px">
+    <div style="background: #12151A; border: 1px solid #222831; border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 4px"><span class="num" style="font-size: 20px; color: #F2B27C">120 ms</span><span style="font-size: 13px; font-weight: 600">instant</span><span style="font-size: 12px; color: #9AA3AE">Hover, press, focus</span></div>
+    <div style="background: #12151A; border: 1px solid #222831; border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 4px"><span class="num" style="font-size: 20px; color: #F2B27C">200 ms</span><span style="font-size: 13px; font-weight: 600">quick</span><span style="font-size: 12px; color: #9AA3AE">Chips, toggles, filters</span></div>
+    <div style="background: #12151A; border: 1px solid #222831; border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 4px"><span class="num" style="font-size: 20px; color: #F2B27C">320 ms</span><span style="font-size: 13px; font-weight: 600">base</span><span style="font-size: 12px; color: #9AA3AE">Tabs, panels, sheets</span></div>
+    <div style="background: #12151A; border: 1px solid #222831; border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 4px"><span class="num" style="font-size: 20px; color: #F2B27C">550 ms</span><span style="font-size: 13px; font-weight: 600">reveal</span><span style="font-size: 12px; color: #9AA3AE">Page entry, 40 ms stagger</span></div>
+    <div style="background: #12151A; border: 1px solid #222831; border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 4px"><span class="num" style="font-size: 20px; color: #F2B27C">1.4 s</span><span style="font-size: 13px; font-weight: 600">draw</span><span style="font-size: 12px; color: #9AA3AE">Chart lines, once per load</span></div>
+  </section>
+  <span class="num" style="font-size: 12px; color: #7C8591; margin-top: -18px">Easing: settle = cubic-bezier(.2, .7, .2, 1) for entrances · ease-in-out for pulses · linear for progress and shimmer</span>
+
+  <sc-if value="{{show}}" hint-placeholder-val="{{true}}">
+    <section style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px">
+
+      <div style="background: #12151A; border: 1px solid #222831; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 14px">
+        <div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px; font-weight: 600">Page entry</span><span class="num" style="font-size: 11px; color: #7C8591">reveal · settle · 40 ms stagger</span></div>
+        <div style="height: 150px; display: flex; flex-direction: column; gap: 8px; justify-content: center">
+          <div class="rise s1" style="height: 22px; border-radius: 6px; background: #1E232B; width: 100%"></div>
+          <div class="rise s2" style="height: 22px; border-radius: 6px; background: #1E232B; width: 92%"></div>
+          <div class="rise s3" style="height: 22px; border-radius: 6px; background: #1E232B; width: 96%"></div>
+          <div class="rise s4" style="height: 22px; border-radius: 6px; background: #1E232B; width: 84%"></div>
+          <div class="rise s5" style="height: 22px; border-radius: 6px; background: #1E232B; width: 90%"></div>
+        </div>
+        <span style="font-size: 12px; color: #9AA3AE; line-height: 1.5">Cards and rows rise 10 px into place. Shows reading order without delaying the first useful pixel.</span>
+      </div>
+
+      <div style="background: #12151A; border: 1px solid #222831; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 14px">
+        <div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px; font-weight: 600">Figure count-up</span><span class="num" style="font-size: 11px; color: #7C8591">900 ms · ease-out cubic · tabular digits</span></div>
+        <div style="height: 150px; display: flex; flex-direction: column; justify-content: center; gap: 6px">
+          <span style="font-size: 12px; color: #9AA3AE">Contained Cu · M&amp;I</span>
+          <span class="num" style="font-size: 44px; font-weight: 500; letter-spacing: -0.02em">{{count}}<span style="font-size: 18px; color: #9AA3AE"> Mlb</span></span>
+          <span style="font-size: 12px; color: #6FD3A0">▲ 18% vs 2024</span>
+        </div>
+        <span style="font-size: 12px; color: #9AA3AE; line-height: 1.5">Headline metrics only, on first view. Tabular digits keep the width steady while counting.</span>
+      </div>
+
+      <div style="background: #12151A; border: 1px solid #222831; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 14px">
+        <div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px; font-weight: 600">Chart draw-in</span><span class="num" style="font-size: 11px; color: #7C8591">draw · line then area at +1 s</span></div>
+        <svg viewBox="0 0 280 150" style="width: 100%; height: 150px" aria-hidden="true">
+          <defs><linearGradient id="mg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E0985A" stop-opacity=".3"></stop><stop offset="1" stop-color="#E0985A" stop-opacity="0"></stop></linearGradient></defs>
+          <line x1="0" y1="140" x2="280" y2="140" stroke="#1E232B"></line>
+          <path class="fade" d="M10 112 L90 82 L170 58 L270 22 L270 140 L10 140 Z" fill="url(#mg)"></path>
+          <path class="draw" d="M10 112 L90 82 L170 58 L270 22" fill="none" stroke="#E0985A" stroke-width="2.5" stroke-linejoin="round"></path>
+          <circle class="fade" cx="270" cy="22" r="5" fill="#E0985A"></circle>
+        </svg>
+        <span style="font-size: 12px; color: #9AA3AE; line-height: 1.5">The line traces the trend before the fill lands, so the eye follows the direction first.</span>
+      </div>
+
+      <div style="background: #12151A; border: 1px solid #222831; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 14px">
+        <div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px; font-weight: 600">Citation jump</span><span class="num" style="font-size: 11px; color: #7C8591">chip 600 ms → source flash 2.2 s decay</span></div>
+        <div style="height: 150px; display: flex; flex-direction: column; justify-content: center; gap: 12px">
+          <span style="font-size: 13px; color: #DDE1E6; line-height: 1.6">Largest M&amp;I base at 0.42% Cu<span class="chip num" style="display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; margin-left: 4px; border-radius: 6px; background: #2A1E14; color: #F2B27C; font-size: 11px; font-weight: 600">1</span></span>
+          <div style="background: #EDEAE4; border-radius: 6px; padding: 10px 12px; color: #2A2723">
+            <div class="num" style="display: flex; justify-content: space-between; font-size: 11px; padding: 3px 0"><span>Indicated</span><span>327 · 0.40</span></div>
+            <div class="flash num" style="display: flex; justify-content: space-between; font-size: 11px; padding: 3px 4px; margin: 0 -4px; border-radius: 3px; font-weight: 600"><span>M&amp;I</span><span>445 · 0.42</span></div>
+          </div>
+        </div>
+        <span style="font-size: 12px; color: #9AA3AE; line-height: 1.5">A cited figure lights up on the page it came from, then fades to a resting highlight.</span>
+      </div>
+
+      <div style="background: #12151A; border: 1px solid #222831; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 14px">
+        <div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px; font-weight: 600">Live and working states</span><span class="num" style="font-size: 11px; color: #7C8591">pulse 2.2 s loop · shimmer 1.5 s linear</span></div>
+        <div style="height: 150px; display: flex; flex-direction: column; justify-content: center; gap: 14px">
+          <span style="display: inline-flex; align-items: center; gap: 10px; font-size: 13px"><span class="live" style="width: 9px; height: 9px; border-radius: 999px; background: #4FC48A"></span>Ingestion live</span>
+          <span style="display: inline-flex; align-items: center; gap: 10px; font-size: 13px"><span style="padding: 3px 10px; border-radius: 999px; background: #2A1E14; color: #F2B27C; font-size: 12px">Parsing…</span>NVRO Metals</span>
+          <div class="shim" style="height: 14px; border-radius: 4px; width: 100%"></div>
+          <div class="shim" style="height: 14px; border-radius: 4px; width: 70%"></div>
+        </div>
+        <span style="font-size: 12px; color: #9AA3AE; line-height: 1.5">The only looping motion in the app, and only while something is actually running.</span>
+      </div>
+
+      <div style="background: #12151A; border: 1px solid #222831; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 14px">
+        <div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px; font-weight: 600">Panel slide-in</span><span class="num" style="font-size: 11px; color: #7C8591">base · settle · 40 px travel</span></div>
+        <div style="height: 150px; position: relative; border-radius: 10px; background: #0E1115; overflow: hidden; display: flex">
+          <div style="flex: 1; padding: 12px; display: flex; flex-direction: column; gap: 6px"><div style="height: 8px; border-radius: 3px; background: #1E232B; width: 80%"></div><div style="height: 8px; border-radius: 3px; background: #1E232B; width: 64%"></div><div style="height: 8px; border-radius: 3px; background: #1E232B; width: 72%"></div></div>
+          <div class="slide" style="width: 46%; background: #171B21; border-left: 1px solid #2A313B; padding: 12px; display: flex; flex-direction: column; gap: 6px"><span style="font-size: 10px; font-weight: 600; color: #F2B27C; letter-spacing: 0.06em">SOURCE 1</span><div style="flex: 1; border-radius: 4px; background: #EDEAE4"></div></div>
+        </div>
+        <span style="font-size: 12px; color: #9AA3AE; line-height: 1.5">Source viewer and filter sheets slide in from their edge, so it is clear where they went.</span>
+      </div>
+
+      <div style="background: #12151A; border: 1px solid #222831; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 14px">
+        <div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px; font-weight: 600">Bars grow</span><span class="num" style="font-size: 11px; color: #7C8591">700 ms · settle · 60 ms stagger</span></div>
+        <div style="height: 150px; display: flex; align-items: flex-end; gap: 10px; border-bottom: 1px solid #1E232B">
+          <div class="bar" style="flex: 1; height: 40%; background: #4A5462; border-radius: 4px 4px 0 0"></div>
+          <div class="bar b2" style="flex: 1; height: 58%; background: #4A5462; border-radius: 4px 4px 0 0"></div>
+          <div class="bar b3" style="flex: 1; height: 46%; background: #4A5462; border-radius: 4px 4px 0 0"></div>
+          <div class="bar b4" style="flex: 1; height: 72%; background: #4A5462; border-radius: 4px 4px 0 0"></div>
+          <div class="bar b5" style="flex: 1; height: 64%; background: #4A5462; border-radius: 4px 4px 0 0"></div>
+          <div class="bar b6" style="flex: 1; height: 96%; background: #E0985A; border-radius: 4px 4px 0 0"></div>
+        </div>
+        <span style="font-size: 12px; color: #9AA3AE; line-height: 1.5">Bars rise from the baseline, left to right, ending on the period that matters.</span>
+      </div>
+
+      <div style="background: #12151A; border: 1px solid #222831; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 14px">
+        <div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px; font-weight: 600">Rules</span><span class="num" style="font-size: 11px; color: #7C8591">apply everywhere</span></div>
+        <ul style="margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 10px; font-size: 13px; color: #B7C0CA; line-height: 1.5">
+          <li>Animate opacity and transform only; never layout.</li>
+          <li>Entry motion plays once per page load, not on every re-render.</li>
+          <li>Data refreshes cross-fade in 200 ms, never re-run entrances.</li>
+          <li>prefers-reduced-motion: no movement, final states shown at once.</li>
+        </ul>
+      </div>
+    </section>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1180}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { show: true, n: 0 };
+  }
+  componentDidMount() { this.run(); }
+  componentWillUnmount() { clearInterval(this.t); clearTimeout(this.r); }
+  run() {
+    clearInterval(this.t);
+    const reduce = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) { this.setState({ n: 4106 }); return; }
+    const start = Date.now();
+    this.t = setInterval(() => {
+      const p = Math.min(1, (Date.now() - start) / 900);
+      const e = 1 - Math.pow(1 - p, 3);
+      this.setState({ n: Math.round(4106 * e) });
+      if (p >= 1) clearInterval(this.t);
+    }, 16);
+  }
+  renderVals() {
+    return {
+      show: this.state.show,
+      count: this.state.n.toLocaleString('en-US'),
+      replay: () => {
+        clearTimeout(this.r);
+        this.setState({ show: false, n: 0 });
+        this.r = setTimeout(() => { this.setState({ show: true }); this.run(); }, 50);
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>

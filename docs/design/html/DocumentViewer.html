@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en"><head><style>.sc-placeholder{background:color-mix(in srgb,currentColor 8%,transparent);border:1px solid color-mix(in srgb,currentColor 50%,transparent);border-radius:2px;box-sizing:border-box;overflow:hidden}@keyframes sc-shine{0%{background-position:100% 50%}100%{background-position:0% 50%}}html.sc-dc-streaming .sc-placeholder,html.sc-dc-streaming .sc-interp.sc-missing{position:relative;background:color-mix(in srgb,currentColor 5%,transparent);border-color:transparent}html.sc-dc-streaming .sc-placeholder::before,html.sc-dc-streaming .sc-interp.sc-missing::before{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(217,119,87,0) 25%,rgba(247,225,211,.95) 37%,rgba(217,119,87,0) 63%);background-size:400% 100%;animation:sc-shine 1.4s ease infinite}html.sc-dc-streaming .sc-placeholder:nth-child(n+9 of .sc-placeholder)::before,html.sc-dc-streaming .sc-interp.sc-missing:nth-child(n+9 of .sc-interp.sc-missing)::before{animation:none;background:color-mix(in srgb,currentColor 8%,transparent)}.sc-placeholder-error{padding:4px 8px;font:11px/1.4 ui-monospace,monospace;color:color-mix(in srgb,currentColor 70%,transparent);word-break:break-word}.sc-interp.sc-missing{display:inline-block;width:2em;height:1em;overflow:hidden;vertical-align:text-bottom;background:rgba(255,255,255,.3);border:1px solid rgba(0,0,0,.5);border-radius:2px;box-sizing:border-box;color:transparent;user-select:none}.sc-interp.sc-unresolved{font-family:ui-monospace,monospace;font-size:.85em;color:color-mix(in srgb,currentColor 50%,transparent);background:color-mix(in srgb,currentColor 10%,transparent);border-radius:3px;padding:0 3px}.sc-host.sc-has-error{position:relative}.sc-logic-error{position:absolute;top:8px;left:8px;z-index:2147483647;max-width:60ch;padding:6px 10px;background:#b00020;color:#fff;font:12px/1.4 ui-monospace,monospace;border-radius:4px;white-space:pre-wrap;pointer-events:none}@media print{@page{margin: 0.5cm;}figure,table{break-inside: avoid;}#dc-root,#dc-root > .sc-host{height: auto;}*,*::before,*::after{print-color-adjust: exact;-webkit-print-color-adjust: exact;backdrop-filter: none !important;-webkit-backdrop-filter: none !important;animation-delay: -99s !important;animation-duration: .001s !important;animation-iteration-count: 1 !important;animation-fill-mode: both !important;animation-play-state: running !important;transition-duration: 0s !important;}}</style>
+<meta charset="utf-8">
+<title>OreBase · Document viewer</title>
+<style>x-dc{display:none!important}</style>
+<link rel="preconnect" href="https://fonts.googleapis.com" data-dc-tpl="1"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet" data-dc-tpl="2"><style data-dc-tpl="3">
+body{margin:0;background:#0B0D10}
+a{color:#E0985A;text-decoration:none}a:hover{color:#F2B27C}
+.num{font-family:'JetBrains Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.rise{animation:rise .5s cubic-bezier(.2,.7,.2,1) both}
+.d1{animation-delay:.1s}.d2{animation-delay:.2s}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.box{animation:box 1.2s cubic-bezier(.2,.7,.2,1) .5s both}
+@keyframes box{0%{opacity:0;transform:scale(1.04)}60%{opacity:1}100%{opacity:1;transform:none}}
+.ol:hover{background:#151920;color:#E8EBEF}
+.fact:hover{background:#151920}
+.ghost:hover{background:#171B21;color:#E8EBEF}
+@media (prefers-reduced-motion:reduce){.rise,.box{animation:none}}
+</style></head>
+<body>
+<div id="dc-root"><div class="sc-host" data-sc-name="DocumentViewer"><div data-dc-tpl="4" style="width: 100%; min-height: 1120px; background: rgb(11, 13, 16); display: flex; flex-direction: column; font-family: Inter, system-ui, sans-serif; color: rgb(232, 235, 239);">
+  <header data-dc-tpl="5" style="display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 14px clamp(16px, 2.5vw, 28px); border-bottom: 1px solid rgb(28, 33, 40); background: rgb(14, 17, 21);">
+    <a data-dc-tpl="6" href="Documents.html" aria-label="Back to documents" style="width: 40px; height: 40px; border-radius: 10px; border: 1px solid rgb(36, 42, 51); display: grid; place-items: center; color: rgb(183, 192, 202);">
+      <svg data-dc-tpl="7" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path data-dc-tpl="8" d="M15 18l-6-6 6-6"></path></svg>
+    </a>
+    <div data-dc-tpl="9" style="flex: 1 1 360px; min-width: 0px; display: flex; flex-direction: column; gap: 2px;">
+      <h1 data-dc-tpl="10" style="margin: 0px; font-size: 16px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Tamarack Ridge Project — NI 43-101 Technical Report, Pre-Feasibility Study</h1>
+      <span data-dc-tpl="11" style="font-size: 12px; color: rgb(154, 163, 174);"><a data-dc-tpl="12" href="Company.html" style="color: rgb(183, 192, 202);">Northgate Copper Corp.</a> · SEDAR+ · filed Oct 2, 2026 · <span data-dc-tpl="13" class="num">386</span> pages · <span data-dc-tpl="14" style="color: rgb(111, 211, 160);">Extracted</span></span>
+    </div>
+    <div data-dc-tpl="15" style="display: flex; align-items: center; gap: 6px; padding: 3px; background: rgb(18, 21, 26); border: 1px solid rgb(36, 42, 51); border-radius: 10px;">
+      <button data-dc-tpl="16" class="ghost" type="button" aria-label="Previous page" style="width: 34px; height: 34px; border: 0px; border-radius: 7px; background: transparent; color: rgb(183, 192, 202); cursor: pointer;">‹</button>
+      <span data-dc-tpl="17" class="num" style="font-size: 13px; padding: 0px 6px;">142 / 386</span>
+      <button data-dc-tpl="18" class="ghost" type="button" aria-label="Next page" style="width: 34px; height: 34px; border: 0px; border-radius: 7px; background: transparent; color: rgb(183, 192, 202); cursor: pointer;">›</button>
+    </div>
+    <button data-dc-tpl="19" class="ghost" type="button" style="height: 40px; padding: 0px 14px; border: 1px solid rgb(36, 42, 51); border-radius: 10px; background: transparent; color: rgb(183, 192, 202); font: 500 13px Inter, sans-serif; cursor: pointer;">Download PDF</button>
+    <a data-dc-tpl="20" href="Chat.html" style="height: 40px; padding: 0px 16px; display: inline-flex; align-items: center; background: rgb(224, 152, 90); border-radius: 10px; color: rgb(26, 15, 6); font: 600 13px Inter, sans-serif;">Ask this document</a>
+  </header>
+
+  <div data-dc-tpl="21" style="flex: 1 1 0%; display: flex; flex-wrap: wrap;">
+    <nav data-dc-tpl="22" aria-label="Report outline" class="rise" style="flex: 1 1 220px; max-width: 260px; box-sizing: border-box; padding: 18px 10px; border-right: 1px solid rgb(28, 33, 40); display: flex; flex-direction: column; gap: 2px;">
+      <span data-dc-tpl="23" style="padding: 0px 10px 10px; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: rgb(124, 133, 145);">Outline</span>
+      
+        <a data-dc-tpl="25" class="ol" href="#page" style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; font-size: 13px; color: rgb(154, 163, 174);"><span data-dc-tpl="26" class="num" style="width: 22px; color: rgb(95, 104, 115); font-size: 11px;"><span class="sc-interp">1</span></span><span data-dc-tpl="27" style="flex: 1 1 0%;"><span class="sc-interp">Summary</span></span><span data-dc-tpl="29" style="width: 7px; height: 7px; border-radius: 999px; background: rgb(224, 152, 90);"></span></a>
+      
+        <a data-dc-tpl="25" class="ol" href="#page" style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; font-size: 13px; color: rgb(154, 163, 174);"><span data-dc-tpl="26" class="num" style="width: 22px; color: rgb(95, 104, 115); font-size: 11px;"><span class="sc-interp">4</span></span><span data-dc-tpl="27" style="flex: 1 1 0%;"><span class="sc-interp">Property description</span></span></a>
+      
+        <a data-dc-tpl="25" class="ol" href="#page" style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; font-size: 13px; color: rgb(154, 163, 174);"><span data-dc-tpl="26" class="num" style="width: 22px; color: rgb(95, 104, 115); font-size: 11px;"><span class="sc-interp">6</span></span><span data-dc-tpl="27" style="flex: 1 1 0%;"><span class="sc-interp">History</span></span></a>
+      
+        <a data-dc-tpl="25" class="ol" href="#page" style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; font-size: 13px; color: rgb(154, 163, 174);"><span data-dc-tpl="26" class="num" style="width: 22px; color: rgb(95, 104, 115); font-size: 11px;"><span class="sc-interp">7</span></span><span data-dc-tpl="27" style="flex: 1 1 0%;"><span class="sc-interp">Geology &amp; mineralization</span></span></a>
+      
+        <a data-dc-tpl="25" class="ol" href="#page" style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; font-size: 13px; color: rgb(154, 163, 174);"><span data-dc-tpl="26" class="num" style="width: 22px; color: rgb(95, 104, 115); font-size: 11px;"><span class="sc-interp">10</span></span><span data-dc-tpl="27" style="flex: 1 1 0%;"><span class="sc-interp">Drilling</span></span><span data-dc-tpl="29" style="width: 7px; height: 7px; border-radius: 999px; background: rgb(224, 152, 90);"></span></a>
+      
+        <a data-dc-tpl="25" class="ol" href="#page" style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; font-size: 13px; color: rgb(154, 163, 174);"><span data-dc-tpl="26" class="num" style="width: 22px; color: rgb(95, 104, 115); font-size: 11px;"><span class="sc-interp">12</span></span><span data-dc-tpl="27" style="flex: 1 1 0%;"><span class="sc-interp">Data verification</span></span></a>
+      
+        <a data-dc-tpl="25" class="ol" href="#page" style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; font-size: 13px; color: rgb(154, 163, 174);"><span data-dc-tpl="26" class="num" style="width: 22px; color: rgb(95, 104, 115); font-size: 11px;"><span class="sc-interp">13</span></span><span data-dc-tpl="27" style="flex: 1 1 0%;"><span class="sc-interp">Metallurgical testing</span></span></a>
+      
+        <a data-dc-tpl="25" class="ol" href="#page" style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; font-size: 13px; background: rgb(28, 23, 18); color: rgb(242, 178, 124);"><span data-dc-tpl="26" class="num" style="width: 22px; color: rgb(95, 104, 115); font-size: 11px;"><span class="sc-interp">14</span></span><span data-dc-tpl="27" style="flex: 1 1 0%;"><span class="sc-interp">Mineral resources</span></span><span data-dc-tpl="29" style="width: 7px; height: 7px; border-radius: 999px; background: rgb(224, 152, 90);"></span></a>
+      
+        <a data-dc-tpl="25" class="ol" href="#page" style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; font-size: 13px; color: rgb(154, 163, 174);"><span data-dc-tpl="26" class="num" style="width: 22px; color: rgb(95, 104, 115); font-size: 11px;"><span class="sc-interp">15</span></span><span data-dc-tpl="27" style="flex: 1 1 0%;"><span class="sc-interp">Mineral reserves</span></span><span data-dc-tpl="29" style="width: 7px; height: 7px; border-radius: 999px; background: rgb(224, 152, 90);"></span></a>
+      
+        <a data-dc-tpl="25" class="ol" href="#page" style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; font-size: 13px; color: rgb(154, 163, 174);"><span data-dc-tpl="26" class="num" style="width: 22px; color: rgb(95, 104, 115); font-size: 11px;"><span class="sc-interp">16</span></span><span data-dc-tpl="27" style="flex: 1 1 0%;"><span class="sc-interp">Mining methods</span></span></a>
+      
+        <a data-dc-tpl="25" class="ol" href="#page" style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; font-size: 13px; color: rgb(154, 163, 174);"><span data-dc-tpl="26" class="num" style="width: 22px; color: rgb(95, 104, 115); font-size: 11px;"><span class="sc-interp">21</span></span><span data-dc-tpl="27" style="flex: 1 1 0%;"><span class="sc-interp">Capital &amp; operating costs</span></span><span data-dc-tpl="29" style="width: 7px; height: 7px; border-radius: 999px; background: rgb(224, 152, 90);"></span></a>
+      
+        <a data-dc-tpl="25" class="ol" href="#page" style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; font-size: 13px; color: rgb(154, 163, 174);"><span data-dc-tpl="26" class="num" style="width: 22px; color: rgb(95, 104, 115); font-size: 11px;"><span class="sc-interp">22</span></span><span data-dc-tpl="27" style="flex: 1 1 0%;"><span class="sc-interp">Economic analysis</span></span><span data-dc-tpl="29" style="width: 7px; height: 7px; border-radius: 999px; background: rgb(224, 152, 90);"></span></a>
+      
+        <a data-dc-tpl="25" class="ol" href="#page" style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; font-size: 13px; color: rgb(154, 163, 174);"><span data-dc-tpl="26" class="num" style="width: 22px; color: rgb(95, 104, 115); font-size: 11px;"><span class="sc-interp">27</span></span><span data-dc-tpl="27" style="flex: 1 1 0%;"><span class="sc-interp">Certificates of QPs</span></span><span data-dc-tpl="29" style="width: 7px; height: 7px; border-radius: 999px; background: rgb(224, 152, 90);"></span></a>
+      
+    </nav>
+
+    <section data-dc-tpl="30" id="page" aria-label="Page 142" style="flex: 999 1 520px; min-width: 0px; box-sizing: border-box; padding: 32px clamp(16px, 3vw, 48px); background: rgb(9, 11, 13); display: flex; justify-content: center;">
+      <div data-dc-tpl="31" class="rise d1" style="position: relative; width: 100%; max-width: 640px; background: rgb(237, 234, 228); border-radius: 4px; padding: 52px 56px 64px; color: rgb(42, 39, 35); display: flex; flex-direction: column; gap: 12px; box-shadow: rgba(0, 0, 0, 0.6) 0px 30px 80px;">
+        <div data-dc-tpl="32" style="display: flex; justify-content: space-between; font: 500 10px Inter, sans-serif; color: rgb(110, 106, 99); letter-spacing: 0.05em;"><span data-dc-tpl="33">TAMARACK RIDGE PROJECT · PRE-FEASIBILITY STUDY</span><span data-dc-tpl="34" class="num">142</span></div>
+        <div data-dc-tpl="35" style="font: 600 15px Inter, sans-serif; margin-top: 8px;">14.12 Mineral Resource Statement</div>
+        <p data-dc-tpl="36" style="margin: 0px; font: 400 11.5px / 1.7 Georgia, serif; color: rgb(58, 54, 49);">The Mineral Resource Estimate for the Tamarack Ridge deposit has an effective date of August 31, 2026 and was prepared in accordance with CIM Definition Standards (2014). Resources are reported within a constraining pit shell at a cut-off grade of 0.20% copper equivalent.</p>
+        <div data-dc-tpl="37" style="height: 7px; background: rgb(207, 203, 195); border-radius: 2px; width: 94%;"></div>
+        <div data-dc-tpl="38" style="height: 7px; background: rgb(207, 203, 195); border-radius: 2px; width: 81%;"></div>
+        <div data-dc-tpl="39" style="position: relative; margin-top: 10px;">
+          <div data-dc-tpl="40" style="font: 600 11px Inter, sans-serif; margin-bottom: 8px;">Table 14-12: Mineral Resource Estimate</div>
+          <table data-dc-tpl="41" class="num" style="width: 100%; border-collapse: collapse; font-size: 11px; text-align: right;">
+            <thead data-dc-tpl="42"><tr data-dc-tpl="43" style="border-bottom: 1.5px solid rgb(110, 106, 99);"><th data-dc-tpl="44" style="text-align: left; padding: 6px 4px; font-weight: 600;">Class</th><th data-dc-tpl="45" style="padding: 6px 4px; font-weight: 600;">Tonnes (Mt)</th><th data-dc-tpl="46" style="padding: 6px 4px; font-weight: 600;">Cu (%)</th><th data-dc-tpl="47" style="padding: 6px 4px; font-weight: 600;">Au (g/t)</th><th data-dc-tpl="48" style="padding: 6px 4px; font-weight: 600;">Cu (Mlb)</th><th data-dc-tpl="49" style="padding: 6px 4px; font-weight: 600;">Au (koz)</th></tr></thead>
+            <tbody data-dc-tpl="50">
+              <tr data-dc-tpl="51"><td data-dc-tpl="52" style="text-align: left; padding: 6px 4px;">Measured</td><td data-dc-tpl="53" style="padding: 6px 4px;">118</td><td data-dc-tpl="54" style="padding: 6px 4px;">0.47</td><td data-dc-tpl="55" style="padding: 6px 4px;">0.21</td><td data-dc-tpl="56" style="padding: 6px 4px;">1,223</td><td data-dc-tpl="57" style="padding: 6px 4px;">797</td></tr>
+              <tr data-dc-tpl="58"><td data-dc-tpl="59" style="text-align: left; padding: 6px 4px;">Indicated</td><td data-dc-tpl="60" style="padding: 6px 4px;">327</td><td data-dc-tpl="61" style="padding: 6px 4px;">0.40</td><td data-dc-tpl="62" style="padding: 6px 4px;">0.17</td><td data-dc-tpl="63" style="padding: 6px 4px;">2,884</td><td data-dc-tpl="64" style="padding: 6px 4px;">1,787</td></tr>
+              <tr data-dc-tpl="65" style="border-top: 1px solid rgb(143, 138, 130); font-weight: 600;"><td data-dc-tpl="66" style="text-align: left; padding: 6px 4px;">M&amp;I</td><td data-dc-tpl="67" style="padding: 6px 4px;">445</td><td data-dc-tpl="68" style="padding: 6px 4px;">0.42</td><td data-dc-tpl="69" style="padding: 6px 4px;">0.18</td><td data-dc-tpl="70" style="padding: 6px 4px;">4,106</td><td data-dc-tpl="71" style="padding: 6px 4px;">2,584</td></tr>
+              <tr data-dc-tpl="72"><td data-dc-tpl="73" style="text-align: left; padding: 6px 4px;">Inferred</td><td data-dc-tpl="74" style="padding: 6px 4px;">286</td><td data-dc-tpl="75" style="padding: 6px 4px;">0.34</td><td data-dc-tpl="76" style="padding: 6px 4px;">0.12</td><td data-dc-tpl="77" style="padding: 6px 4px;">2,144</td><td data-dc-tpl="78" style="padding: 6px 4px;">1,103</td></tr>
+            </tbody>
+          </table>
+          <div data-dc-tpl="79" class="box" style="position: absolute; inset: -8px -10px -6px; border: 2px solid rgb(224, 152, 90); border-radius: 6px; background: rgba(224, 152, 90, 0.08); pointer-events: none;"></div>
+          <span data-dc-tpl="80" class="box" style="position: absolute; right: -10px; top: -30px; padding: 3px 8px; border-radius: 6px; background: rgb(224, 152, 90); color: rgb(26, 15, 6); font: 600 10px Inter, sans-serif;">4 rows → resource_estimates</span>
+        </div>
+        <p data-dc-tpl="81" style="margin: 10px 0px 0px; font: 400 11.5px / 1.7 Georgia, serif; color: rgb(58, 54, 49);">Notes: Mineral Resources that are not Mineral Reserves do not have demonstrated economic viability. Totals may not add due to rounding. Metal prices of US$4.25/lb Cu and US$2,100/oz Au.</p>
+        <div data-dc-tpl="82" style="height: 7px; background: rgb(207, 203, 195); border-radius: 2px; width: 90%;"></div>
+        <div data-dc-tpl="83" style="height: 7px; background: rgb(207, 203, 195); border-radius: 2px; width: 96%;"></div>
+        <div data-dc-tpl="84" style="height: 7px; background: rgb(207, 203, 195); border-radius: 2px; width: 62%;"></div>
+      </div>
+    </section>
+
+    <aside data-dc-tpl="85" aria-label="Extracted facts" class="rise d2" style="flex: 1 1 340px; max-width: 400px; min-width: 0px; box-sizing: border-box; border-left: 1px solid rgb(28, 33, 40); background: rgb(14, 17, 21); padding: 18px; display: flex; flex-direction: column; gap: 16px;">
+      <div data-dc-tpl="86" style="display: flex; justify-content: space-between; align-items: center;">
+        <h2 data-dc-tpl="87" style="margin: 0px; font-family: &quot;Space Grotesk&quot;, sans-serif; font-size: 16px; font-weight: 600;">Extracted facts</h2>
+        <span data-dc-tpl="88" class="num" style="font-size: 12px; color: rgb(154, 163, 174);">18 facts · 9 pages</span>
+      </div>
+      <div data-dc-tpl="89" style="display: flex; flex-direction: column; gap: 4px;">
+        <span data-dc-tpl="90" style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: rgb(124, 133, 145); padding-bottom: 4px;">Resources · p.142</span>
+        
+          <a data-dc-tpl="92" class="fact" href="#page" style="display: flex; align-items: center; gap: 10px; padding: 9px 8px; border-radius: 8px; color: rgb(232, 235, 239);">
+            <span data-dc-tpl="93" style="flex: 1 1 0%; display: flex; flex-direction: column; gap: 1px;"><span data-dc-tpl="94" style="font-size: 13px;"><span class="sc-interp">Measured</span></span><span data-dc-tpl="95" class="num" style="font-size: 12px; color: rgb(154, 163, 174);"><span class="sc-interp">118 Mt · 0.47% Cu · 0.21 g/t Au</span></span></span>
+            <span data-dc-tpl="96" class="num" style="font-size: 11px; color: rgb(111, 211, 160);"><span class="sc-interp">0.95</span></span>
+          </a>
+        
+          <a data-dc-tpl="92" class="fact" href="#page" style="display: flex; align-items: center; gap: 10px; padding: 9px 8px; border-radius: 8px; color: rgb(232, 235, 239);">
+            <span data-dc-tpl="93" style="flex: 1 1 0%; display: flex; flex-direction: column; gap: 1px;"><span data-dc-tpl="94" style="font-size: 13px;"><span class="sc-interp">Indicated</span></span><span data-dc-tpl="95" class="num" style="font-size: 12px; color: rgb(154, 163, 174);"><span class="sc-interp">327 Mt · 0.40% Cu · 0.17 g/t Au</span></span></span>
+            <span data-dc-tpl="96" class="num" style="font-size: 11px; color: rgb(111, 211, 160);"><span class="sc-interp">0.94</span></span>
+          </a>
+        
+          <a data-dc-tpl="92" class="fact" href="#page" style="display: flex; align-items: center; gap: 10px; padding: 9px 8px; border-radius: 8px; color: rgb(232, 235, 239);">
+            <span data-dc-tpl="93" style="flex: 1 1 0%; display: flex; flex-direction: column; gap: 1px;"><span data-dc-tpl="94" style="font-size: 13px;"><span class="sc-interp">Measured + Indicated</span></span><span data-dc-tpl="95" class="num" style="font-size: 12px; color: rgb(154, 163, 174);"><span class="sc-interp">445 Mt · 0.42% Cu · 4,106 Mlb</span></span></span>
+            <span data-dc-tpl="96" class="num" style="font-size: 11px; color: rgb(111, 211, 160);"><span class="sc-interp">0.94</span></span>
+          </a>
+        
+          <a data-dc-tpl="92" class="fact" href="#page" style="display: flex; align-items: center; gap: 10px; padding: 9px 8px; border-radius: 8px; color: rgb(232, 235, 239);">
+            <span data-dc-tpl="93" style="flex: 1 1 0%; display: flex; flex-direction: column; gap: 1px;"><span data-dc-tpl="94" style="font-size: 13px;"><span class="sc-interp">Inferred</span></span><span data-dc-tpl="95" class="num" style="font-size: 12px; color: rgb(154, 163, 174);"><span class="sc-interp">286 Mt · 0.34% Cu · 0.12 g/t Au</span></span></span>
+            <span data-dc-tpl="96" class="num" style="font-size: 11px; color: rgb(232, 197, 90);"><span class="sc-interp">0.83</span></span>
+          </a>
+        
+      </div>
+      <div data-dc-tpl="97" style="display: flex; flex-direction: column; gap: 4px; border-top: 1px solid rgb(28, 33, 40); padding-top: 14px;">
+        <span data-dc-tpl="98" style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: rgb(124, 133, 145); padding-bottom: 4px;">Economics · p.296–318</span>
+        
+          <a data-dc-tpl="100" class="fact" href="#page" style="display: flex; justify-content: space-between; gap: 10px; padding: 8px; border-radius: 8px; color: rgb(232, 235, 239); font-size: 13px;"><span data-dc-tpl="101" style="color: rgb(183, 192, 202);"><span class="sc-interp">NPV 8% post-tax</span></span><span data-dc-tpl="102" class="num"><span class="sc-interp">C$1,240M</span></span></a>
+        
+          <a data-dc-tpl="100" class="fact" href="#page" style="display: flex; justify-content: space-between; gap: 10px; padding: 8px; border-radius: 8px; color: rgb(232, 235, 239); font-size: 13px;"><span data-dc-tpl="101" style="color: rgb(183, 192, 202);"><span class="sc-interp">IRR post-tax</span></span><span data-dc-tpl="102" class="num"><span class="sc-interp">21.6%</span></span></a>
+        
+          <a data-dc-tpl="100" class="fact" href="#page" style="display: flex; justify-content: space-between; gap: 10px; padding: 8px; border-radius: 8px; color: rgb(232, 235, 239); font-size: 13px;"><span data-dc-tpl="101" style="color: rgb(183, 192, 202);"><span class="sc-interp">Initial capex</span></span><span data-dc-tpl="102" class="num"><span class="sc-interp">C$1,480M</span></span></a>
+        
+          <a data-dc-tpl="100" class="fact" href="#page" style="display: flex; justify-content: space-between; gap: 10px; padding: 8px; border-radius: 8px; color: rgb(232, 235, 239); font-size: 13px;"><span data-dc-tpl="101" style="color: rgb(183, 192, 202);"><span class="sc-interp">Payback</span></span><span data-dc-tpl="102" class="num"><span class="sc-interp">3.4 yrs</span></span></a>
+        
+          <a data-dc-tpl="100" class="fact" href="#page" style="display: flex; justify-content: space-between; gap: 10px; padding: 8px; border-radius: 8px; color: rgb(232, 235, 239); font-size: 13px;"><span data-dc-tpl="101" style="color: rgb(183, 192, 202);"><span class="sc-interp">Mine life</span></span><span data-dc-tpl="102" class="num"><span class="sc-interp">22 yrs</span></span></a>
+        
+      </div>
+      <div data-dc-tpl="103" style="margin-top: auto; padding: 12px; border-radius: 10px; background: rgb(18, 21, 26); border: 1px solid rgb(34, 40, 49); display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: rgb(154, 163, 174);">
+        <span data-dc-tpl="104">Extracted with Sonnet 5.5 · resources re-checked with Opus 5.5</span>
+        <span data-dc-tpl="105">Cost <span data-dc-tpl="106" class="num" style="color: rgb(232, 235, 239);">$0.61</span> · avg confidence <span data-dc-tpl="107" class="num" style="color: rgb(111, 211, 160);">0.93</span></span>
+        <a data-dc-tpl="108" href="Review.html" style="font-size: 12px;">Open in review queue →</a>
+      </div>
+    </aside>
+  </div></div></div></div>
+
+
+
+</body></html>

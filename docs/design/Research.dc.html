@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>OreBase · Research</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0B0D10}
+a{color:#E0985A;text-decoration:none}a:hover{color:#F2B27C}
+.num{font-family:'JetBrains Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.rise{animation:rise .5s cubic-bezier(.2,.7,.2,1) both}
+.d1{animation-delay:.05s}.d2{animation-delay:.1s}.d3{animation-delay:.15s}.d4{animation-delay:.2s}.d5{animation-delay:.25s}.d6{animation-delay:.3s}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.bar{transform-box:fill-box;transform-origin:50% 100%;animation:grow .7s cubic-bezier(.2,.7,.2,1) both}
+@keyframes grow{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+.hbar{transform-origin:0 50%;animation:growx .8s cubic-bezier(.2,.7,.2,1) .2s both}
+@keyframes growx{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.row:hover{background:#151920}
+@media (prefers-reduced-motion:reduce){.rise,.bar,.hbar{animation:none}}
+</style>
+</helmet>
+<div style="width: 100%; min-height: 1500px; background: #0B0D10; display: flex; flex-wrap: wrap; font-family: Inter, system-ui, sans-serif; color: #E8EBEF">
+  <div style="flex: 1 1 248px; display: flex">
+    <dc-import name="Sidebar" active="research" hint-size="100%,1000px"></dc-import>
+  </div>
+
+  <main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 28px clamp(20px, 3vw, 44px) 56px; display: flex; flex-direction: column; gap: 20px">
+    <header class="rise" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 14px">
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <h1 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 30px; font-weight: 600; letter-spacing: -0.02em">Research</h1>
+        <span style="font-size: 14px; color: #9AA3AE">What the market is filing: NI 43-101 technical reports across Canada</span>
+      </div>
+      <div role="group" aria-label="Period" style="display: flex; padding: 3px; background: #12151A; border: 1px solid #242A33; border-radius: 10px">
+        <button type="button" style="height: 32px; padding: 0 14px; border: 0; border-radius: 7px; background: transparent; color: #9AA3AE; font: 500 13px Inter, sans-serif; cursor: pointer">Q3 2026</button>
+        <button type="button" style="height: 32px; padding: 0 14px; border: 0; border-radius: 7px; background: #232931; color: #E8EBEF; font: 500 13px Inter, sans-serif; cursor: pointer">Q4 to date</button>
+        <button type="button" style="height: 32px; padding: 0 14px; border: 0; border-radius: 7px; background: transparent; color: #9AA3AE; font: 500 13px Inter, sans-serif; cursor: pointer">2026</button>
+      </div>
+    </header>
+
+    <section style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px">
+      <div class="rise d1" style="background: #12151A; border: 1px solid #222831; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 8px"><span style="font-size: 12px; color: #9AA3AE">Technical reports · Q4 to date</span><span class="num" style="font-size: 32px; font-weight: 500">99</span><span style="font-size: 12px; color: #7C8591">Oct 1 – Nov 18</span></div>
+      <div class="rise d2" style="background: #12151A; border: 1px solid #222831; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 8px"><span style="font-size: 12px; color: #9AA3AE">Q3 2026 total</span><span class="num" style="font-size: 32px; font-weight: 500">135</span><span style="font-size: 12px; color: #7C8591">Jul 1 – Sep 30</span></div>
+      <div class="rise d3" style="background: #12151A; border: 1px solid #222831; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 8px"><span style="font-size: 12px; color: #9AA3AE">British Columbia share</span><span class="num" style="font-size: 32px; font-weight: 500">52%</span><span style="font-size: 12px; color: #7C8591">51 of 99 by principal jurisdiction</span></div>
+      <div class="rise d4" style="background: #12151A; border: 1px solid #222831; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 8px"><span style="font-size: 12px; color: #9AA3AE">Amended &amp; restated</span><span class="num" style="font-size: 32px; font-weight: 500">6</span><span style="font-size: 12px; color: #7C8591">Often a regulator-requested fix</span></div>
+    </section>
+
+    <section style="display: flex; flex-wrap: wrap; gap: 16px">
+      <div class="rise d3" style="flex: 2 1 560px; min-width: 0; background: #12151A; border: 1px solid #222831; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+        <div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px">
+          <div><h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600">Filings over time</h2><span style="font-size: 13px; color: #9AA3AE">Technical reports per month, 2026</span></div>
+          <span style="font-size: 12px; color: #9AA3AE; align-self: flex-start">October is the busiest month this year</span>
+        </div>
+        <div style="display: flex; gap: 10px">
+          <div class="num" style="display: flex; flex-direction: column; justify-content: space-between; font-size: 11px; color: #7C8591; padding: 26px 0 24px; text-align: right"><span>60</span><span>40</span><span>20</span><span>0</span></div>
+          <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px">
+            <svg viewBox="0 0 660 204" preserveAspectRatio="none" style="width: 100%; height: 230px; display: block" role="img" aria-label="Monthly technical report filings in 2026, peaking at 65 in October">
+              <defs><pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="3" height="6" fill="#E0985A"></rect></pattern></defs>
+              <g stroke="#1E232B"><line x1="0" y1="200" x2="660" y2="200"></line><line x1="0" y1="144.6" x2="660" y2="144.6"></line><line x1="0" y1="89.2" x2="660" y2="89.2"></line><line x1="0" y1="33.8" x2="660" y2="33.8"></line></g>
+              <g fill="#4A5462">
+                <rect class="bar" x="14" y="94.8" width="32" height="105.2" rx="3"></rect><rect class="bar" x="74" y="86.5" width="32" height="113.5" rx="3"></rect><rect class="bar" x="134" y="56" width="32" height="144" rx="3"></rect><rect class="bar" x="194" y="69.8" width="32" height="130.2" rx="3"></rect><rect class="bar" x="254" y="78.2" width="32" height="121.8" rx="3"></rect><rect class="bar" x="314" y="64.3" width="32" height="135.7" rx="3"></rect>
+              </g>
+              <g fill="#8A6A4E"><rect class="bar" x="374" y="83.7" width="32" height="116.3" rx="3"></rect><rect class="bar" x="434" y="72.6" width="32" height="127.4" rx="3"></rect><rect class="bar" x="494" y="69.8" width="32" height="130.2" rx="3"></rect></g>
+              <rect class="bar" x="554" y="20" width="32" height="180" rx="3" fill="#E0985A"></rect>
+              <rect class="bar" x="614" y="105.8" width="32" height="94.2" rx="3" fill="url(#hatch)" stroke="#E0985A" stroke-width="1"></rect>
+            </svg>
+            <div class="num" style="display: grid; grid-template-columns: repeat(11, minmax(0, 1fr)); font-size: 11px; color: #7C8591; text-align: center"><span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span><span>Jul</span><span>Aug</span><span>Sep</span><span style="color: #F2B27C">Oct · 65</span><span>Nov*</span></div>
+          </div>
+        </div>
+        <span style="font-size: 12px; color: #7C8591">* November to the 18th (34 so far). Q3 months sum to 135.</span>
+      </div>
+
+      <div class="rise d4" style="flex: 1 1 320px; min-width: 0; background: #12151A; border: 1px solid #222831; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+        <div><h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600">By principal jurisdiction</h2><span style="font-size: 13px; color: #9AA3AE">Issuer's principal regulator · Q4 to date</span></div>
+        <sc-for list="{{jur}}" as="j" hint-placeholder-count="6">
+          <div style="display: flex; flex-direction: column; gap: 6px">
+            <div style="display: flex; justify-content: space-between; font-size: 13px"><span style="color: #B7C0CA">{{j.name}}</span><span class="num">{{j.n}}</span></div>
+            <div style="height: 8px; background: #1A1E24; border-radius: 999px; overflow: hidden"><div class="hbar" style="{{j.bar}}"></div></div>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <section style="display: flex; flex-wrap: wrap; gap: 16px">
+      <div class="rise d4" style="flex: 1 1 360px; min-width: 0; background: #12151A; border: 1px solid #222831; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+        <div><h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600">By primary commodity</h2><span style="font-size: 13px; color: #9AA3AE">From extracted project data</span></div>
+        <div style="display: flex; height: 14px; border-radius: 999px; overflow: hidden; gap: 2px">
+          <span class="hbar" style="flex: 38; background: #E8C55A"></span><span class="hbar" style="flex: 24; background: #E0985A"></span><span class="hbar" style="flex: 9; background: #8DBBF2"></span><span class="hbar" style="flex: 8; background: #C9CFD6"></span><span class="hbar" style="flex: 6; background: #B79CF0"></span><span class="hbar" style="flex: 4; background: #6FD3A0"></span><span class="hbar" style="flex: 11; background: #3A424D"></span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 16px; font-size: 13px">
+          <span style="display: flex; justify-content: space-between"><span style="color: #B7C0CA">Gold</span><span class="num">38%</span></span>
+          <span style="display: flex; justify-content: space-between"><span style="color: #B7C0CA">Copper</span><span class="num">24%</span></span>
+          <span style="display: flex; justify-content: space-between"><span style="color: #B7C0CA">Lithium</span><span class="num">9%</span></span>
+          <span style="display: flex; justify-content: space-between"><span style="color: #B7C0CA">Silver</span><span class="num">8%</span></span>
+          <span style="display: flex; justify-content: space-between"><span style="color: #B7C0CA">Uranium</span><span class="num">6%</span></span>
+          <span style="display: flex; justify-content: space-between"><span style="color: #B7C0CA">Nickel</span><span class="num">4%</span></span>
+          <span style="display: flex; justify-content: space-between"><span style="color: #B7C0CA">Other</span><span class="num">11%</span></span>
+        </div>
+      </div>
+
+      <div class="rise d5" style="flex: 1 1 360px; min-width: 0; background: #12151A; border: 1px solid #222831; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+        <div><h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600">By study stage</h2><span style="font-size: 13px; color: #9AA3AE">What each report advances</span></div>
+        <sc-for list="{{stages}}" as="s" hint-placeholder-count="5">
+          <div style="display: flex; align-items: center; gap: 12px">
+            <span style="width: 92px; font-size: 13px; color: #B7C0CA">{{s.name}}</span>
+            <span style="flex: 1; display: flex; justify-content: center"><span class="hbar" style="{{s.bar}}"></span></span>
+            <span class="num" style="width: 30px; text-align: right; font-size: 13px">{{s.n}}</span>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <section class="rise d6" style="background: #12151A; border: 1px solid #222831; border-radius: 14px; padding: 20px 0 6px; display: flex; flex-direction: column">
+      <div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; padding: 0 20px 10px">
+        <div><h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600">Filing stream</h2><span style="font-size: 13px; color: #9AA3AE">Every technical report as it lands</span></div>
+        <a href="Documents.dc.html" style="font-size: 13px; align-self: center">Open in Documents →</a>
+      </div>
+      <div style="overflow-x: auto">
+        <table style="width: 100%; min-width: 680px; border-collapse: collapse; font-size: 13px">
+          <thead><tr style="color: #7C8591; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; text-align: left"><th style="padding: 8px 20px; font-weight: 600">Filed</th><th style="padding: 8px 12px; font-weight: 600">Issuer</th><th style="padding: 8px 12px; font-weight: 600">Jurisdiction</th><th style="padding: 8px 12px; font-weight: 600; text-align: right">Size</th><th style="padding: 8px 20px; font-weight: 600; text-align: right"></th></tr></thead>
+          <tbody>
+            <sc-for list="{{stream}}" as="r" hint-placeholder-count="6">
+              <tr class="row" style="border-top: 1px solid #1C2128">
+                <td class="num" style="padding: 11px 20px; color: #9AA3AE; white-space: nowrap">{{r.d}}</td>
+                <td style="padding: 11px 12px; font-weight: 500">{{r.co}}</td>
+                <td style="padding: 11px 12px; color: #B7C0CA">{{r.j}}</td>
+                <td class="num" style="padding: 11px 12px; color: #9AA3AE; text-align: right">{{r.s}}</td>
+                <td style="padding: 11px 20px; text-align: right"><a href="Chat.dc.html" style="font-size: 12px">Ask →</a></td>
+              </tr>
+            </sc-for>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1500}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const max = 51;
+    const jb = (n, c) => 'height: 100%; border-radius: 999px; width: ' + (n / max * 100).toFixed(1) + '%; background: ' + c;
+    const sb = (n) => 'display: block; height: 22px; border-radius: 5px; background: #E0985A; opacity: ' + (0.35 + n / 46 * 0.65).toFixed(2) + '; width: ' + (n / 46 * 100).toFixed(0) + '%';
+    return {
+      jur: [
+        { name: 'British Columbia', n: 51, bar: jb(51, '#E0985A') },
+        { name: 'Ontario', n: 36, bar: jb(36, '#B87643') },
+        { name: 'Québec', n: 6, bar: jb(6, '#8A5B35') },
+        { name: 'Alberta', n: 3, bar: jb(3, '#8A5B35') },
+        { name: 'Saskatchewan', n: 1, bar: jb(1, '#8A5B35') },
+        { name: 'Not specified', n: 2, bar: jb(2, '#4A5462') }
+      ],
+      stages: [
+        { name: 'Exploration', n: 46, bar: sb(46) }, { name: 'Resource', n: 28, bar: sb(28) },
+        { name: 'PEA', n: 14, bar: sb(14) }, { name: 'PFS', n: 7, bar: sb(7) }, { name: 'FS', n: 4, bar: sb(4) }
+      ],
+      stream: [
+        { d: 'Nov 17 15:35', co: 'Fairplay Ventures Inc.', j: 'Ontario', s: '22.0 MB' },
+        { d: 'Nov 17 15:12', co: 'NVRO Metals Limited', j: 'British Columbia', s: '7.2 MB' },
+        { d: 'Nov 16 20:51', co: 'Lithium X2 Mining Inc.', j: 'British Columbia', s: '35.6 MB' },
+        { d: 'Nov 16 17:16', co: 'Minnova Corp', j: 'Ontario', s: '9.7 MB' },
+        { d: 'Nov 16 17:02', co: 'NexMetals Mining Corp', j: 'British Columbia', s: '8.8 MB' },
+        { d: 'Nov 16 07:14', co: 'Bonterra Resources Inc.', j: 'British Columbia', s: '28.2 MB' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

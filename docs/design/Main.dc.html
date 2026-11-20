@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>OreBase · Home</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0B0D10}
+a{color:#E0985A;text-decoration:none}a:hover{color:#F2B27C}
+.num{font-family:'JetBrains Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.rise{animation:rise .55s cubic-bezier(.2,.7,.2,1) both}
+.d1{animation-delay:.04s}.d2{animation-delay:.08s}.d3{animation-delay:.12s}.d4{animation-delay:.16s}.d5{animation-delay:.22s}.d6{animation-delay:.28s}.d7{animation-delay:.34s}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.bar{transform-box:fill-box;transform-origin:50% 100%;animation:grow .7s cubic-bezier(.2,.7,.2,1) both}
+@keyframes grow{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+.row:hover{background:#151920}
+.chip:hover{border-color:#E0985A;color:#F2B27C}
+.btn2:hover{background:#1A1F26}
+.btn1:hover{background:#EBA86E}
+.shimmer{background:linear-gradient(90deg,#2A1E14 0%,#3A2A1C 50%,#2A1E14 100%);background-size:200% 100%;animation:shim 1.6s linear infinite}
+@keyframes shim{from{background-position:200% 0}to{background-position:0 0}}
+@media (prefers-reduced-motion:reduce){.rise,.bar,.shimmer{animation:none}}
+</style>
+</helmet>
+<div style="width: 100%; min-height: 1500px; background: #0B0D10; display: flex; flex-wrap: wrap; font-family: Inter, system-ui, sans-serif; color: #E8EBEF">
+  <div style="flex: 1 1 248px; display: flex">
+    <dc-import name="Sidebar" active="home" hint-size="100%,1000px"></dc-import>
+  </div>
+
+  <main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 32px clamp(20px, 3vw, 44px) 56px; display: flex; flex-direction: column; gap: 24px">
+
+    <header class="rise" style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <span style="font-size: 13px; color: #9AA3AE">Wednesday, November 18, 2026</span>
+        <h1 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 34px; font-weight: 600; letter-spacing: -0.02em">Morning briefing</h1>
+        <span style="font-size: 14px; color: #9AA3AE"><span class="num" style="color: #E8EBEF">23</span> new filings since your last visit · <span class="num" style="color: #F2B27C">7</span> watchlist events</span>
+      </div>
+      <div style="display: flex; gap: 10px; flex-wrap: wrap">
+        <button class="btn2" type="button" style="height: 40px; padding: 0 14px; background: #13171C; border: 1px solid #242A33; border-radius: 10px; color: #E8EBEF; font: 500 13px Inter, sans-serif; cursor: pointer">Last 7 days</button>
+        <a class="btn1" href="Chat.dc.html" style="height: 40px; padding: 0 16px; display: inline-flex; align-items: center; gap: 8px; background: #E0985A; border-radius: 10px; color: #1A0F06; font: 600 13px Inter, sans-serif">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L3 21l1.9-6.4A8 8 0 1 1 21 12z"></path></svg>
+          Ask OreBase
+        </a>
+      </div>
+    </header>
+
+    <section aria-label="Key figures" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px">
+      <div class="rise d1" style="background: #12151A; border: 1px solid #222831; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 10px">
+        <span style="font-size: 12px; color: #9AA3AE; font-weight: 500">New technical reports · 7d</span>
+        <div style="display: flex; align-items: flex-end; justify-content: space-between">
+          <span class="num" style="font-size: 34px; font-weight: 500; letter-spacing: -0.02em">23</span>
+          <svg width="96" height="32" viewBox="0 0 96 32" aria-hidden="true"><g fill="#E0985A"><rect class="bar" x="2" y="18" width="8" height="14" rx="1.5" opacity=".45"></rect><rect class="bar" x="15" y="12" width="8" height="20" rx="1.5" opacity=".45"></rect><rect class="bar" x="28" y="20" width="8" height="12" rx="1.5" opacity=".45"></rect><rect class="bar" x="41" y="8" width="8" height="24" rx="1.5" opacity=".45"></rect><rect class="bar" x="54" y="14" width="8" height="18" rx="1.5" opacity=".45"></rect><rect class="bar" x="67" y="10" width="8" height="22" rx="1.5" opacity=".45"></rect><rect class="bar" x="80" y="3" width="8" height="29" rx="1.5"></rect></g></svg>
+        </div>
+        <span style="font-size: 12px; color: #6FD3A0">▲ 6 vs prior week</span>
+      </div>
+      <div class="rise d2" style="background: #12151A; border: 1px solid #222831; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 10px">
+        <span style="font-size: 12px; color: #9AA3AE; font-weight: 500">Resource estimates extracted</span>
+        <span class="num" style="font-size: 34px; font-weight: 500; letter-spacing: -0.02em">41</span>
+        <span style="font-size: 12px; color: #9AA3AE">Avg confidence <span class="num" style="color: #E8EBEF">0.84</span> · 3 in review</span>
+      </div>
+      <div class="rise d3" style="background: #12151A; border: 1px solid #222831; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 10px">
+        <span style="font-size: 12px; color: #9AA3AE; font-weight: 500">Watchlist events</span>
+        <div style="display: flex; align-items: baseline; gap: 8px"><span class="num" style="font-size: 34px; font-weight: 500; letter-spacing: -0.02em">7</span><span style="font-size: 13px; color: #9AA3AE">unread</span></div>
+        <span style="font-size: 12px; color: #F2B27C">3 high-signal: resource updates</span>
+      </div>
+      <div class="rise d4" style="background: #12151A; border: 1px solid #222831; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 10px">
+        <span style="font-size: 12px; color: #9AA3AE; font-weight: 500">Extraction spend · November</span>
+        <div style="display: flex; align-items: baseline; gap: 6px"><span class="num" style="font-size: 34px; font-weight: 500; letter-spacing: -0.02em">$38.20</span><span class="num" style="font-size: 13px; color: #9AA3AE">/ $80</span></div>
+        <div style="height: 6px; background: #1E232B; border-radius: 999px; overflow: hidden"><div style="width: 48%; height: 100%; background: #E0985A; border-radius: 999px"></div></div>
+      </div>
+    </section>
+
+    <section style="display: flex; flex-wrap: wrap; gap: 14px">
+      <div class="rise d5" style="flex: 2 1 560px; min-width: 0; background: #12151A; border: 1px solid #222831; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 16px">
+        <div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; align-items: center">
+          <div>
+            <h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600">Filings pulse</h2>
+            <span style="font-size: 13px; color: #9AA3AE">Technical reports detected per week, last 12 weeks</span>
+          </div>
+          <div style="display: flex; gap: 16px; font-size: 12px; color: #B7C0CA">
+            <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 3px; background: #E0985A"></span>SEDAR+</span>
+            <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 3px; background: #5B8DEF"></span>EDGAR</span>
+          </div>
+        </div>
+        <div style="display: flex; gap: 10px">
+          <div class="num" style="display: flex; flex-direction: column; justify-content: space-between; font-size: 11px; color: #7C8591; padding: 2px 0 22px; text-align: right">
+            <span>20</span><span>15</span><span>10</span><span>5</span><span>0</span>
+          </div>
+          <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px">
+            <svg viewBox="0 0 720 204" preserveAspectRatio="none" style="width: 100%; height: 220px; display: block" role="img" aria-label="Weekly technical report filings, rising from 11 to 20 per week over 12 weeks">
+              <g stroke="#1E232B" stroke-width="1"><line x1="0" y1="200" x2="720" y2="200"></line><line x1="0" y1="160" x2="720" y2="160"></line><line x1="0" y1="120" x2="720" y2="120"></line><line x1="0" y1="80" x2="720" y2="80"></line><line x1="0" y1="40" x2="720" y2="40"></line></g>
+              <g fill="#E0985A">
+                <rect class="bar" x="16" y="136" width="28" height="64" rx="3"></rect><rect class="bar" x="76" y="112" width="28" height="88" rx="3"></rect><rect class="bar" x="136" y="128" width="28" height="72" rx="3"></rect><rect class="bar" x="196" y="88" width="28" height="112" rx="3"></rect><rect class="bar" x="256" y="104" width="28" height="96" rx="3"></rect><rect class="bar" x="316" y="120" width="28" height="80" rx="3"></rect><rect class="bar" x="376" y="96" width="28" height="104" rx="3"></rect><rect class="bar" x="436" y="80" width="28" height="120" rx="3"></rect><rect class="bar" x="496" y="128" width="28" height="72" rx="3"></rect><rect class="bar" x="556" y="104" width="28" height="96" rx="3"></rect><rect class="bar" x="616" y="72" width="28" height="128" rx="3"></rect><rect class="bar" x="676" y="88" width="28" height="112" rx="3"></rect>
+              </g>
+              <g fill="#5B8DEF">
+                <rect class="bar" x="16" y="110" width="28" height="24" rx="3"></rect><rect class="bar" x="76" y="78" width="28" height="32" rx="3"></rect><rect class="bar" x="136" y="110" width="28" height="16" rx="3"></rect><rect class="bar" x="196" y="46" width="28" height="40" rx="3"></rect><rect class="bar" x="256" y="78" width="28" height="24" rx="3"></rect><rect class="bar" x="316" y="86" width="28" height="32" rx="3"></rect><rect class="bar" x="376" y="46" width="28" height="48" rx="3"></rect><rect class="bar" x="436" y="54" width="28" height="24" rx="3"></rect><rect class="bar" x="496" y="94" width="28" height="32" rx="3"></rect><rect class="bar" x="556" y="62" width="28" height="40" rx="3"></rect><rect class="bar" x="616" y="38" width="28" height="32" rx="3"></rect><rect class="bar" x="676" y="38" width="28" height="48" rx="3"></rect>
+              </g>
+            </svg>
+            <div class="num" style="display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); font-size: 11px; color: #7C8591; text-align: center">
+              <span>Sep 1</span><span></span><span>Sep 15</span><span></span><span>Sep 29</span><span></span><span>Oct 13</span><span></span><span>Oct 27</span><span></span><span>Nov 10</span><span style="color: #F2B27C">Now</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rise d6" style="flex: 1 1 320px; min-width: 0; background: linear-gradient(180deg, #16120E 0%, #12151A 60%); border: 1px solid #2E2419; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+        <h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600">Ask OreBase</h2>
+        <label for="home-ask" style="font-size: 13px; color: #9AA3AE">Every answer cites the exact page it came from.</label>
+        <textarea id="home-ask" rows="3" placeholder="Ask about any filing, project or company…" style="resize: none; background: #0E1115; border: 1px solid #2A313B; border-radius: 10px; padding: 12px; color: #E8EBEF; font: 400 14px Inter, sans-serif"></textarea>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <a class="chip" href="Chat.dc.html" style="display: block; padding: 10px 12px; border: 1px solid #2A313B; border-radius: 10px; color: #B7C0CA; font-size: 13px">Summarize this week's new NI 43-101 reports</a>
+          <a class="chip" href="Chat.dc.html" style="display: block; padding: 10px 12px; border: 1px solid #2A313B; border-radius: 10px; color: #B7C0CA; font-size: 13px">Rank BC copper projects by contained metal</a>
+          <a class="chip" href="Chat.dc.html" style="display: block; padding: 10px 12px; border: 1px solid #2A313B; border-radius: 10px; color: #B7C0CA; font-size: 13px">Which PEAs this quarter have IRR above 30%?</a>
+        </div>
+      </div>
+    </section>
+
+    <section style="display: flex; flex-wrap: wrap; gap: 14px">
+      <div class="rise d6" style="flex: 3 1 600px; min-width: 0; background: #12151A; border: 1px solid #222831; border-radius: 14px; padding: 20px 0 8px; display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 20px">
+          <h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600">Latest technical reports</h2>
+          <a href="Documents.dc.html" style="font-size: 13px">View all documents →</a>
+        </div>
+        <div style="overflow-x: auto">
+          <table style="width: 100%; min-width: 640px; border-collapse: collapse; font-size: 13px">
+            <thead>
+              <tr style="color: #7C8591; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em">
+                <th style="padding: 8px 20px; font-weight: 600">Company</th><th style="padding: 8px 12px; font-weight: 600">Document</th><th style="padding: 8px 12px; font-weight: 600">Filed</th><th style="padding: 8px 12px; font-weight: 600">Jurisdiction</th><th style="padding: 8px 20px; font-weight: 600; text-align: right">Pipeline</th>
+              </tr>
+            </thead>
+            <tbody>
+              <sc-for list="{{filings}}" as="f" hint-placeholder-count="7">
+                <tr class="row" style="border-top: 1px solid #1C2128">
+                  <td style="padding: 12px 20px; font-weight: 500">{{f.company}}</td>
+                  <td style="padding: 12px; color: #B7C0CA">{{f.doc}}</td>
+                  <td class="num" style="padding: 12px; color: #B7C0CA; white-space: nowrap">{{f.filed}}</td>
+                  <td style="padding: 12px; color: #B7C0CA">{{f.jur}}</td>
+                  <td style="padding: 12px 20px; text-align: right"><span class="{{f.cls}}" style="{{f.chip}}">{{f.status}}</span></td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="rise d7" style="flex: 2 1 380px; min-width: 0; background: #12151A; border: 1px solid #222831; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 4px">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px">
+          <h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600">Watchlist activity</h2>
+          <a href="Watchlist.dc.html" style="font-size: 13px">Open →</a>
+        </div>
+        <sc-for list="{{events}}" as="e" hint-placeholder-count="4">
+          <a class="row" href="Project.dc.html" style="display: flex; gap: 12px; padding: 12px 8px; border-radius: 10px; color: #E8EBEF">
+            <span style="{{e.dot}}"></span>
+            <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px">
+              <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: {{e.color}}">{{e.type}}</span>
+              <span style="font-size: 14px; font-weight: 500">{{e.title}}</span>
+              <span style="font-size: 13px; color: #9AA3AE">{{e.detail}}</span>
+            </span>
+            <span class="num" style="font-size: 12px; color: #7C8591; white-space: nowrap">{{e.ago}}</span>
+          </a>
+        </sc-for>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1500}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const chip = {
+      Extracted: 'display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 500; background: #12251C; color: #6FD3A0',
+      Indexed: 'display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 500; background: #14202E; color: #8DBBF2',
+      Parsing: 'display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 500; color: #F2B27C',
+      Queued: 'display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 500; background: #1A1E24; color: #9AA3AE'
+    };
+    const f = (company, doc, filed, jur, status) => ({ company, doc, filed, jur, status, chip: chip[status], cls: status === 'Parsing' ? 'shimmer' : '' });
+    const dot = (c) => 'width: 8px; height: 8px; margin-top: 6px; border-radius: 999px; flex: none; background: ' + c;
+    return {
+      filings: [
+        f('Fairplay Ventures Inc.', 'Technical report', 'Nov 17', 'Ontario', 'Queued'),
+        f('NVRO Metals Limited', 'Amended & restated', 'Nov 17', 'British Columbia', 'Parsing'),
+        f('Lithium X2 Mining Inc.', 'Technical report', 'Nov 16', 'British Columbia', 'Indexed'),
+        f('Minnova Corp', 'Technical report', 'Nov 16', 'Ontario', 'Indexed'),
+        f('NexMetals Mining Corp', 'Technical report', 'Nov 16', 'British Columbia', 'Extracted'),
+        f('Bonterra Resources Inc.', 'Technical report', 'Nov 16', 'British Columbia', 'Extracted'),
+        f('Grid Metals Corp.', 'Technical report', 'Nov 13', 'Ontario', 'Extracted')
+      ],
+      events: [
+        { type: 'Resource update', color: '#F2B27C', dot: dot('#E0985A'), title: 'Tamarack Ridge · Northgate Copper', detail: 'M&I contained Cu up 18% vs 2024 estimate', ago: '2h' },
+        { type: 'Drill results', color: '#8DBBF2', dot: dot('#5B8DEF'), title: 'Kestrel Lake · Halvard Metals', detail: 'KL-26-041: 212 m @ 0.58% Cu from 48 m', ago: '5h' },
+        { type: 'New technical report', color: '#B7C0CA', dot: dot('#7C8591'), title: 'Sable Creek · Coldwater Resources', detail: 'Preliminary economic assessment filed', ago: '1d' },
+        { type: 'Financing', color: '#B7C0CA', dot: dot('#7C8591'), title: 'Halvard Metals', detail: 'C$22M bought deal announced', ago: '2d' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

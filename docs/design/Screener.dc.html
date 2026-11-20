@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>OreBase · Screener</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0B0D10}
+a{color:#E0985A;text-decoration:none}a:hover{color:#F2B27C}
+.num{font-family:'JetBrains Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.rise{animation:rise .45s cubic-bezier(.2,.7,.2,1) both}
+@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.row{transition:background .15s}.row:hover{background:#151920}
+.pin{transition:transform .2s cubic-bezier(.2,.7,.2,1)}.pin:hover{transform:translate(-50%,-50%) scale(1.25)}
+.ping{animation:ping 2.4s cubic-bezier(0,0,.2,1) infinite}
+@keyframes ping{0%{transform:scale(1);opacity:.6}80%,100%{transform:scale(2.6);opacity:0}}
+.ghost:hover{background:#171B21;color:#E8EBEF}
+input[type=range]{accent-color:#E0985A}
+input[type=checkbox]{accent-color:#E0985A;width:16px;height:16px}
+@media (prefers-reduced-motion:reduce){.rise,.ping{animation:none}}
+</style>
+</helmet>
+<div style="width: 100%; min-height: 1420px; background: #0B0D10; display: flex; flex-wrap: wrap; font-family: Inter, system-ui, sans-serif; color: #E8EBEF">
+  <div style="flex: 1 1 248px; display: flex">
+    <dc-import name="Sidebar" active="screener" hint-size="100%,1000px"></dc-import>
+  </div>
+
+  <div style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 28px clamp(20px, 3vw, 40px) 48px; display: flex; flex-direction: column; gap: 18px">
+    <header style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 14px">
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <h1 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 30px; font-weight: 600; letter-spacing: -0.02em">Screener</h1>
+        <span style="font-size: 14px; color: #9AA3AE"><span class="num" style="color: #E8EBEF">{{count}}</span> projects match · sorted by contained metal</span>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center">
+        <div role="group" aria-label="View" style="display: flex; padding: 3px; background: #12151A; border: 1px solid #242A33; border-radius: 10px">
+          <sc-for list="{{views}}" as="v" hint-placeholder-count="3">
+            <button type="button" onClick="{{v.pick}}" style="{{v.style}}">{{v.label}}</button>
+          </sc-for>
+        </div>
+        <button class="ghost" type="button" style="height: 40px; padding: 0 14px; background: transparent; border: 1px solid #242A33; border-radius: 10px; color: #B7C0CA; font: 500 13px Inter, sans-serif; cursor: pointer">Export CSV</button>
+        <button type="button" style="height: 40px; padding: 0 16px; background: #E0985A; border: 0; border-radius: 10px; color: #1A0F06; font: 600 13px Inter, sans-serif; cursor: pointer">Save view</button>
+      </div>
+    </header>
+
+    <nav aria-label="Saved views" style="display: flex; flex-wrap: wrap; gap: 6px; border-bottom: 1px solid #1C2128">
+      <sc-for list="{{sets}}" as="s" hint-placeholder-count="4">
+        <button type="button" onClick="{{s.pick}}" style="{{s.style}}">{{s.label}}<span class="num" style="margin-left: 8px; font-size: 11px; color: #7C8591">{{s.n}}</span></button>
+      </sc-for>
+    </nav>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-start">
+      <aside aria-label="Filters" style="flex: 1 1 240px; max-width: 300px; min-width: 0; background: #12151A; border: 1px solid #222831; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 20px">
+        <div style="display: flex; justify-content: space-between; align-items: center">
+          <h2 style="margin: 0; font-size: 14px; font-weight: 600">Filters</h2>
+          <button type="button" onClick="{{reset}}" style="background: none; border: 0; color: #E0985A; font: 500 12px Inter, sans-serif; cursor: pointer; padding: 6px 0">Reset</button>
+        </div>
+        <fieldset style="border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px">
+          <legend style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #7C8591; padding: 0 0 10px">Commodity</legend>
+          <div style="display: flex; flex-wrap: wrap; gap: 6px">
+            <sc-for list="{{commods}}" as="c" hint-placeholder-count="5">
+              <button type="button" aria-pressed="{{c.on}}" onClick="{{c.pick}}" style="{{c.style}}"><span style="{{c.dot}}"></span>{{c.label}}</button>
+            </sc-for>
+          </div>
+        </fieldset>
+        <fieldset style="border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px">
+          <legend style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #7C8591; padding: 0 0 10px">Jurisdiction</legend>
+          <label style="display: flex; align-items: center; gap: 10px; font-size: 13px; color: #B7C0CA; min-height: 28px"><input type="checkbox" checked="">British Columbia<span class="num" style="margin-left: auto; color: #7C8591">4</span></label>
+          <label style="display: flex; align-items: center; gap: 10px; font-size: 13px; color: #B7C0CA; min-height: 28px"><input type="checkbox" checked="">Ontario<span class="num" style="margin-left: auto; color: #7C8591">3</span></label>
+          <label style="display: flex; align-items: center; gap: 10px; font-size: 13px; color: #B7C0CA; min-height: 28px"><input type="checkbox" checked="">Québec<span class="num" style="margin-left: auto; color: #7C8591">2</span></label>
+          <label style="display: flex; align-items: center; gap: 10px; font-size: 13px; color: #B7C0CA; min-height: 28px"><input type="checkbox" checked="">Yukon<span class="num" style="margin-left: auto; color: #7C8591">1</span></label>
+        </fieldset>
+        <fieldset style="border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px">
+          <legend style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #7C8591; padding: 0 0 10px">Stage</legend>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px">
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #B7C0CA; min-height: 28px"><input type="checkbox" checked="">Resource</label>
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #B7C0CA; min-height: 28px"><input type="checkbox" checked="">PEA</label>
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #B7C0CA; min-height: 28px"><input type="checkbox" checked="">PFS</label>
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #B7C0CA; min-height: 28px"><input type="checkbox" checked="">FS</label>
+          </div>
+        </fieldset>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <label for="irr" style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #7C8591">Min post-tax IRR <span class="num" style="color: #E8EBEF; letter-spacing: 0">0%</span></label>
+          <input id="irr" type="range" min="0" max="50" value="0">
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <label for="since" style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #7C8591">Latest filing since</label>
+          <select id="since" style="height: 38px; background: #0E1115; border: 1px solid #2A313B; border-radius: 9px; color: #E8EBEF; font: 400 13px Inter, sans-serif; padding: 0 10px">
+            <option>Any time</option><option>Last 30 days</option><option>Last 90 days</option><option>Since Jan 1, 2026</option>
+          </select>
+        </div>
+      </aside>
+
+      <div style="flex: 999 1 600px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+        <sc-if value="{{showMap}}" hint-placeholder-val="{{true}}">
+          <div class="rise" style="position: relative; height: {{mapH}}; border-radius: 14px; overflow: hidden; border: 1px solid #222831; background: radial-gradient(ellipse at 30% 40%, #141A20 0%, #0D1014 70%)">
+            <svg viewBox="0 0 1000 420" preserveAspectRatio="none" style="position: absolute; inset: 0; width: 100%; height: 100%" aria-hidden="true">
+              <g stroke="#1A2028" stroke-width="1" fill="none">
+                <path d="M0 70H1000M0 140H1000M0 210H1000M0 280H1000M0 350H1000M125 0V420M250 0V420M375 0V420M500 0V420M625 0V420M750 0V420M875 0V420"></path>
+              </g>
+              <g stroke="#26303B" stroke-width="1.2" fill="none" opacity=".9">
+                <path d="M60 40C140 60 170 120 150 190S190 300 140 380"></path>
+                <path d="M90 30C190 70 220 140 200 210S240 320 200 400"></path>
+                <path d="M480 120C560 100 640 130 700 170S820 210 900 180"></path>
+                <path d="M470 160C560 150 630 180 690 220S820 260 910 230"></path>
+                <path d="M500 210C580 205 640 230 700 270S830 300 920 280"></path>
+              </g>
+            </svg>
+            <sc-for list="{{pins}}" as="p" hint-placeholder-count="8">
+              <a class="pin" href="Project.dc.html" aria-label="{{p.name}}" style="{{p.style}}">
+                <sc-if value="{{p.recent}}" hint-placeholder-val="{{false}}"><span class="ping" style="{{p.ring}}"></span></sc-if>
+              </a>
+            </sc-for>
+            <div style="position: absolute; left: 14px; bottom: 12px; display: flex; flex-wrap: wrap; gap: 12px; padding: 8px 12px; background: rgba(11,13,16,.85); border: 1px solid #222831; border-radius: 10px; font-size: 12px; color: #B7C0CA">
+              <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 9px; height: 9px; border-radius: 999px; background: #E0985A"></span>Cu</span>
+              <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 9px; height: 9px; border-radius: 999px; background: #E8C55A"></span>Au</span>
+              <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 9px; height: 9px; border-radius: 999px; background: #8DBBF2"></span>Li</span>
+              <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 9px; height: 9px; border-radius: 999px; background: #6FD3A0"></span>Ni</span>
+              <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 9px; height: 9px; border-radius: 999px; background: #C9CFD6"></span>Ag</span>
+              <span style="color: #7C8591">· size = contained metal · ring = filed &lt;30d</span>
+            </div>
+            <span style="position: absolute; right: 12px; top: 10px; font-size: 11px; color: #5F6873">MapLibre basemap</span>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{showTable}}" hint-placeholder-val="{{true}}">
+          <div style="background: #12151A; border: 1px solid #222831; border-radius: 14px; overflow-x: auto">
+            <table style="width: 100%; min-width: 980px; border-collapse: collapse; font-size: 13px">
+              <thead>
+                <tr style="color: #7C8591; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; text-align: right">
+                  <th style="padding: 12px 16px; text-align: left; font-weight: 600">Project</th>
+                  <th style="padding: 12px 8px; text-align: left; font-weight: 600">Jurisdiction</th>
+                  <th style="padding: 12px 8px; text-align: left; font-weight: 600">Stage</th>
+                  <th style="padding: 12px 8px; font-weight: 600">Tonnes</th>
+                  <th style="padding: 12px 8px; font-weight: 600">Grade</th>
+                  <th style="padding: 12px 8px; font-weight: 600; color: #F2B27C">Contained ▾</th>
+                  <th style="padding: 12px 8px; font-weight: 600">NPV (post-tax)</th>
+                  <th style="padding: 12px 8px; font-weight: 600">IRR</th>
+                  <th style="padding: 12px 8px; font-weight: 600">Latest filing</th>
+                  <th style="padding: 12px 16px; font-weight: 600">Conf.</th>
+                </tr>
+              </thead>
+              <tbody>
+                <sc-for list="{{rows}}" as="r" hint-placeholder-count="8">
+                  <tr class="row" style="border-top: 1px solid #1C2128; text-align: right">
+                    <td style="padding: 12px 16px; text-align: left">
+                      <a href="Project.dc.html" style="display: flex; align-items: center; gap: 10px; color: #E8EBEF">
+                        <span style="{{r.dot}}"></span>
+                        <span style="display: flex; flex-direction: column; gap: 2px"><span style="font-weight: 600">{{r.name}}</span><span style="font-size: 12px; color: #7C8591">{{r.company}} · {{r.commodity}}</span></span>
+                      </a>
+                    </td>
+                    <td style="padding: 12px 8px; text-align: left; color: #B7C0CA">{{r.jur}}</td>
+                    <td style="padding: 12px 8px; text-align: left"><span style="{{r.stageStyle}}">{{r.stage}}</span></td>
+                    <td class="num" style="padding: 12px 8px">{{r.tonnes}}</td>
+                    <td class="num" style="padding: 12px 8px">{{r.grade}}</td>
+                    <td class="num" style="padding: 12px 8px; color: #F2B27C">{{r.contained}}</td>
+                    <td class="num" style="padding: 12px 8px">{{r.npv}}</td>
+                    <td class="num" style="padding: 12px 8px">{{r.irr}}</td>
+                    <td class="num" style="padding: 12px 8px; color: #B7C0CA">{{r.filed}}</td>
+                    <td style="padding: 12px 16px"><span class="num" style="{{r.confStyle}}">{{r.conf}}</span></td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+            <sc-if value="{{empty}}" hint-placeholder-val="{{false}}">
+              <div style="padding: 40px; text-align: center; color: #9AA3AE; font-size: 14px">No projects match. Try removing a commodity or switching saved views.</div>
+            </sc-if>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1420}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { view: 'split', set: 'all', commods: [] };
+  }
+  renderVals() {
+    const { view, set, commods } = this.state;
+    const color = { Cu: '#E0985A', Au: '#E8C55A', Li: '#8DBBF2', Ni: '#6FD3A0', Ag: '#C9CFD6' };
+    const stageStyle = {
+      Resource: 'display: inline-block; padding: 3px 9px; border-radius: 6px; font-size: 12px; font-weight: 500; background: #1A1E24; color: #B7C0CA',
+      PEA: 'display: inline-block; padding: 3px 9px; border-radius: 6px; font-size: 12px; font-weight: 500; background: #14202E; color: #8DBBF2',
+      PFS: 'display: inline-block; padding: 3px 9px; border-radius: 6px; font-size: 12px; font-weight: 500; background: #2A1E14; color: #F2B27C',
+      FS: 'display: inline-block; padding: 3px 9px; border-radius: 6px; font-size: 12px; font-weight: 500; background: #12251C; color: #6FD3A0'
+    };
+    const all = [
+      { name: 'Tamarack Ridge', company: 'Northgate Copper', c: 'Cu', commodity: 'Cu-Au', jur: 'British Columbia', jk: 'BC', stage: 'PFS', tonnes: '445 Mt', grade: '0.42% Cu', contained: '4,106 Mlb Cu', npv: 'C$1,240M', irr: '21.6%', irrN: 21.6, filed: 'Oct 2', recent: true, conf: 0.94, x: 15, y: 36, size: 26 },
+      { name: 'Copperhead Flats', company: 'Ridgeline Minerals', c: 'Cu', commodity: 'Cu-Mo', jur: 'British Columbia', jk: 'BC', stage: 'PEA', tonnes: '520 Mt', grade: '0.28% Cu', contained: '3,210 Mlb Cu', npv: 'C$720M', irr: '15.9%', irrN: 15.9, filed: 'Sep 18', recent: false, conf: 0.84, x: 19, y: 55, size: 23 },
+      { name: 'Wolverine Bend', company: 'Ardent Gold', c: 'Au', commodity: 'Au', jur: 'Ontario', jk: 'ON', stage: 'FS', tonnes: '38 Mt', grade: '1.42 g/t Au', contained: '1.73 Moz Au', npv: 'C$880M', irr: '34.1%', irrN: 34.1, filed: 'Nov 5', recent: true, conf: 0.91, x: 63, y: 58, size: 20 },
+      { name: 'Kestrel Lake', company: 'Halvard Metals', c: 'Cu', commodity: 'Cu', jur: 'British Columbia', jk: 'BC', stage: 'PEA', tonnes: '212 Mt', grade: '0.36% Cu', contained: '1,682 Mlb Cu', npv: 'C$610M', irr: '18.2%', irrN: 18.2, filed: 'Oct 20', recent: true, conf: 0.88, x: 12, y: 28, size: 18 },
+      { name: 'Sable Creek', company: 'Coldwater Resources', c: 'Cu', commodity: 'Cu', jur: 'British Columbia', jk: 'BC', stage: 'Resource', tonnes: '138 Mt', grade: '0.51% Cu', contained: '1,552 Mlb Cu', npv: '—', irr: '—', irrN: 0, filed: 'Oct 29', recent: true, conf: 0.79, x: 17, y: 70, size: 17 },
+      { name: 'Granite Hollow', company: 'Ardent Gold', c: 'Au', commodity: 'Au', jur: 'Ontario', jk: 'ON', stage: 'Resource', tonnes: '22 Mt', grade: '2.05 g/t Au', contained: '1.45 Moz Au', npv: '—', irr: '—', irrN: 0, filed: 'Sep 30', recent: false, conf: 0.82, x: 60, y: 66, size: 17 },
+      { name: 'Pinecrest', company: 'Boreal Lithium', c: 'Li', commodity: 'Li', jur: 'Québec', jk: 'QC', stage: 'PEA', tonnes: '61 Mt', grade: '1.18% Li₂O', contained: '720 kt Li₂O', npv: 'C$1,050M', irr: '29.4%', irrN: 29.4, filed: 'Oct 13', recent: true, conf: 0.86, x: 78, y: 44, size: 19 },
+      { name: 'Northstar', company: 'Taiga Metals', c: 'Ni', commodity: 'Ni-Cu', jur: 'Ontario', jk: 'ON', stage: 'PFS', tonnes: '96 Mt', grade: '0.31% Ni', contained: '656 Mlb Ni', npv: 'C$540M', irr: '17.8%', irrN: 17.8, filed: 'Aug 28', recent: false, conf: 0.89, x: 57, y: 47, size: 16 },
+      { name: 'Aurora Basin', company: 'Boreal Lithium', c: 'Li', commodity: 'Li', jur: 'Québec', jk: 'QC', stage: 'Resource', tonnes: '33 Mt', grade: '1.32% Li₂O', contained: '436 kt Li₂O', npv: '—', irr: '—', irrN: 0, filed: 'Sep 9', recent: false, conf: 0.81, x: 82, y: 36, size: 14 },
+      { name: 'Silverfox', company: 'Lumen Silver', c: 'Ag', commodity: 'Ag-Pb-Zn', jur: 'Yukon', jk: 'YT', stage: 'Resource', tonnes: '14 Mt', grade: '168 g/t Ag', contained: '75.6 Moz Ag', npv: '—', irr: '—', irrN: 0, filed: 'Oct 27', recent: true, conf: 0.77, x: 10, y: 14, size: 14 }
+    ];
+    const setDefs = [
+      { id: 'all', label: 'All projects', test: () => true },
+      { id: 'bccu', label: 'BC copper', test: (r) => r.jk === 'BC' && r.c === 'Cu' },
+      { id: 'irr', label: 'PEA+ with IRR > 25%', test: (r) => r.irrN > 25 },
+      { id: 'new', label: 'Filed in last 30 days', test: (r) => r.recent }
+    ];
+    const activeSet = setDefs.find((s) => s.id === set) || setDefs[0];
+    const rows = all.filter((r) => activeSet.test(r) && (commods.length === 0 || commods.includes(r.c)));
+    const tab = (on) => 'height: 42px; padding: 0 14px; background: none; border: 0; border-bottom: 2px solid ' + (on ? '#E0985A' : 'transparent') + '; margin-bottom: -1px; color: ' + (on ? '#E8EBEF' : '#9AA3AE') + '; font: 500 13px Inter, sans-serif; cursor: pointer';
+    const seg = (on) => 'height: 32px; padding: 0 14px; border: 0; border-radius: 7px; background: ' + (on ? '#232931' : 'transparent') + '; color: ' + (on ? '#E8EBEF' : '#9AA3AE') + '; font: 500 13px Inter, sans-serif; cursor: pointer';
+    const toggle = (c) => {
+      const has = commods.includes(c);
+      this.setState({ commods: has ? commods.filter((x) => x !== c) : commods.concat(c) });
+    };
+    return {
+      count: rows.length,
+      empty: rows.length === 0,
+      showMap: view !== 'table',
+      showTable: view !== 'map',
+      mapH: view === 'map' ? '680px' : '340px',
+      reset: () => this.setState({ set: 'all', commods: [] }),
+      views: [['split', 'Split'], ['table', 'Table'], ['map', 'Map']].map(([id, label]) => ({ label, style: seg(view === id), pick: () => this.setState({ view: id }) })),
+      sets: setDefs.map((s) => ({ label: s.label, n: all.filter(s.test).length, style: tab(s.id === set), pick: () => this.setState({ set: s.id }) })),
+      commods: ['Cu', 'Au', 'Li', 'Ni', 'Ag'].map((c) => {
+        const on = commods.includes(c);
+        return {
+          label: c, on: on ? 'true' : 'false', pick: () => toggle(c),
+          dot: 'width: 8px; height: 8px; border-radius: 999px; background: ' + color[c],
+          style: 'display: inline-flex; align-items: center; gap: 7px; height: 32px; padding: 0 12px; border-radius: 999px; font: 500 13px Inter, sans-serif; cursor: pointer; border: 1px solid ' + (on ? '#E0985A' : '#2A313B') + '; background: ' + (on ? '#1C1712' : 'transparent') + '; color: ' + (on ? '#F2B27C' : '#B7C0CA')
+        };
+      }),
+      rows: rows.map((r) => ({
+        ...r,
+        conf: r.conf.toFixed(2),
+        dot: 'width: 10px; height: 10px; border-radius: 999px; flex: none; background: ' + color[r.c],
+        stageStyle: stageStyle[r.stage],
+        confStyle: 'font-size: 12px; color: ' + (r.conf >= 0.85 ? '#6FD3A0' : r.conf >= 0.8 ? '#E8C55A' : '#F2A07C')
+      })),
+      pins: rows.map((r) => ({
+        name: r.name, recent: r.recent,
+        style: 'position: absolute; left: ' + r.x + '%; top: ' + r.y + '%; width: ' + r.size + 'px; height: ' + r.size + 'px; transform: translate(-50%,-50%); border-radius: 999px; background: ' + color[r.c] + '; border: 2px solid #0B0D10; box-shadow: 0 0 0 1px ' + color[r.c] + ', 0 6px 20px rgba(0,0,0,.5); display: block',
+        ring: 'position: absolute; inset: -2px; border-radius: 999px; border: 2px solid ' + color[r.c]
+      }))
+    };
+  }
+}
+</script>
+</body>
+</html>

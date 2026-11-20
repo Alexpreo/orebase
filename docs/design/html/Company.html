@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en"><head><style>.sc-placeholder{background:color-mix(in srgb,currentColor 8%,transparent);border:1px solid color-mix(in srgb,currentColor 50%,transparent);border-radius:2px;box-sizing:border-box;overflow:hidden}@keyframes sc-shine{0%{background-position:100% 50%}100%{background-position:0% 50%}}html.sc-dc-streaming .sc-placeholder,html.sc-dc-streaming .sc-interp.sc-missing{position:relative;background:color-mix(in srgb,currentColor 5%,transparent);border-color:transparent}html.sc-dc-streaming .sc-placeholder::before,html.sc-dc-streaming .sc-interp.sc-missing::before{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(217,119,87,0) 25%,rgba(247,225,211,.95) 37%,rgba(217,119,87,0) 63%);background-size:400% 100%;animation:sc-shine 1.4s ease infinite}html.sc-dc-streaming .sc-placeholder:nth-child(n+9 of .sc-placeholder)::before,html.sc-dc-streaming .sc-interp.sc-missing:nth-child(n+9 of .sc-interp.sc-missing)::before{animation:none;background:color-mix(in srgb,currentColor 8%,transparent)}.sc-placeholder-error{padding:4px 8px;font:11px/1.4 ui-monospace,monospace;color:color-mix(in srgb,currentColor 70%,transparent);word-break:break-word}.sc-interp.sc-missing{display:inline-block;width:2em;height:1em;overflow:hidden;vertical-align:text-bottom;background:rgba(255,255,255,.3);border:1px solid rgba(0,0,0,.5);border-radius:2px;box-sizing:border-box;color:transparent;user-select:none}.sc-interp.sc-unresolved{font-family:ui-monospace,monospace;font-size:.85em;color:color-mix(in srgb,currentColor 50%,transparent);background:color-mix(in srgb,currentColor 10%,transparent);border-radius:3px;padding:0 3px}.sc-host.sc-has-error{position:relative}.sc-logic-error{position:absolute;top:8px;left:8px;z-index:2147483647;max-width:60ch;padding:6px 10px;background:#b00020;color:#fff;font:12px/1.4 ui-monospace,monospace;border-radius:4px;white-space:pre-wrap;pointer-events:none}@media print{@page{margin: 0.5cm;}figure,table{break-inside: avoid;}#dc-root,#dc-root > .sc-host{height: auto;}*,*::before,*::after{print-color-adjust: exact;-webkit-print-color-adjust: exact;backdrop-filter: none !important;-webkit-backdrop-filter: none !important;animation-delay: -99s !important;animation-duration: .001s !important;animation-iteration-count: 1 !important;animation-fill-mode: both !important;animation-play-state: running !important;transition-duration: 0s !important;}}</style>
+<meta charset="utf-8">
+<title>OreBase · Northgate Copper</title>
+<style>x-dc{display:none!important}</style>
+<link rel="preconnect" href="https://fonts.googleapis.com" data-dc-tpl="1"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet" data-dc-tpl="2"><style data-dc-tpl="3">
+body{margin:0;background:#0B0D10}
+a{color:#E0985A;text-decoration:none}a:hover{color:#F2B27C}
+.num{font-family:'JetBrains Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.rise{animation:rise .5s cubic-bezier(.2,.7,.2,1) both}
+.d1{animation-delay:.06s}.d2{animation-delay:.12s}.d3{animation-delay:.18s}.d4{animation-delay:.24s}.d5{animation-delay:.3s}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.bar{transform-box:fill-box;transform-origin:50% 100%;animation:grow .7s cubic-bezier(.2,.7,.2,1) both}
+@keyframes grow{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+.card{transition:border-color .2s,transform .2s}.card:hover{border-color:#3A2A1C;transform:translateY(-2px)}
+.row:hover{background:#151920}
+.ghost:hover{background:#171B21;color:#E8EBEF}
+@media (prefers-reduced-motion:reduce){.rise,.bar{animation:none}.card:hover{transform:none}}
+</style><style data-dc-tpl="3">
+body{margin:0}
+.ob-nav:hover{background:#171B21;color:#E8EBEF}
+.ob-pulse{animation:obpulse 2.2s ease-in-out infinite}
+@keyframes obpulse{0%,100%{box-shadow:0 0 0 0 rgba(79,196,138,.55)}50%{box-shadow:0 0 0 5px rgba(79,196,138,0)}}
+@media (prefers-reduced-motion:reduce){.ob-pulse{animation:none}}
+</style></head>
+<body>
+<div id="dc-root"><div class="sc-host" data-sc-name="Company"><div data-dc-tpl="4" style="width: 100%; min-height: 1400px; background: rgb(11, 13, 16); display: flex; flex-wrap: wrap; font-family: Inter, system-ui, sans-serif; color: rgb(232, 235, 239);">
+  <div data-dc-tpl="5" style="flex: 1 1 248px; display: flex;">
+    <div class="sc-host" data-sc-name="Sidebar" data-dc-tpl="6"><nav data-dc-tpl="4" aria-label="Main" style="box-sizing: border-box; width: 100%; height: 100%; min-height: 1000px; background: rgb(14, 17, 21); border-right: 1px solid rgb(30, 35, 43); padding: 20px 14px; display: flex; flex-direction: column; gap: 22px; font-family: Inter, system-ui, sans-serif; color: rgb(232, 235, 239);">
+  <a data-dc-tpl="5" href="Main.html" style="display: flex; align-items: center; gap: 10px; padding: 4px 8px; color: rgb(232, 235, 239);">
+    <svg data-dc-tpl="6" width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><path data-dc-tpl="7" d="M14 2 25 8.5v11L14 26 3 19.5v-11z" fill="none" stroke="#E0985A" stroke-width="1.6"></path><path data-dc-tpl="8" d="M3 12.5 14 19l11-6.5M3 16 14 22.5 25 16" fill="none" stroke="#E0985A" stroke-width="1.2" opacity="0.55"></path><circle data-dc-tpl="9" cx="14" cy="11" r="2.4" fill="#E0985A"></circle></svg>
+    <span data-dc-tpl="10" style="font-family: &quot;Space Grotesk&quot;, sans-serif; font-size: 19px; font-weight: 600; letter-spacing: -0.01em;">OreBase</span>
+  </a>
+
+  <button data-dc-tpl="11" type="button" style="display: flex; align-items: center; gap: 10px; height: 40px; padding: 0px 12px; background: rgb(19, 23, 28); border: 1px solid rgb(36, 42, 51); border-radius: 10px; color: rgb(154, 163, 174); font: 500 13px Inter, sans-serif; cursor: pointer;">
+    <svg data-dc-tpl="12" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path data-dc-tpl="13" d="M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM21 21l-5-5"></path></svg>
+    <span data-dc-tpl="14" style="flex: 1 1 0%; text-align: left;">Search or ask…</span>
+    <span data-dc-tpl="15" style="font: 500 11px &quot;JetBrains Mono&quot;, monospace; color: rgb(124, 133, 145); border: 1px solid rgb(42, 49, 59); border-radius: 5px; padding: 2px 6px;">⌘K</span>
+  </button>
+
+  
+    <div data-dc-tpl="17" style="display: flex; flex-direction: column; gap: 2px;">
+      <div data-dc-tpl="18" style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: rgb(124, 133, 145); padding: 0px 10px 6px;"><span class="sc-interp">Intelligence</span></div>
+      
+        <a data-dc-tpl="20" class="ob-nav" href="Main.html" style="display: flex; align-items: center; gap: 11px; height: 38px; padding: 0px 10px; border-radius: 8px; font-size: 14px; font-weight: 500; color: rgb(154, 163, 174);">
+          <svg data-dc-tpl="21" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path data-dc-tpl="22" d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z"></path></svg>
+          <span data-dc-tpl="23" style="flex: 1 1 0%;"><span class="sc-interp">Home</span></span>
+          
+        </a>
+      
+        <a data-dc-tpl="20" class="ob-nav" href="Chat.html" style="display: flex; align-items: center; gap: 11px; height: 38px; padding: 0px 10px; border-radius: 8px; font-size: 14px; font-weight: 500; color: rgb(154, 163, 174);">
+          <svg data-dc-tpl="21" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path data-dc-tpl="22" d="M21 12a8 8 0 0 1-11.6 7.1L3 21l1.9-6.4A8 8 0 1 1 21 12z"></path></svg>
+          <span data-dc-tpl="23" style="flex: 1 1 0%;"><span class="sc-interp">Chat</span></span>
+          
+        </a>
+      
+        <a data-dc-tpl="20" class="ob-nav" href="Screener.html" style="display: flex; align-items: center; gap: 11px; height: 38px; padding: 0px 10px; border-radius: 8px; font-size: 14px; font-weight: 500; color: rgb(154, 163, 174);">
+          <svg data-dc-tpl="21" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path data-dc-tpl="22" d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M14 4v4M8 10v4M16 16v4"></path></svg>
+          <span data-dc-tpl="23" style="flex: 1 1 0%;"><span class="sc-interp">Screener</span></span>
+          
+        </a>
+      
+        <a data-dc-tpl="20" class="ob-nav" href="Watchlist.html" style="display: flex; align-items: center; gap: 11px; height: 38px; padding: 0px 10px; border-radius: 8px; font-size: 14px; font-weight: 500; color: rgb(154, 163, 174);">
+          <svg data-dc-tpl="21" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path data-dc-tpl="22" d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2l1.1-6.2L3 9.6l6.2-.9z"></path></svg>
+          <span data-dc-tpl="23" style="flex: 1 1 0%;"><span class="sc-interp">Watchlist</span></span>
+          
+            <span data-dc-tpl="25" class="num" style="font: 500 11px &quot;JetBrains Mono&quot;, monospace; background: rgb(42, 30, 20); color: rgb(242, 178, 124); border-radius: 999px; padding: 1px 7px;"><span class="sc-interp">7</span></span>
+          
+        </a>
+      
+        <a data-dc-tpl="20" class="ob-nav" href="Research.html" style="display: flex; align-items: center; gap: 11px; height: 38px; padding: 0px 10px; border-radius: 8px; font-size: 14px; font-weight: 500; color: rgb(154, 163, 174);">
+          <svg data-dc-tpl="21" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path data-dc-tpl="22" d="M3 3v18h18M7 15l4-4 3 3 5-6"></path></svg>
+          <span data-dc-tpl="23" style="flex: 1 1 0%;"><span class="sc-interp">Research</span></span>
+          
+        </a>
+      
+    </div>
+  
+    <div data-dc-tpl="17" style="display: flex; flex-direction: column; gap: 2px;">
+      <div data-dc-tpl="18" style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: rgb(124, 133, 145); padding: 0px 10px 6px;"><span class="sc-interp">Corpus</span></div>
+      
+        <a data-dc-tpl="20" class="ob-nav" href="Company.html" style="display: flex; align-items: center; gap: 11px; height: 38px; padding: 0px 10px; border-radius: 8px; font-size: 14px; font-weight: 500; background: rgb(28, 23, 18); color: rgb(242, 178, 124); box-shadow: rgb(224, 152, 90) 2px 0px 0px inset;">
+          <svg data-dc-tpl="21" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path data-dc-tpl="22" d="M4 21V5l8-2v18M12 9h8v12M3 21h18"></path></svg>
+          <span data-dc-tpl="23" style="flex: 1 1 0%;"><span class="sc-interp">Companies</span></span>
+          
+        </a>
+      
+        <a data-dc-tpl="20" class="ob-nav" href="Documents.html" style="display: flex; align-items: center; gap: 11px; height: 38px; padding: 0px 10px; border-radius: 8px; font-size: 14px; font-weight: 500; color: rgb(154, 163, 174);">
+          <svg data-dc-tpl="21" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path data-dc-tpl="22" d="M14 3H6v18h12V7zM14 3v4h4M9 13h6M9 17h6"></path></svg>
+          <span data-dc-tpl="23" style="flex: 1 1 0%;"><span class="sc-interp">Documents</span></span>
+          
+        </a>
+      
+    </div>
+  
+    <div data-dc-tpl="17" style="display: flex; flex-direction: column; gap: 2px;">
+      <div data-dc-tpl="18" style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: rgb(124, 133, 145); padding: 0px 10px 6px;"><span class="sc-interp">Operations</span></div>
+      
+        <a data-dc-tpl="20" class="ob-nav" href="Admin.html" style="display: flex; align-items: center; gap: 11px; height: 38px; padding: 0px 10px; border-radius: 8px; font-size: 14px; font-weight: 500; color: rgb(154, 163, 174);">
+          <svg data-dc-tpl="21" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path data-dc-tpl="22" d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"></path></svg>
+          <span data-dc-tpl="23" style="flex: 1 1 0%;"><span class="sc-interp">Pipeline</span></span>
+          
+        </a>
+      
+        <a data-dc-tpl="20" class="ob-nav" href="Review.html" style="display: flex; align-items: center; gap: 11px; height: 38px; padding: 0px 10px; border-radius: 8px; font-size: 14px; font-weight: 500; color: rgb(154, 163, 174);">
+          <svg data-dc-tpl="21" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path data-dc-tpl="22" d="M4 4h16v16H4zM8 12l3 3 5-6"></path></svg>
+          <span data-dc-tpl="23" style="flex: 1 1 0%;"><span class="sc-interp">Review queue</span></span>
+          
+            <span data-dc-tpl="25" class="num" style="font: 500 11px &quot;JetBrains Mono&quot;, monospace; background: rgb(42, 30, 20); color: rgb(242, 178, 124); border-radius: 999px; padding: 1px 7px;"><span class="sc-interp">42</span></span>
+          
+        </a>
+      
+    </div>
+  
+
+  <div data-dc-tpl="26" style="display: flex; flex-direction: column; gap: 2px;">
+    <div data-dc-tpl="27" style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: rgb(124, 133, 145); padding: 0px 10px 6px;">Recent chats</div>
+    <a data-dc-tpl="28" class="ob-nav" href="Chat.html" style="display: block; padding: 7px 10px; border-radius: 8px; font-size: 13px; color: rgb(154, 163, 174); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">BC copper resources since Sept</a>
+    <a data-dc-tpl="29" class="ob-nav" href="Chat.html" style="display: block; padding: 7px 10px; border-radius: 8px; font-size: 13px; color: rgb(154, 163, 174); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Lithium PEAs with IRR above 25%</a>
+    <a data-dc-tpl="30" class="ob-nav" href="Chat.html" style="display: block; padding: 7px 10px; border-radius: 8px; font-size: 13px; color: rgb(154, 163, 174); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Who are the QPs on Ontario gold PFSs?</a>
+  </div>
+
+  <div data-dc-tpl="31" style="margin-top: auto; display: flex; flex-direction: column; gap: 12px;">
+    <a data-dc-tpl="32" href="Admin.html" style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: rgb(17, 22, 27); border: 1px solid rgb(31, 42, 37); border-radius: 10px; color: rgb(183, 192, 202); font-size: 12px;">
+      <span data-dc-tpl="33" class="ob-pulse" style="width: 8px; height: 8px; border-radius: 999px; background: rgb(79, 196, 138); flex: 0 0 auto;"></span>
+      <span data-dc-tpl="34" style="flex: 1 1 0%; line-height: 1.35;">Ingestion live<br data-dc-tpl="35"><span data-dc-tpl="36" style="color: rgb(124, 133, 145);">EDGAR synced 12 min ago</span></span>
+    </a>
+    <div data-dc-tpl="37" style="display: flex; align-items: center; gap: 10px; padding: 4px 8px;">
+      <span data-dc-tpl="38" style="width: 32px; height: 32px; border-radius: 999px; background: rgb(42, 30, 20); color: rgb(242, 178, 124); display: grid; place-items: center; font: 600 13px Inter, sans-serif;">A</span>
+      <span data-dc-tpl="39" style="flex: 1 1 0%; font-size: 13px; line-height: 1.3;">Alex<br data-dc-tpl="40"><span data-dc-tpl="41" style="color: rgb(124, 133, 145); font-size: 12px;">Admin</span></span>
+      <button data-dc-tpl="42" type="button" aria-label="Settings" style="width: 36px; height: 36px; border-radius: 8px; border: 0px; background: transparent; color: rgb(124, 133, 145); cursor: pointer; display: grid; place-items: center;">
+        <svg data-dc-tpl="43" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path data-dc-tpl="44" d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></svg>
+      </button>
+    </div>
+  </div></nav></div>
+  </div>
+
+  <main data-dc-tpl="7" style="flex: 999 1 560px; min-width: 0px; box-sizing: border-box; padding: 26px clamp(20px, 3vw, 44px) 56px; display: flex; flex-direction: column; gap: 22px;">
+    <nav data-dc-tpl="8" aria-label="Breadcrumb" style="font-size: 13px; color: rgb(124, 133, 145); display: flex; gap: 8px;"><a data-dc-tpl="9" href="Company.html" style="color: rgb(154, 163, 174);">Companies</a><span data-dc-tpl="10">/</span><span data-dc-tpl="11" style="color: rgb(232, 235, 239);">Northgate Copper Corp.</span></nav>
+
+    <header data-dc-tpl="12" class="rise" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 18px;">
+      <div data-dc-tpl="13" style="display: flex; align-items: center; gap: 16px;">
+        <span data-dc-tpl="14" style="width: 60px; height: 60px; border-radius: 14px; background: rgb(28, 23, 18); border: 1px solid rgb(58, 42, 28); display: grid; place-items: center; font: 600 22px &quot;Space Grotesk&quot;, sans-serif; color: rgb(242, 178, 124);">NG</span>
+        <div data-dc-tpl="15" style="display: flex; flex-direction: column; gap: 6px;">
+          <h1 data-dc-tpl="16" style="margin: 0px; font-family: &quot;Space Grotesk&quot;, sans-serif; font-size: 34px; font-weight: 600; letter-spacing: -0.02em;">Northgate Copper Corp.</h1>
+          <span data-dc-tpl="17" style="font-size: 13px; color: rgb(154, 163, 174);">Vancouver, BC · Reporting issuer in BC, AB, ON · SEDAR+ profile · <span data-dc-tpl="18" class="num">27</span> filings indexed</span>
+        </div>
+      </div>
+      <div data-dc-tpl="19" style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <button data-dc-tpl="20" class="ghost" type="button" style="height: 40px; padding: 0px 14px; background: transparent; border: 1px solid rgb(36, 42, 51); border-radius: 10px; color: rgb(183, 192, 202); font: 500 13px Inter, sans-serif; cursor: pointer;">Watch company</button>
+        <a data-dc-tpl="21" href="Chat.html" style="height: 40px; padding: 0px 16px; display: inline-flex; align-items: center; background: rgb(224, 152, 90); border-radius: 10px; color: rgb(26, 15, 6); font: 600 13px Inter, sans-serif;">Ask about Northgate</a>
+      </div>
+    </header>
+
+    <section data-dc-tpl="22" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px;">
+      <div data-dc-tpl="23" class="rise d1" style="background: rgb(18, 21, 26); border: 1px solid rgb(34, 40, 49); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 8px;"><span data-dc-tpl="24" style="font-size: 12px; color: rgb(154, 163, 174);">Projects</span><span data-dc-tpl="25" class="num" style="font-size: 30px; font-weight: 500;">3</span><span data-dc-tpl="26" style="font-size: 12px; color: rgb(124, 133, 145);">1 PFS · 1 resource · 1 exploration</span></div>
+      <div data-dc-tpl="27" class="rise d2" style="background: rgb(18, 21, 26); border: 1px solid rgb(34, 40, 49); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 8px;"><span data-dc-tpl="28" style="font-size: 12px; color: rgb(154, 163, 174);">Attributable M&amp;I copper</span><span data-dc-tpl="29" class="num" style="font-size: 30px; font-weight: 500;">4,609 Mlb</span><span data-dc-tpl="30" style="font-size: 12px; color: rgb(111, 211, 160);">▲ 15% year on year</span></div>
+      <div data-dc-tpl="31" class="rise d3" style="background: rgb(18, 21, 26); border: 1px solid rgb(34, 40, 49); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 8px;"><span data-dc-tpl="32" style="font-size: 12px; color: rgb(154, 163, 174);">Lead asset NPV (8%)</span><span data-dc-tpl="33" class="num" style="font-size: 30px; font-weight: 500;">C$1.24B</span><span data-dc-tpl="34" style="font-size: 12px; color: rgb(124, 133, 145);">Tamarack Ridge PFS</span></div>
+      <div data-dc-tpl="35" class="rise d4" style="background: rgb(18, 21, 26); border: 1px solid rgb(34, 40, 49); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 8px;"><span data-dc-tpl="36" style="font-size: 12px; color: rgb(154, 163, 174);">Last filing</span><span data-dc-tpl="37" class="num" style="font-size: 30px; font-weight: 500;">Oct 2</span><span data-dc-tpl="38" style="font-size: 12px; color: rgb(124, 133, 145);">NI 43-101 technical report</span></div>
+    </section>
+
+    <section data-dc-tpl="39" class="rise d3" style="display: flex; flex-direction: column; gap: 12px;">
+      <h2 data-dc-tpl="40" style="margin: 0px; font-family: &quot;Space Grotesk&quot;, sans-serif; font-size: 20px; font-weight: 600;">Portfolio</h2>
+      <div data-dc-tpl="41" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px;">
+        
+          <a data-dc-tpl="43" class="card" href="Project.html" style="background: rgb(18, 21, 26); border: 1px solid rgb(34, 40, 49); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 14px; color: rgb(232, 235, 239);">
+            <div data-dc-tpl="44" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;">
+              <div data-dc-tpl="45" style="display: flex; flex-direction: column; gap: 3px;"><span data-dc-tpl="46" style="font: 600 18px &quot;Space Grotesk&quot;, sans-serif;"><span class="sc-interp">Tamarack Ridge</span></span><span data-dc-tpl="47" style="font-size: 12px; color: rgb(154, 163, 174);"><span class="sc-interp">Cu-Au porphyry</span> · <span class="sc-interp">Omineca, BC</span></span></div>
+              <span data-dc-tpl="48" style="padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; background: rgb(42, 30, 20); color: rgb(242, 178, 124);"><span class="sc-interp">PFS</span></span>
+            </div>
+            <div data-dc-tpl="49" style="display: flex; flex-direction: column; gap: 6px;">
+              <div data-dc-tpl="50" style="display: grid; grid-template-columns: repeat(6, minmax(0px, 1fr)); gap: 3px;">
+                <span data-dc-tpl="52" style="height: 6px; border-radius: 3px; background: rgb(138, 91, 53);"></span><span data-dc-tpl="52" style="height: 6px; border-radius: 3px; background: rgb(138, 91, 53);"></span><span data-dc-tpl="52" style="height: 6px; border-radius: 3px; background: rgb(138, 91, 53);"></span><span data-dc-tpl="52" style="height: 6px; border-radius: 3px; background: rgb(224, 152, 90);"></span><span data-dc-tpl="52" style="height: 6px; border-radius: 3px; background: rgb(30, 35, 43);"></span><span data-dc-tpl="52" style="height: 6px; border-radius: 3px; background: rgb(30, 35, 43);"></span>
+              </div>
+              <div data-dc-tpl="53" style="display: flex; justify-content: space-between; font-size: 10px; color: rgb(95, 104, 115); letter-spacing: 0.04em; text-transform: uppercase;"><span data-dc-tpl="54">Explore</span><span data-dc-tpl="55">Resource</span><span data-dc-tpl="56">PEA</span><span data-dc-tpl="57">PFS</span><span data-dc-tpl="58">FS</span><span data-dc-tpl="59">Build</span></div>
+            </div>
+            <div data-dc-tpl="60" style="display: grid; grid-template-columns: repeat(2, minmax(0px, 1fr)); gap: 10px; padding-top: 4px; border-top: 1px solid rgb(28, 33, 40);">
+              <div data-dc-tpl="61" style="display: flex; flex-direction: column; gap: 2px; padding-top: 10px;"><span data-dc-tpl="62" style="font-size: 11px; color: rgb(124, 133, 145);"><span class="sc-interp">M&amp;I contained Cu</span></span><span data-dc-tpl="63" class="num" style="font-size: 15px;"><span class="sc-interp">4,106 Mlb</span></span></div>
+              <div data-dc-tpl="64" style="display: flex; flex-direction: column; gap: 2px; padding-top: 10px;"><span data-dc-tpl="65" style="font-size: 11px; color: rgb(124, 133, 145);"><span class="sc-interp">NPV 8% post-tax</span></span><span data-dc-tpl="66" class="num" style="font-size: 15px;"><span class="sc-interp">C$1.24B</span></span></div>
+            </div>
+          </a>
+        
+          <a data-dc-tpl="43" class="card" href="Project.html" style="background: rgb(18, 21, 26); border: 1px solid rgb(34, 40, 49); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 14px; color: rgb(232, 235, 239);">
+            <div data-dc-tpl="44" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;">
+              <div data-dc-tpl="45" style="display: flex; flex-direction: column; gap: 3px;"><span data-dc-tpl="46" style="font: 600 18px &quot;Space Grotesk&quot;, sans-serif;"><span class="sc-interp">Bear Pass</span></span><span data-dc-tpl="47" style="font-size: 12px; color: rgb(154, 163, 174);"><span class="sc-interp">Cu-Mo porphyry</span> · <span class="sc-interp">Skeena, BC</span></span></div>
+              <span data-dc-tpl="48" style="padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; background: rgb(26, 30, 36); color: rgb(183, 192, 202);"><span class="sc-interp">Resource</span></span>
+            </div>
+            <div data-dc-tpl="49" style="display: flex; flex-direction: column; gap: 6px;">
+              <div data-dc-tpl="50" style="display: grid; grid-template-columns: repeat(6, minmax(0px, 1fr)); gap: 3px;">
+                <span data-dc-tpl="52" style="height: 6px; border-radius: 3px; background: rgb(138, 91, 53);"></span><span data-dc-tpl="52" style="height: 6px; border-radius: 3px; background: rgb(224, 152, 90);"></span><span data-dc-tpl="52" style="height: 6px; border-radius: 3px; background: rgb(30, 35, 43);"></span><span data-dc-tpl="52" style="height: 6px; border-radius: 3px; background: rgb(30, 35, 43);"></span><span data-dc-tpl="52" style="height: 6px; border-radius: 3px; background: rgb(30, 35, 43);"></span><span data-dc-tpl="52" style="height: 6px; border-radius: 3px; background: rgb(30, 35, 43);"></span>
+              </div>
+              <div data-dc-tpl="53" style="display: flex; justify-content: space-between; font-size: 10px; color: rgb(95, 104, 115); letter-spacing: 0.04em; text-transform: uppercase;"><span data-dc-tpl="54">Explore</span><span data-dc-tpl="55">Resource</span><span data-dc-tpl="56">PEA</span><span data-dc-tpl="57">PFS</span><span data-dc-tpl="58">FS</span><span data-dc-tpl="59">Build</span></div>
+            </div>
+            <div data-dc-tpl="60" style="display: grid; grid-template-columns: repeat(2, minmax(0px, 1fr)); gap: 10px; padding-top: 4px; border-top: 1px solid rgb(28, 33, 40);">
+              <div data-dc-tpl="61" style="display: flex; flex-direction: column; gap: 2px; padding-top: 10px;"><span data-dc-tpl="62" style="font-size: 11px; color: rgb(124, 133, 145);"><span class="sc-interp">M&amp;I contained Cu</span></span><span data-dc-tpl="63" class="num" style="font-size: 15px;"><span class="sc-interp">503 Mlb</span></span></div>
+              <div data-dc-tpl="64" style="display: flex; flex-direction: column; gap: 2px; padding-top: 10px;"><span data-dc-tpl="65" style="font-size: 11px; color: rgb(124, 133, 145);"><span class="sc-interp">M&amp;I grade</span></span><span data-dc-tpl="66" class="num" style="font-size: 15px;"><span class="sc-interp">0.38% Cu</span></span></div>
+            </div>
+          </a>
+        
+          <a data-dc-tpl="43" class="card" href="Project.html" style="background: rgb(18, 21, 26); border: 1px solid rgb(34, 40, 49); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 14px; color: rgb(232, 235, 239);">
+            <div data-dc-tpl="44" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;">
+              <div data-dc-tpl="45" style="display: flex; flex-direction: column; gap: 3px;"><span data-dc-tpl="46" style="font: 600 18px &quot;Space Grotesk&quot;, sans-serif;"><span class="sc-interp">Red Alder</span></span><span data-dc-tpl="47" style="font-size: 12px; color: rgb(154, 163, 174);"><span class="sc-interp">Cu skarn</span> · <span class="sc-interp">Cariboo, BC</span></span></div>
+              <span data-dc-tpl="48" style="padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; background: rgb(26, 30, 36); color: rgb(154, 163, 174);"><span class="sc-interp">Exploration</span></span>
+            </div>
+            <div data-dc-tpl="49" style="display: flex; flex-direction: column; gap: 6px;">
+              <div data-dc-tpl="50" style="display: grid; grid-template-columns: repeat(6, minmax(0px, 1fr)); gap: 3px;">
+                <span data-dc-tpl="52" style="height: 6px; border-radius: 3px; background: rgb(224, 152, 90);"></span><span data-dc-tpl="52" style="height: 6px; border-radius: 3px; background: rgb(30, 35, 43);"></span><span data-dc-tpl="52" style="height: 6px; border-radius: 3px; background: rgb(30, 35, 43);"></span><span data-dc-tpl="52" style="height: 6px; border-radius: 3px; background: rgb(30, 35, 43);"></span><span data-dc-tpl="52" style="height: 6px; border-radius: 3px; background: rgb(30, 35, 43);"></span><span data-dc-tpl="52" style="height: 6px; border-radius: 3px; background: rgb(30, 35, 43);"></span>
+              </div>
+              <div data-dc-tpl="53" style="display: flex; justify-content: space-between; font-size: 10px; color: rgb(95, 104, 115); letter-spacing: 0.04em; text-transform: uppercase;"><span data-dc-tpl="54">Explore</span><span data-dc-tpl="55">Resource</span><span data-dc-tpl="56">PEA</span><span data-dc-tpl="57">PFS</span><span data-dc-tpl="58">FS</span><span data-dc-tpl="59">Build</span></div>
+            </div>
+            <div data-dc-tpl="60" style="display: grid; grid-template-columns: repeat(2, minmax(0px, 1fr)); gap: 10px; padding-top: 4px; border-top: 1px solid rgb(28, 33, 40);">
+              <div data-dc-tpl="61" style="display: flex; flex-direction: column; gap: 2px; padding-top: 10px;"><span data-dc-tpl="62" style="font-size: 11px; color: rgb(124, 133, 145);"><span class="sc-interp">Holes reported 2026</span></span><span data-dc-tpl="63" class="num" style="font-size: 15px;"><span class="sc-interp">14</span></span></div>
+              <div data-dc-tpl="64" style="display: flex; flex-direction: column; gap: 2px; padding-top: 10px;"><span data-dc-tpl="65" style="font-size: 11px; color: rgb(124, 133, 145);"><span class="sc-interp">Best intercept</span></span><span data-dc-tpl="66" class="num" style="font-size: 15px;"><span class="sc-interp">38 m @ 1.12% Cu</span></span></div>
+            </div>
+          </a>
+        
+      </div>
+    </section>
+
+    <section data-dc-tpl="67" style="display: flex; flex-wrap: wrap; gap: 16px;">
+      <div data-dc-tpl="68" class="rise d4" style="flex: 1 1 420px; min-width: 0px; background: rgb(18, 21, 26); border: 1px solid rgb(34, 40, 49); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 14px;">
+        <div data-dc-tpl="69"><h2 data-dc-tpl="70" style="margin: 0px; font-family: &quot;Space Grotesk&quot;, sans-serif; font-size: 18px; font-weight: 600;">Filing activity</h2><span data-dc-tpl="71" style="font-size: 13px; color: rgb(154, 163, 174);">Documents per month, last 12 months</span></div>
+        <svg data-dc-tpl="72" viewBox="0 0 480 160" role="img" aria-label="Filing activity peaked in September and October 2026" style="width: 100%; height: auto; display: block;">
+          <g data-dc-tpl="73" stroke="#1E232B"><line data-dc-tpl="74" x1="0" y1="140" x2="480" y2="140"></line><line data-dc-tpl="75" x1="0" y1="90" x2="480" y2="90"></line><line data-dc-tpl="76" x1="0" y1="40" x2="480" y2="40"></line></g>
+          <g data-dc-tpl="77" fill="#3A4452">
+            <rect data-dc-tpl="78" class="bar" x="8" y="120" width="24" height="20" rx="3"></rect><rect data-dc-tpl="79" class="bar" x="48" y="110" width="24" height="30" rx="3"></rect><rect data-dc-tpl="80" class="bar" x="88" y="130" width="24" height="10" rx="3"></rect><rect data-dc-tpl="81" class="bar" x="128" y="100" width="24" height="40" rx="3"></rect><rect data-dc-tpl="82" class="bar" x="168" y="120" width="24" height="20" rx="3"></rect><rect data-dc-tpl="83" class="bar" x="208" y="110" width="24" height="30" rx="3"></rect><rect data-dc-tpl="84" class="bar" x="248" y="120" width="24" height="20" rx="3"></rect><rect data-dc-tpl="85" class="bar" x="288" y="90" width="24" height="50" rx="3"></rect><rect data-dc-tpl="86" class="bar" x="328" y="120" width="24" height="20" rx="3"></rect>
+          </g>
+          <g data-dc-tpl="87" fill="#E0985A"><rect data-dc-tpl="88" class="bar" x="368" y="50" width="24" height="90" rx="3"></rect><rect data-dc-tpl="89" class="bar" x="408" y="60" width="24" height="80" rx="3"></rect></g>
+          <rect data-dc-tpl="90" class="bar" x="448" y="120" width="24" height="20" rx="3" fill="#3A4452"></rect>
+          <g data-dc-tpl="91" font-family="JetBrains Mono, monospace" font-size="10" fill="#7C8591" text-anchor="middle"><text data-dc-tpl="92" x="20" y="156">Dec</text><text data-dc-tpl="93" x="140" y="156">Mar</text><text data-dc-tpl="94" x="260" y="156">Jun</text><text data-dc-tpl="95" x="380" y="156">Sep</text><text data-dc-tpl="96" x="460" y="156">Nov</text></g>
+        </svg>
+        <span data-dc-tpl="97" style="font-size: 12px; color: rgb(154, 163, 174);"><span data-dc-tpl="98" style="display: inline-block; width: 9px; height: 9px; border-radius: 2px; background: rgb(224, 152, 90); margin-right: 6px;"></span>PFS cycle: results release, technical report and supporting filings</span>
+      </div>
+
+      <div data-dc-tpl="99" class="rise d5" style="flex: 1 1 420px; min-width: 0px; background: rgb(18, 21, 26); border: 1px solid rgb(34, 40, 49); border-radius: 14px; padding: 20px 0px 6px; display: flex; flex-direction: column;">
+        <div data-dc-tpl="100" style="display: flex; justify-content: space-between; padding: 0px 20px 10px;"><h2 data-dc-tpl="101" style="margin: 0px; font-family: &quot;Space Grotesk&quot;, sans-serif; font-size: 18px; font-weight: 600;">Recent filings</h2><a data-dc-tpl="102" href="Documents.html" style="font-size: 13px;">All 27 →</a></div>
+        
+          <a data-dc-tpl="104" class="row" href="DocumentViewer.html" style="display: flex; align-items: center; gap: 14px; padding: 12px 20px; border-top: 1px solid rgb(28, 33, 40); color: rgb(232, 235, 239);">
+            <span data-dc-tpl="105" class="num" style="width: 52px; font-size: 12px; color: rgb(124, 133, 145);"><span class="sc-interp">Oct 2</span></span>
+            <span data-dc-tpl="106" style="flex: 1 1 0%; min-width: 0px; font-size: 14px;"><span class="sc-interp">NI 43-101 Technical Report — Tamarack Ridge PFS</span></span>
+            <span data-dc-tpl="107" style="font-size: 12px; color: rgb(154, 163, 174);"><span class="sc-interp">Technical report</span></span>
+          </a>
+        
+          <a data-dc-tpl="104" class="row" href="DocumentViewer.html" style="display: flex; align-items: center; gap: 14px; padding: 12px 20px; border-top: 1px solid rgb(28, 33, 40); color: rgb(232, 235, 239);">
+            <span data-dc-tpl="105" class="num" style="width: 52px; font-size: 12px; color: rgb(124, 133, 145);"><span class="sc-interp">Sep 8</span></span>
+            <span data-dc-tpl="106" style="flex: 1 1 0%; min-width: 0px; font-size: 14px;"><span class="sc-interp">News release — PFS results</span></span>
+            <span data-dc-tpl="107" style="font-size: 12px; color: rgb(154, 163, 174);"><span class="sc-interp">News release</span></span>
+          </a>
+        
+          <a data-dc-tpl="104" class="row" href="DocumentViewer.html" style="display: flex; align-items: center; gap: 14px; padding: 12px 20px; border-top: 1px solid rgb(28, 33, 40); color: rgb(232, 235, 239);">
+            <span data-dc-tpl="105" class="num" style="width: 52px; font-size: 12px; color: rgb(124, 133, 145);"><span class="sc-interp">Aug 27</span></span>
+            <span data-dc-tpl="106" style="flex: 1 1 0%; min-width: 0px; font-size: 14px;"><span class="sc-interp">Interim MD&amp;A — Q2 2026</span></span>
+            <span data-dc-tpl="107" style="font-size: 12px; color: rgb(154, 163, 174);"><span class="sc-interp">MD&amp;A</span></span>
+          </a>
+        
+          <a data-dc-tpl="104" class="row" href="DocumentViewer.html" style="display: flex; align-items: center; gap: 14px; padding: 12px 20px; border-top: 1px solid rgb(28, 33, 40); color: rgb(232, 235, 239);">
+            <span data-dc-tpl="105" class="num" style="width: 52px; font-size: 12px; color: rgb(124, 133, 145);"><span class="sc-interp">Jun 12</span></span>
+            <span data-dc-tpl="106" style="flex: 1 1 0%; min-width: 0px; font-size: 14px;"><span class="sc-interp">News release — Tamarack drill results</span></span>
+            <span data-dc-tpl="107" style="font-size: 12px; color: rgb(154, 163, 174);"><span class="sc-interp">News release</span></span>
+          </a>
+        
+          <a data-dc-tpl="104" class="row" href="DocumentViewer.html" style="display: flex; align-items: center; gap: 14px; padding: 12px 20px; border-top: 1px solid rgb(28, 33, 40); color: rgb(232, 235, 239);">
+            <span data-dc-tpl="105" class="num" style="width: 52px; font-size: 12px; color: rgb(124, 133, 145);"><span class="sc-interp">Mar 3</span></span>
+            <span data-dc-tpl="106" style="flex: 1 1 0%; min-width: 0px; font-size: 14px;"><span class="sc-interp">Material change report — financing closed</span></span>
+            <span data-dc-tpl="107" style="font-size: 12px; color: rgb(154, 163, 174);"><span class="sc-interp">Material change</span></span>
+          </a>
+        
+      </div>
+    </section>
+  </main></div></div></div>
+
+
+
+</body></html>

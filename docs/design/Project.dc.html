@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>OreBase · Tamarack Ridge</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0B0D10}
+a{color:#E0985A;text-decoration:none}a:hover{color:#F2B27C}
+.num{font-family:'JetBrains Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.rise{animation:rise .5s cubic-bezier(.2,.7,.2,1) both}
+.d1{animation-delay:.05s}.d2{animation-delay:.1s}.d3{animation-delay:.15s}.d4{animation-delay:.2s}.d5{animation-delay:.25s}.d6{animation-delay:.3s}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.draw{stroke-dasharray:700;stroke-dashoffset:700;animation:draw 1.4s .3s cubic-bezier(.4,0,.2,1) forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.fade{animation:fade 1s .9s both}@keyframes fade{from{opacity:0}to{opacity:1}}
+.grow-x{transform-box:fill-box;transform-origin:var(--o,0% 50%);animation:growx .8s cubic-bezier(.2,.7,.2,1) .2s both}
+@keyframes growx{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.seg{animation:segin .9s cubic-bezier(.2,.7,.2,1) both;transform-origin:0 50%}
+@keyframes segin{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.src{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:6px;background:#1A1E24;color:#9AA3AE;font:500 11px 'JetBrains Mono',monospace}
+.src:hover{background:#2A1E14;color:#F2B27C}
+.row:hover{background:#151920}
+.ghost:hover{background:#171B21;color:#E8EBEF}
+@media (prefers-reduced-motion:reduce){.rise,.fade,.grow-x,.seg{animation:none}.draw{animation:none;stroke-dashoffset:0}}
+</style>
+</helmet>
+<div style="width: 100%; min-height: 1960px; background: #0B0D10; display: flex; flex-wrap: wrap; font-family: Inter, system-ui, sans-serif; color: #E8EBEF">
+  <div style="flex: 1 1 248px; display: flex">
+    <dc-import name="Sidebar" active="screener" hint-size="100%,1000px"></dc-import>
+  </div>
+
+  <main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 26px clamp(20px, 3vw, 44px) 56px; display: flex; flex-direction: column; gap: 22px">
+    <nav aria-label="Breadcrumb" style="font-size: 13px; color: #7C8591; display: flex; gap: 8px"><a href="Screener.dc.html" style="color: #9AA3AE">Screener</a><span>/</span><a href="Company.dc.html" style="color: #9AA3AE">Northgate Copper</a><span>/</span><span style="color: #E8EBEF">Tamarack Ridge</span></nav>
+
+    <header class="rise" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 18px">
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <h1 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 40px; font-weight: 600; letter-spacing: -0.025em">Tamarack Ridge</h1>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 13px">
+          <span style="padding: 4px 10px; border-radius: 6px; background: #2A1E14; color: #F2B27C; font-weight: 600">Pre-feasibility</span>
+          <span style="padding: 4px 10px; border-radius: 6px; background: #1A1E24; color: #B7C0CA">Cu-Au porphyry</span>
+          <span style="padding: 4px 10px; border-radius: 6px; background: #1A1E24; color: #B7C0CA">British Columbia, Canada</span>
+          <a href="Company.dc.html" style="padding: 4px 10px; border-radius: 6px; background: #1A1E24; color: #B7C0CA">Northgate Copper Corp. · 100%</a>
+        </div>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 10px">
+        <button type="button" aria-pressed="true" style="height: 40px; padding: 0 14px; display: inline-flex; align-items: center; gap: 8px; background: #1C1712; border: 1px solid #3A2A1C; border-radius: 10px; color: #F2B27C; font: 500 13px Inter, sans-serif; cursor: pointer">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="#E0985A" stroke="#E0985A" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2l1.1-6.2L3 9.6l6.2-.9z"></path></svg>Watching
+        </button>
+        <button class="ghost" type="button" style="height: 40px; padding: 0 14px; background: transparent; border: 1px solid #242A33; border-radius: 10px; color: #B7C0CA; font: 500 13px Inter, sans-serif; cursor: pointer">Export</button>
+        <a href="Chat.dc.html" style="height: 40px; padding: 0 16px; display: inline-flex; align-items: center; background: #E0985A; border-radius: 10px; color: #1A0F06; font: 600 13px Inter, sans-serif">Ask about this project</a>
+      </div>
+    </header>
+
+    <section aria-label="Headline metrics" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1px; background: #222831; border: 1px solid #222831; border-radius: 14px; overflow: hidden">
+      <sc-for list="{{metrics}}" as="m" hint-placeholder-count="6">
+        <div class="rise" style="background: #12151A; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px">
+          <span style="font-size: 12px; color: #9AA3AE">{{m.label}}</span>
+          <span class="num" style="font-size: 26px; font-weight: 500; letter-spacing: -0.02em">{{m.value}}</span>
+          <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center">
+            <span style="font-size: 12px; color: {{m.deltaColor}}">{{m.delta}}</span>
+            <a class="src" href="DocumentViewer.dc.html">{{m.src}}</a>
+          </div>
+        </div>
+      </sc-for>
+    </section>
+
+    <nav aria-label="Project sections" style="display: flex; flex-wrap: wrap; gap: 4px; border-bottom: 1px solid #1C2128">
+      <sc-for list="{{tabs}}" as="t" hint-placeholder-count="4">
+        <button type="button" onClick="{{t.pick}}" style="{{t.style}}">{{t.label}}</button>
+      </sc-for>
+    </nav>
+
+    <sc-if value="{{isOverview}}" hint-placeholder-val="{{true}}">
+      <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
+        <div style="flex: 2 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+
+          <div class="rise d1" style="background: #12151A; border: 1px solid #222831; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 16px">
+            <div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px">
+              <div><h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600">Mineral resource</h2><span style="font-size: 13px; color: #9AA3AE">Effective Aug 31, 2026 · 0.20% CuEq cut-off · <span class="num">731</span> Mt total</span></div>
+              <a class="src" href="DocumentViewer.dc.html" style="align-self: flex-start">PFS · p.142</a>
+            </div>
+            <div style="display: flex; height: 44px; border-radius: 10px; overflow: hidden; gap: 2px">
+              <div class="seg" style="flex: 118; background: #E0985A; display: flex; align-items: center; padding-left: 12px; color: #1A0F06; font: 600 12px Inter, sans-serif">M</div>
+              <div class="seg" style="flex: 327; background: #B87643; display: flex; align-items: center; padding-left: 12px; color: #1A0F06; font: 600 12px Inter, sans-serif; animation-delay: .1s">Indicated</div>
+              <div class="seg" style="flex: 286; background: repeating-linear-gradient(135deg, #3A2E24 0 6px, #2E241C 6px 12px); display: flex; align-items: center; padding-left: 12px; color: #F2B27C; font: 600 12px Inter, sans-serif; animation-delay: .2s">Inferred</div>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px">
+              <div style="display: flex; flex-direction: column; gap: 3px"><span style="font-size: 12px; color: #9AA3AE">Measured</span><span class="num" style="font-size: 15px">118 Mt · 0.47% Cu</span><span class="num" style="font-size: 12px; color: #7C8591">1,223 Mlb Cu · 0.21 g/t Au</span></div>
+              <div style="display: flex; flex-direction: column; gap: 3px"><span style="font-size: 12px; color: #9AA3AE">Indicated</span><span class="num" style="font-size: 15px">327 Mt · 0.40% Cu</span><span class="num" style="font-size: 12px; color: #7C8591">2,884 Mlb Cu · 0.17 g/t Au</span></div>
+              <div style="display: flex; flex-direction: column; gap: 3px"><span style="font-size: 12px; color: #9AA3AE">Inferred</span><span class="num" style="font-size: 15px">286 Mt · 0.34% Cu</span><span class="num" style="font-size: 12px; color: #7C8591">2,144 Mlb Cu · 0.12 g/t Au</span></div>
+            </div>
+          </div>
+
+          <div class="rise d2" style="background: #12151A; border: 1px solid #222831; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+            <div><h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600">Resource growth</h2><span style="font-size: 13px; color: #9AA3AE">M&amp;I contained copper by estimate, Mlb</span></div>
+            <svg viewBox="0 0 620 220" style="width: 100%; height: auto; display: block" role="img" aria-label="M&amp;I contained copper grew from 1,450 Mlb in 2021 to 4,106 Mlb in 2026">
+              <defs><linearGradient id="ag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E0985A" stop-opacity=".28"></stop><stop offset="1" stop-color="#E0985A" stop-opacity="0"></stop></linearGradient></defs>
+              <g stroke="#1E232B"><line x1="30" y1="200" x2="610" y2="200"></line><line x1="30" y1="140" x2="610" y2="140"></line><line x1="30" y1="80" x2="610" y2="80"></line><line x1="30" y1="20" x2="610" y2="20"></line></g>
+              <g font-family="JetBrains Mono, monospace" font-size="10" fill="#7C8591"><text x="0" y="203">0</text><text x="0" y="143">1.5k</text><text x="0" y="83">3.0k</text><text x="0" y="23">4.5k</text></g>
+              <path class="fade" d="M60 142 L230 95 L400 61 L580 36 L580 200 L60 200 Z" fill="url(#ag)"></path>
+              <path class="draw" d="M60 142 L230 95 L400 61 L580 36" fill="none" stroke="#E0985A" stroke-width="2.5" stroke-linejoin="round"></path>
+              <g class="fade" fill="#0B0D10" stroke="#E0985A" stroke-width="2"><circle cx="60" cy="142" r="5"></circle><circle cx="230" cy="95" r="5"></circle><circle cx="400" cy="61" r="5"></circle><circle cx="580" cy="36" r="6" fill="#E0985A"></circle></g>
+              <g class="fade" font-family="JetBrains Mono, monospace" font-size="11" fill="#E8EBEF" text-anchor="middle"><text x="60" y="128">1,450</text><text x="230" y="81">2,620</text><text x="400" y="47">3,480</text><text x="566" y="24" fill="#F2B27C">4,106</text></g>
+              <g font-family="Inter, sans-serif" font-size="11" fill="#9AA3AE" text-anchor="middle"><text x="60" y="216">2021 maiden</text><text x="230" y="216">2023 update</text><text x="400" y="216">2024 PEA</text><text x="580" y="216">2026 PFS</text></g>
+            </svg>
+          </div>
+
+          <div class="rise d3" style="background: #12151A; border: 1px solid #222831; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+            <div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px">
+              <div><h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600">NPV sensitivity</h2><span style="font-size: 13px; color: #9AA3AE">Post-tax NPV (8%), C$B · base case <span class="num" style="color: #E8EBEF">1.24</span></span></div>
+              <div style="display: flex; gap: 14px; font-size: 12px; color: #B7C0CA; align-items: center"><span style="display: inline-flex; gap: 6px; align-items: center"><span style="width: 10px; height: 10px; border-radius: 3px; background: #5B8DEF"></span>Downside</span><span style="display: inline-flex; gap: 6px; align-items: center"><span style="width: 10px; height: 10px; border-radius: 3px; background: #E0985A"></span>Upside</span></div>
+            </div>
+            <div style="display: flex; gap: 12px">
+              <div style="display: flex; flex-direction: column; justify-content: space-around; font-size: 12px; color: #B7C0CA; width: 120px; flex: none; padding-bottom: 20px">
+                <span>Copper price ±15%</span><span>Opex ±15%</span><span>Initial capex ±15%</span><span>CAD/USD ±10%</span><span>Gold price ±15%</span>
+              </div>
+              <svg viewBox="0 0 600 200" style="flex: 1; min-width: 0; height: auto" role="img" aria-label="NPV is most sensitive to copper price, ranging from 0.62 to 1.86 billion">
+                <line x1="296" y1="0" x2="296" y2="180" stroke="#3A424D" stroke-dasharray="3 3"></line>
+                <g>
+                  <rect class="grow-x" style="--o:100% 50%" x="48" y="8" width="248" height="20" rx="3" fill="#5B8DEF"></rect><rect class="grow-x" x="296" y="8" width="248" height="20" rx="3" fill="#E0985A"></rect>
+                  <rect class="grow-x" style="--o:100% 50%" x="192" y="44" width="104" height="20" rx="3" fill="#5B8DEF"></rect><rect class="grow-x" x="296" y="44" width="104" height="20" rx="3" fill="#E0985A"></rect>
+                  <rect class="grow-x" style="--o:100% 50%" x="212" y="80" width="84" height="20" rx="3" fill="#5B8DEF"></rect><rect class="grow-x" x="296" y="80" width="84" height="20" rx="3" fill="#E0985A"></rect>
+                  <rect class="grow-x" style="--o:100% 50%" x="220" y="116" width="76" height="20" rx="3" fill="#5B8DEF"></rect><rect class="grow-x" x="296" y="116" width="76" height="20" rx="3" fill="#E0985A"></rect>
+                  <rect class="grow-x" style="--o:100% 50%" x="264" y="152" width="32" height="20" rx="3" fill="#5B8DEF"></rect><rect class="grow-x" x="296" y="152" width="32" height="20" rx="3" fill="#E0985A"></rect>
+                </g>
+                <g font-family="JetBrains Mono, monospace" font-size="10" fill="#9AA3AE"><text x="42" y="22" text-anchor="end">0.62</text><text x="550" y="22">1.86</text><text x="186" y="58" text-anchor="end">0.98</text><text x="406" y="58">1.50</text><text x="206" y="94" text-anchor="end">1.03</text><text x="386" y="94">1.45</text><text x="214" y="130" text-anchor="end">1.05</text><text x="378" y="130">1.43</text><text x="258" y="166" text-anchor="end">1.16</text><text x="334" y="166">1.32</text></g>
+                <g font-family="JetBrains Mono, monospace" font-size="10" fill="#5F6873" text-anchor="middle"><text x="48" y="196">0.5</text><text x="248" y="196">1.0</text><text x="448" y="196">1.5</text></g>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+          <div class="rise d2" style="position: relative; height: 220px; border-radius: 14px; overflow: hidden; border: 1px solid #222831; background: radial-gradient(ellipse at 40% 45%, #161D24 0%, #0D1014 75%)">
+            <svg viewBox="0 0 400 220" preserveAspectRatio="none" style="position: absolute; inset: 0; width: 100%; height: 100%" aria-hidden="true"><g stroke="#26303B" fill="none" stroke-width="1"><path d="M20 40C90 60 120 100 150 140S230 200 330 190"></path><path d="M40 20C110 50 150 90 180 130S260 180 380 170"></path><path d="M10 80C80 100 110 140 140 170S220 220 300 215"></path></g></svg>
+            <span style="position: absolute; left: 46%; top: 48%; width: 18px; height: 18px; transform: translate(-50%,-50%); border-radius: 999px; background: #E0985A; border: 3px solid #0B0D10; box-shadow: 0 0 0 1px #E0985A, 0 0 0 10px rgba(224,152,90,.15)"></span>
+            <span style="position: absolute; left: 12px; bottom: 10px; font: 500 11px 'JetBrains Mono', monospace; color: #9AA3AE">54.82°N, 126.31°W · Omineca Mining Division</span>
+          </div>
+
+          <div class="rise d3" style="background: #12151A; border: 1px solid #222831; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 2px">
+            <h2 style="margin: 0 0 8px; font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: 600">Key facts</h2>
+            <sc-for list="{{facts}}" as="f" hint-placeholder-count="6">
+              <div style="display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-top: 1px solid #1C2128; font-size: 13px"><span style="color: #9AA3AE">{{f.k}}</span><span class="num" style="text-align: right">{{f.v}}</span></div>
+            </sc-for>
+          </div>
+
+          <div class="rise d4" style="background: #12151A; border: 1px solid #222831; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 4px">
+            <h2 style="margin: 0 0 10px; font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: 600">Timeline</h2>
+            <sc-for list="{{timeline}}" as="t" hint-placeholder-count="5">
+              <div style="display: flex; gap: 12px">
+                <div style="display: flex; flex-direction: column; align-items: center; width: 12px"><span style="{{t.dot}}"></span><span style="flex: 1; width: 1px; background: #242A33"></span></div>
+                <div style="padding-bottom: 14px; display: flex; flex-direction: column; gap: 2px">
+                  <span class="num" style="font-size: 11px; color: #7C8591">{{t.date}}</span>
+                  <span style="font-size: 13px; font-weight: 500">{{t.title}}</span>
+                  <span style="font-size: 12px; color: #9AA3AE">{{t.detail}}</span>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div class="rise d5" style="background: #12151A; border: 1px solid #222831; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 10px">
+            <h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: 600">Qualified persons</h2>
+            <div style="display: flex; justify-content: space-between; font-size: 13px"><span>J. Morrow, P.Geo.</span><span style="color: #9AA3AE">Resource estimate</span></div>
+            <div style="display: flex; justify-content: space-between; font-size: 13px"><span>R. Delacroix, P.Eng.</span><span style="color: #9AA3AE">Mine design</span></div>
+            <div style="display: flex; justify-content: space-between; font-size: 13px"><span>S. Okafor, P.Eng.</span><span style="color: #9AA3AE">Metallurgy</span></div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{isResources}}" hint-placeholder-val="{{false}}">
+      <div class="rise" style="background: #12151A; border: 1px solid #222831; border-radius: 14px; overflow-x: auto">
+        <table class="num" style="width: 100%; min-width: 860px; border-collapse: collapse; font-size: 13px; text-align: right">
+          <thead><tr style="color: #7C8591; font: 600 11px Inter, sans-serif; text-transform: uppercase; letter-spacing: 0.06em"><th style="padding: 12px 18px; text-align: left">Category</th><th style="padding: 12px 8px">Tonnes</th><th style="padding: 12px 8px">Cu %</th><th style="padding: 12px 8px">Au g/t</th><th style="padding: 12px 8px">Contained Cu</th><th style="padding: 12px 8px">Contained Au</th><th style="padding: 12px 8px">Standard</th><th style="padding: 12px 8px">Confidence</th><th style="padding: 12px 18px">Source</th></tr></thead>
+          <tbody>
+            <tr class="row" style="border-top: 1px solid #1C2128"><td style="padding: 13px 18px; text-align: left; font-family: Inter, sans-serif">Measured</td><td style="padding: 13px 8px">118 Mt</td><td style="padding: 13px 8px">0.47</td><td style="padding: 13px 8px">0.21</td><td style="padding: 13px 8px">1,223 Mlb</td><td style="padding: 13px 8px">797 koz</td><td style="padding: 13px 8px; font-family: Inter, sans-serif; color: #9AA3AE">NI 43-101</td><td style="padding: 13px 8px; color: #6FD3A0">0.95</td><td style="padding: 13px 18px"><a class="src" href="DocumentViewer.dc.html">p.142</a></td></tr>
+            <tr class="row" style="border-top: 1px solid #1C2128"><td style="padding: 13px 18px; text-align: left; font-family: Inter, sans-serif">Indicated</td><td style="padding: 13px 8px">327 Mt</td><td style="padding: 13px 8px">0.40</td><td style="padding: 13px 8px">0.17</td><td style="padding: 13px 8px">2,884 Mlb</td><td style="padding: 13px 8px">1,787 koz</td><td style="padding: 13px 8px; font-family: Inter, sans-serif; color: #9AA3AE">NI 43-101</td><td style="padding: 13px 8px; color: #6FD3A0">0.94</td><td style="padding: 13px 18px"><a class="src" href="DocumentViewer.dc.html">p.142</a></td></tr>
+            <tr class="row" style="border-top: 1px solid #2A313B; background: #16130F; font-weight: 500"><td style="padding: 13px 18px; text-align: left; font-family: Inter, sans-serif">Measured + Indicated</td><td style="padding: 13px 8px">445 Mt</td><td style="padding: 13px 8px">0.42</td><td style="padding: 13px 8px">0.18</td><td style="padding: 13px 8px; color: #F2B27C">4,106 Mlb</td><td style="padding: 13px 8px">2,584 koz</td><td style="padding: 13px 8px; font-family: Inter, sans-serif; color: #9AA3AE">NI 43-101</td><td style="padding: 13px 8px; color: #6FD3A0">0.94</td><td style="padding: 13px 18px"><a class="src" href="DocumentViewer.dc.html">p.142</a></td></tr>
+            <tr class="row" style="border-top: 1px solid #1C2128"><td style="padding: 13px 18px; text-align: left; font-family: Inter, sans-serif">Inferred</td><td style="padding: 13px 8px">286 Mt</td><td style="padding: 13px 8px">0.34</td><td style="padding: 13px 8px">0.12</td><td style="padding: 13px 8px">2,144 Mlb</td><td style="padding: 13px 8px">1,103 koz</td><td style="padding: 13px 8px; font-family: Inter, sans-serif; color: #9AA3AE">NI 43-101</td><td style="padding: 13px 8px; color: #E8C55A">0.83</td><td style="padding: 13px 18px"><a class="src" href="DocumentViewer.dc.html">p.143</a></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{isEconomics}}" hint-placeholder-val="{{false}}">
+      <div class="rise" style="background: #12151A; border: 1px solid #222831; border-radius: 14px; overflow-x: auto">
+        <table class="num" style="width: 100%; min-width: 720px; border-collapse: collapse; font-size: 13px; text-align: right">
+          <thead><tr style="color: #7C8591; font: 600 11px Inter, sans-serif; text-transform: uppercase; letter-spacing: 0.06em"><th style="padding: 12px 18px; text-align: left">Metric</th><th style="padding: 12px 8px">2024 PEA</th><th style="padding: 12px 8px; color: #F2B27C">2026 PFS</th><th style="padding: 12px 18px">Change</th></tr></thead>
+          <tbody>
+            <sc-for list="{{econ}}" as="e" hint-placeholder-count="7">
+              <tr class="row" style="border-top: 1px solid #1C2128"><td style="padding: 13px 18px; text-align: left; font-family: Inter, sans-serif; color: #B7C0CA">{{e.k}}</td><td style="padding: 13px 8px; color: #9AA3AE">{{e.a}}</td><td style="padding: 13px 8px">{{e.b}}</td><td style="padding: 13px 18px; color: {{e.c}}">{{e.d}}</td></tr>
+            </sc-for>
+          </tbody>
+        </table>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{isDocs}}" hint-placeholder-val="{{false}}">
+      <div class="rise" style="background: #12151A; border: 1px solid #222831; border-radius: 14px; display: flex; flex-direction: column">
+        <sc-for list="{{docs}}" as="d" hint-placeholder-count="4">
+          <a class="row" href="DocumentViewer.dc.html" style="display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 16px 18px; border-top: 1px solid #1C2128; color: #E8EBEF">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9AA3AE" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M14 3H6v18h12V7zM14 3v4h4M9 13h6M9 17h6"></path></svg>
+            <span style="flex: 1 1 300px; display: flex; flex-direction: column; gap: 2px"><span style="font-weight: 500">{{d.title}}</span><span style="font-size: 12px; color: #7C8591">{{d.meta}}</span></span>
+            <span style="{{d.chip}}">{{d.status}}</span>
+          </a>
+        </sc-for>
+      </div>
+    </sc-if>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1960}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { tab: 'overview' };
+  }
+  renderVals() {
+    const tab = this.state.tab;
+    const tabStyle = (on) => 'height: 44px; padding: 0 16px; background: none; border: 0; border-bottom: 2px solid ' + (on ? '#E0985A' : 'transparent') + '; margin-bottom: -1px; color: ' + (on ? '#E8EBEF' : '#9AA3AE') + '; font: 500 14px Inter, sans-serif; cursor: pointer';
+    const dot = (c) => 'width: 10px; height: 10px; border-radius: 999px; margin-top: 3px; flex: none; background: ' + c;
+    const up = '#6FD3A0', dn = '#F2A07C', flat = '#9AA3AE';
+    const chipOk = 'padding: 3px 10px; border-radius: 999px; font-size: 12px; background: #12251C; color: #6FD3A0';
+    const chipIdx = 'padding: 3px 10px; border-radius: 999px; font-size: 12px; background: #14202E; color: #8DBBF2';
+    return {
+      isOverview: tab === 'overview', isResources: tab === 'resources', isEconomics: tab === 'economics', isDocs: tab === 'docs',
+      tabs: [['overview', 'Overview'], ['resources', 'Resources'], ['economics', 'Economics'], ['docs', 'Documents (4)']].map(([id, label]) => ({ label, style: tabStyle(tab === id), pick: () => this.setState({ tab: id }) })),
+      metrics: [
+        { label: 'Contained Cu · M&I', value: '4,106 Mlb', delta: '▲ 18% vs 2024', deltaColor: up, src: 'p.142' },
+        { label: 'M&I grade', value: '0.42% Cu', delta: '— flat', deltaColor: flat, src: 'p.142' },
+        { label: 'NPV 8% · post-tax', value: 'C$1.24B', delta: '▲ C$330M', deltaColor: up, src: 'p.318' },
+        { label: 'IRR · post-tax', value: '21.6%', delta: '▲ 2.1 pts', deltaColor: up, src: 'p.318' },
+        { label: 'Initial capex', value: 'C$1.48B', delta: '▲ C$210M', deltaColor: dn, src: 'p.296' },
+        { label: 'Mine life', value: '22 yrs', delta: '▲ 3 yrs', deltaColor: up, src: 'p.251' }
+      ],
+      facts: [
+        { k: 'Mining method', v: 'Open pit' }, { k: 'Processing', v: 'Flotation, Cu-Au conc.' }, { k: 'Throughput', v: '60,000 t/d' },
+        { k: 'Payback', v: '3.4 yrs' }, { k: 'C1 cost (LOM)', v: 'US$1.62/lb Cu' }, { k: 'Cu price (base)', v: 'US$4.25/lb' }
+      ],
+      timeline: [
+        { date: 'Oct 2, 2026', title: 'PFS technical report filed', detail: 'NI 43-101 · 386 pages · SEDAR+', dot: dot('#E0985A') },
+        { date: 'Sep 8, 2026', title: 'PFS results announced', detail: 'NPV C$1.24B, IRR 21.6%', dot: dot('#E0985A') },
+        { date: 'Jun 12, 2026', title: 'Drill results', detail: 'TR-26-077: 410 m @ 0.55% Cu, 0.24 g/t Au', dot: dot('#5B8DEF') },
+        { date: 'Mar 3, 2026', title: 'C$45M financing closed', detail: 'Bought deal', dot: dot('#7C8591') },
+        { date: 'Nov 14, 2024', title: 'PEA technical report filed', detail: 'NI 43-101 · 291 pages', dot: dot('#7C8591') }
+      ],
+      econ: [
+        { k: 'NPV 8% post-tax', a: 'C$910M', b: 'C$1,240M', d: '+36%', c: up },
+        { k: 'IRR post-tax', a: '19.5%', b: '21.6%', d: '+2.1 pts', c: up },
+        { k: 'Initial capex', a: 'C$1,270M', b: 'C$1,480M', d: '+17%', c: dn },
+        { k: 'C1 cash cost', a: 'US$1.71/lb', b: 'US$1.62/lb', d: '−5%', c: up },
+        { k: 'Payback', a: '3.9 yrs', b: '3.4 yrs', d: '−0.5 yrs', c: up },
+        { k: 'Mine life', a: '19 yrs', b: '22 yrs', d: '+3 yrs', c: up },
+        { k: 'Cu price assumption', a: 'US$4.00/lb', b: 'US$4.25/lb', d: '+6%', c: flat }
+      ],
+      docs: [
+        { title: 'NI 43-101 Technical Report — Pre-Feasibility Study', meta: 'Filed Oct 2, 2026 · 386 pages · SEDAR+', status: 'Extracted', chip: chipOk },
+        { title: 'News release — PFS results', meta: 'Sep 8, 2026 · Newswire', status: 'Indexed', chip: chipIdx },
+        { title: 'MD&A — Q2 2026', meta: 'Filed Aug 27, 2026 · SEDAR+', status: 'Indexed', chip: chipIdx },
+        { title: 'NI 43-101 Technical Report — PEA', meta: 'Filed Nov 14, 2024 · 291 pages · SEDAR+', status: 'Extracted', chip: chipOk }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

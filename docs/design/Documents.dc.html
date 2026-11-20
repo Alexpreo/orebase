@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>OreBase · Documents</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0B0D10}
+a{color:#E0985A;text-decoration:none}a:hover{color:#F2B27C}
+.num{font-family:'JetBrains Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.rise{animation:rise .45s cubic-bezier(.2,.7,.2,1) both}
+.d1{animation-delay:.05s}.d2{animation-delay:.1s}.d3{animation-delay:.15s}
+@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.row:hover{background:#151920}
+.drop{background-image:repeating-linear-gradient(90deg,#3A2A1C 0 8px,transparent 8px 14px),repeating-linear-gradient(90deg,#3A2A1C 0 8px,transparent 8px 14px),repeating-linear-gradient(0deg,#3A2A1C 0 8px,transparent 8px 14px),repeating-linear-gradient(0deg,#3A2A1C 0 8px,transparent 8px 14px);background-size:100% 1.5px,100% 1.5px,1.5px 100%,1.5px 100%;background-position:0 0,0 100%,0 0,100% 0;background-repeat:no-repeat;animation:march 1.2s linear infinite}
+@keyframes march{to{background-position:14px 0,-14px 100%,0 -14px,100% 14px}}
+.prog{animation:prog 2.4s ease-in-out infinite alternate}
+@keyframes prog{from{width:38%}to{width:64%}}
+@media (prefers-reduced-motion:reduce){.rise,.drop,.prog{animation:none}}
+</style>
+</helmet>
+<div style="width: 100%; min-height: 1240px; background: #0B0D10; display: flex; flex-wrap: wrap; font-family: Inter, system-ui, sans-serif; color: #E8EBEF">
+  <div style="flex: 1 1 248px; display: flex">
+    <dc-import name="Sidebar" active="documents" hint-size="100%,1000px"></dc-import>
+  </div>
+
+  <main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 28px clamp(20px, 3vw, 40px) 56px; display: flex; flex-direction: column; gap: 18px">
+    <header class="rise" style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 14px">
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <h1 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 30px; font-weight: 600; letter-spacing: -0.02em">Documents</h1>
+        <span style="font-size: 14px; color: #9AA3AE"><span class="num" style="color: #E8EBEF">285</span> filings in the corpus · <span class="num" style="color: #E8EBEF">7,087</span> searchable passages · <span style="color: #F2B27C">234 processing</span></span>
+      </div>
+    </header>
+
+    <section class="rise d1 drop" style="border-radius: 14px; padding: 20px; display: flex; flex-wrap: wrap; align-items: center; gap: 18px; background-color: #110F0D">
+      <span style="width: 48px; height: 48px; flex: none; border-radius: 12px; background: #1C1712; display: grid; place-items: center">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#E0985A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5M4 16v4h16v-4"></path></svg>
+      </span>
+      <div style="flex: 1 1 280px; display: flex; flex-direction: column; gap: 4px">
+        <span style="font-size: 15px; font-weight: 600">Drop SEDAR+ zips and the results CSV</span>
+        <span style="font-size: 13px; color: #9AA3AE">Filing dates and issuers are matched from the CSV by file size. Duplicates are skipped automatically.</span>
+      </div>
+      <div style="flex: 1 1 300px; display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; background: #0E1115; border: 1px solid #1E232B; border-radius: 10px">
+        <div style="display: flex; justify-content: space-between; font-size: 12px"><span>sedar_2026Q3_p4.zip · <span class="num" style="color: #9AA3AE">30 reports</span></span><span class="num" style="color: #F2B27C">Embedding 19 / 30</span></div>
+        <div style="height: 4px; background: #1E232B; border-radius: 999px; overflow: hidden"><div class="prog" style="height: 100%; background: #E0985A; border-radius: 999px"></div></div>
+        <span style="font-size: 11px; color: #7C8591">2 duplicates skipped · 1 French-only file set aside</span>
+      </div>
+      <button type="button" style="height: 40px; padding: 0 16px; background: #E0985A; border: 0; border-radius: 10px; color: #1A0F06; font: 600 13px Inter, sans-serif; cursor: pointer">Choose files</button>
+    </section>
+
+    <section class="rise d2" style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center">
+      <label for="doc-search" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Search documents</label>
+      <div style="flex: 1 1 320px; display: flex; align-items: center; gap: 10px; height: 42px; padding: 0 14px; background: #12151A; border: 1px solid #242A33; border-radius: 10px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7C8591" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM21 21l-5-5"></path></svg>
+        <input id="doc-search" type="search" placeholder="Search titles, issuers or full text…" style="flex: 1; background: transparent; border: 0; outline: none; color: #E8EBEF; font: 400 14px Inter, sans-serif">
+      </div>
+      <select aria-label="Source" style="height: 42px; background: #12151A; border: 1px solid #242A33; border-radius: 10px; color: #E8EBEF; font: 400 13px Inter, sans-serif; padding: 0 12px"><option>All sources</option><option>SEDAR+</option><option>EDGAR</option><option>Newswire</option><option>Manual upload</option></select>
+      <select aria-label="Type" style="height: 42px; background: #12151A; border: 1px solid #242A33; border-radius: 10px; color: #E8EBEF; font: 400 13px Inter, sans-serif; padding: 0 12px"><option>All types</option><option>Technical report</option><option>News release</option><option>MD&amp;A</option></select>
+      <select aria-label="Status" style="height: 42px; background: #12151A; border: 1px solid #242A33; border-radius: 10px; color: #E8EBEF; font: 400 13px Inter, sans-serif; padding: 0 12px"><option>Any status</option><option>Extracted</option><option>Indexed</option><option>Processing</option><option>Failed</option></select>
+    </section>
+
+    <section class="rise d3" style="background: #12151A; border: 1px solid #222831; border-radius: 14px; overflow-x: auto">
+      <table style="width: 100%; min-width: 900px; border-collapse: collapse; font-size: 13px">
+        <thead>
+          <tr style="color: #7C8591; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; text-align: left">
+            <th style="padding: 12px 18px; font-weight: 600">Document</th><th style="padding: 12px 10px; font-weight: 600">Source</th><th style="padding: 12px 10px; font-weight: 600">Filed</th><th style="padding: 12px 10px; font-weight: 600; text-align: right">Size</th><th style="padding: 12px 10px; font-weight: 600">Pipeline</th><th style="padding: 12px 18px; font-weight: 600; text-align: right">Facts</th>
+          </tr>
+        </thead>
+        <tbody>
+          <sc-for list="{{docs}}" as="d" hint-placeholder-count="10">
+            <tr class="row" style="border-top: 1px solid #1C2128">
+              <td style="padding: 12px 18px"><a href="DocumentViewer.dc.html" style="display: flex; flex-direction: column; gap: 2px; color: #E8EBEF"><span style="font-weight: 500">{{d.co}}</span><span style="font-size: 12px; color: #7C8591">{{d.doc}}</span></a></td>
+              <td style="padding: 12px 10px"><span style="padding: 2px 8px; border-radius: 6px; background: #1A1E24; color: #B7C0CA; font-size: 12px">{{d.src}}</span></td>
+              <td class="num" style="padding: 12px 10px; color: #B7C0CA; white-space: nowrap">{{d.filed}}</td>
+              <td class="num" style="padding: 12px 10px; color: #9AA3AE; text-align: right">{{d.size}}</td>
+              <td style="padding: 12px 10px">
+                <div style="display: flex; align-items: center; gap: 4px">
+                  <sc-for list="{{d.steps}}" as="s" hint-placeholder-count="4"><span style="{{s}}"></span></sc-for>
+                  <span style="margin-left: 8px; font-size: 12px; color: {{d.labelColor}}">{{d.label}}</span>
+                </div>
+              </td>
+              <td class="num" style="padding: 12px 18px; text-align: right; color: #B7C0CA">{{d.facts}}</td>
+            </tr>
+          </sc-for>
+        </tbody>
+      </table>
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; border-top: 1px solid #1C2128; font-size: 12px; color: #9AA3AE">
+        <span>Showing 1–10 of <span class="num">285</span></span>
+        <div style="display: flex; gap: 6px"><button type="button" style="height: 32px; padding: 0 12px; border: 1px solid #242A33; border-radius: 8px; background: transparent; color: #B7C0CA; font: 500 12px Inter, sans-serif; cursor: pointer">Previous</button><button type="button" style="height: 32px; padding: 0 12px; border: 1px solid #242A33; border-radius: 8px; background: transparent; color: #E8EBEF; font: 500 12px Inter, sans-serif; cursor: pointer">Next</button></div>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1240}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const step = (state) => 'width: 22px; height: 6px; border-radius: 3px; background: ' + (state === 2 ? '#6FD3A0' : state === 1 ? '#E0985A' : '#242A33');
+    const mk = (co, doc, src, filed, size, done, facts) => {
+      const labels = ['Ingested', 'Parsed', 'Indexed', 'Extracted'];
+      const steps = [0, 1, 2, 3].map((i) => step(i < done ? 2 : i === done ? 1 : 0));
+      const label = done >= 4 ? 'Extracted' : labels[done] + '…';
+      return { co, doc, src, filed, size, facts, steps, label, labelColor: done >= 4 ? '#6FD3A0' : '#F2B27C' };
+    };
+    return {
+      docs: [
+        mk('Equity Metals Corporation', 'Technical report (NI 43-101)', 'SEDAR+', 'Nov 2, 2026', '8.8 MB', 4, '14'),
+        mk('Glen Eagle Resources Inc.', 'Technical report (NI 43-101)', 'SEDAR+', 'Nov 2, 2026', '2.8 MB', 4, '6'),
+        mk('Meridian Mining plc', 'Technical report (NI 43-101)', 'SEDAR+', 'Nov 1, 2026', '114.8 MB', 3, '—'),
+        mk('BMC Minerals Ltd', 'Technical report (NI 43-101)', 'SEDAR+', 'Nov 1, 2026', '11.1 MB', 3, '—'),
+        mk('Canoe Mining Ventures Corp.', 'Technical report (NI 43-101)', 'SEDAR+', 'Oct 30, 2026', '6.3 MB', 2, '—'),
+        mk('Trojan Gold Inc.', 'Technical report (NI 43-101)', 'SEDAR+', 'Oct 30, 2026', '7.9 MB', 2, '—'),
+        mk('Orezone Gold Corporation', 'Technical report (NI 43-101)', 'SEDAR+', 'Oct 30, 2026', '11.5 MB', 1, '—'),
+        mk('Cartier Resources Inc.', 'Technical report (NI 43-101)', 'SEDAR+', 'Oct 30, 2026', '6.9 MB', 1, '—'),
+        mk('Silver X Mining Corp.', 'Technical report (NI 43-101)', 'SEDAR+', 'Oct 30, 2026', '29.2 MB', 0, '—'),
+        mk('Outcrop Silver & Gold Corporation', 'Technical report (NI 43-101)', 'SEDAR+', 'Oct 29, 2026', '12.9 MB', 0, '—')
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

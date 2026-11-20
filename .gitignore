@@ -53,3 +53,7 @@ Thumbs.db
 logs/
 tmp/
 coverage/
+
+# local tooling
+.vercel
+.playwright-mcp/

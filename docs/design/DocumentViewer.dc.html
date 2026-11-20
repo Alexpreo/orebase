@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>OreBase · Document viewer</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0B0D10}
+a{color:#E0985A;text-decoration:none}a:hover{color:#F2B27C}
+.num{font-family:'JetBrains Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
+.rise{animation:rise .5s cubic-bezier(.2,.7,.2,1) both}
+.d1{animation-delay:.1s}.d2{animation-delay:.2s}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.box{animation:box 1.2s cubic-bezier(.2,.7,.2,1) .5s both}
+@keyframes box{0%{opacity:0;transform:scale(1.04)}60%{opacity:1}100%{opacity:1;transform:none}}
+.ol:hover{background:#151920;color:#E8EBEF}
+.fact:hover{background:#151920}
+.ghost:hover{background:#171B21;color:#E8EBEF}
+@media (prefers-reduced-motion:reduce){.rise,.box{animation:none}}
+</style>
+</helmet>
+<div style="width: 100%; min-height: 1120px; background: #0B0D10; display: flex; flex-direction: column; font-family: Inter, system-ui, sans-serif; color: #E8EBEF">
+  <header style="display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 14px clamp(16px, 2.5vw, 28px); border-bottom: 1px solid #1C2128; background: #0E1115">
+    <a href="Documents.dc.html" aria-label="Back to documents" style="width: 40px; height: 40px; border-radius: 10px; border: 1px solid #242A33; display: grid; place-items: center; color: #B7C0CA">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"></path></svg>
+    </a>
+    <div style="flex: 1 1 360px; min-width: 0; display: flex; flex-direction: column; gap: 2px">
+      <h1 style="margin: 0; font-size: 16px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Tamarack Ridge Project — NI 43-101 Technical Report, Pre-Feasibility Study</h1>
+      <span style="font-size: 12px; color: #9AA3AE"><a href="Company.dc.html" style="color: #B7C0CA">Northgate Copper Corp.</a> · SEDAR+ · filed Oct 2, 2026 · <span class="num">386</span> pages · <span style="color: #6FD3A0">Extracted</span></span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 6px; padding: 3px; background: #12151A; border: 1px solid #242A33; border-radius: 10px">
+      <button class="ghost" type="button" aria-label="Previous page" style="width: 34px; height: 34px; border: 0; border-radius: 7px; background: transparent; color: #B7C0CA; cursor: pointer">‹</button>
+      <span class="num" style="font-size: 13px; padding: 0 6px">142 / 386</span>
+      <button class="ghost" type="button" aria-label="Next page" style="width: 34px; height: 34px; border: 0; border-radius: 7px; background: transparent; color: #B7C0CA; cursor: pointer">›</button>
+    </div>
+    <button class="ghost" type="button" style="height: 40px; padding: 0 14px; border: 1px solid #242A33; border-radius: 10px; background: transparent; color: #B7C0CA; font: 500 13px Inter, sans-serif; cursor: pointer">Download PDF</button>
+    <a href="Chat.dc.html" style="height: 40px; padding: 0 16px; display: inline-flex; align-items: center; background: #E0985A; border-radius: 10px; color: #1A0F06; font: 600 13px Inter, sans-serif">Ask this document</a>
+  </header>
+
+  <div style="flex: 1; display: flex; flex-wrap: wrap">
+    <nav aria-label="Report outline" class="rise" style="flex: 1 1 220px; max-width: 260px; box-sizing: border-box; padding: 18px 10px; border-right: 1px solid #1C2128; display: flex; flex-direction: column; gap: 2px">
+      <span style="padding: 0 10px 10px; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #7C8591">Outline</span>
+      <sc-for list="{{outline}}" as="o" hint-placeholder-count="12">
+        <a class="ol" href="#page" style="{{o.style}}"><span class="num" style="width: 22px; color: #5F6873; font-size: 11px">{{o.n}}</span><span style="flex: 1">{{o.t}}</span><sc-if value="{{o.has}}" hint-placeholder-val="{{false}}"><span style="width: 7px; height: 7px; border-radius: 999px; background: #E0985A"></span></sc-if></a>
+      </sc-for>
+    </nav>
+
+    <section id="page" aria-label="Page 142" style="flex: 999 1 520px; min-width: 0; box-sizing: border-box; padding: 32px clamp(16px, 3vw, 48px); background: #090B0D; display: flex; justify-content: center">
+      <div class="rise d1" style="position: relative; width: 100%; max-width: 640px; background: #EDEAE4; border-radius: 4px; padding: 52px 56px 64px; color: #2A2723; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 30px 80px rgba(0,0,0,.6)">
+        <div style="display: flex; justify-content: space-between; font: 500 10px Inter, sans-serif; color: #6E6A63; letter-spacing: 0.05em"><span>TAMARACK RIDGE PROJECT · PRE-FEASIBILITY STUDY</span><span class="num">142</span></div>
+        <div style="font: 600 15px Inter, sans-serif; margin-top: 8px">14.12 Mineral Resource Statement</div>
+        <p style="margin: 0; font: 400 11.5px/1.7 Georgia, serif; color: #3A3631">The Mineral Resource Estimate for the Tamarack Ridge deposit has an effective date of August 31, 2026 and was prepared in accordance with CIM Definition Standards (2014). Resources are reported within a constraining pit shell at a cut-off grade of 0.20% copper equivalent.</p>
+        <div style="height: 7px; background: #CFCBC3; border-radius: 2px; width: 94%"></div>
+        <div style="height: 7px; background: #CFCBC3; border-radius: 2px; width: 81%"></div>
+        <div style="position: relative; margin-top: 10px">
+          <div style="font: 600 11px Inter, sans-serif; margin-bottom: 8px">Table 14-12: Mineral Resource Estimate</div>
+          <table class="num" style="width: 100%; border-collapse: collapse; font-size: 11px; text-align: right">
+            <thead><tr style="border-bottom: 1.5px solid #6E6A63"><th style="text-align: left; padding: 6px 4px; font-weight: 600">Class</th><th style="padding: 6px 4px; font-weight: 600">Tonnes (Mt)</th><th style="padding: 6px 4px; font-weight: 600">Cu (%)</th><th style="padding: 6px 4px; font-weight: 600">Au (g/t)</th><th style="padding: 6px 4px; font-weight: 600">Cu (Mlb)</th><th style="padding: 6px 4px; font-weight: 600">Au (koz)</th></tr></thead>
+            <tbody>
+              <tr><td style="text-align: left; padding: 6px 4px">Measured</td><td style="padding: 6px 4px">118</td><td style="padding: 6px 4px">0.47</td><td style="padding: 6px 4px">0.21</td><td style="padding: 6px 4px">1,223</td><td style="padding: 6px 4px">797</td></tr>
+              <tr><td style="text-align: left; padding: 6px 4px">Indicated</td><td style="padding: 6px 4px">327</td><td style="padding: 6px 4px">0.40</td><td style="padding: 6px 4px">0.17</td><td style="padding: 6px 4px">2,884</td><td style="padding: 6px 4px">1,787</td></tr>
+              <tr style="border-top: 1px solid #8F8A82; font-weight: 600"><td style="text-align: left; padding: 6px 4px">M&amp;I</td><td style="padding: 6px 4px">445</td><td style="padding: 6px 4px">0.42</td><td style="padding: 6px 4px">0.18</td><td style="padding: 6px 4px">4,106</td><td style="padding: 6px 4px">2,584</td></tr>
+              <tr><td style="text-align: left; padding: 6px 4px">Inferred</td><td style="padding: 6px 4px">286</td><td style="padding: 6px 4px">0.34</td><td style="padding: 6px 4px">0.12</td><td style="padding: 6px 4px">2,144</td><td style="padding: 6px 4px">1,103</td></tr>
+            </tbody>
+          </table>
+          <div class="box" style="position: absolute; inset: -8px -10px -6px; border: 2px solid #E0985A; border-radius: 6px; background: rgba(224,152,90,.08); pointer-events: none"></div>
+          <span class="box" style="position: absolute; right: -10px; top: -30px; padding: 3px 8px; border-radius: 6px; background: #E0985A; color: #1A0F06; font: 600 10px Inter, sans-serif">4 rows → resource_estimates</span>
+        </div>
+        <p style="margin: 10px 0 0; font: 400 11.5px/1.7 Georgia, serif; color: #3A3631">Notes: Mineral Resources that are not Mineral Reserves do not have demonstrated economic viability. Totals may not add due to rounding. Metal prices of US$4.25/lb Cu and US$2,100/oz Au.</p>
+        <div style="height: 7px; background: #CFCBC3; border-radius: 2px; width: 90%"></div>
+        <div style="height: 7px; background: #CFCBC3; border-radius: 2px; width: 96%"></div>
+        <div style="height: 7px; background: #CFCBC3; border-radius: 2px; width: 62%"></div>
+      </div>
+    </section>
+
+    <aside aria-label="Extracted facts" class="rise d2" style="flex: 1 1 340px; max-width: 400px; min-width: 0; box-sizing: border-box; border-left: 1px solid #1C2128; background: #0E1115; padding: 18px; display: flex; flex-direction: column; gap: 16px">
+      <div style="display: flex; justify-content: space-between; align-items: center">
+        <h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: 600">Extracted facts</h2>
+        <span class="num" style="font-size: 12px; color: #9AA3AE">18 facts · 9 pages</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #7C8591; padding-bottom: 4px">Resources · p.142</span>
+        <sc-for list="{{res}}" as="r" hint-placeholder-count="4">
+          <a class="fact" href="#page" style="display: flex; align-items: center; gap: 10px; padding: 9px 8px; border-radius: 8px; color: #E8EBEF">
+            <span style="flex: 1; display: flex; flex-direction: column; gap: 1px"><span style="font-size: 13px">{{r.k}}</span><span class="num" style="font-size: 12px; color: #9AA3AE">{{r.v}}</span></span>
+            <span class="num" style="font-size: 11px; color: {{r.c}}">{{r.conf}}</span>
+          </a>
+        </sc-for>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 4px; border-top: 1px solid #1C2128; padding-top: 14px">
+        <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #7C8591; padding-bottom: 4px">Economics · p.296–318</span>
+        <sc-for list="{{econ}}" as="e" hint-placeholder-count="5">
+          <a class="fact" href="#page" style="display: flex; justify-content: space-between; gap: 10px; padding: 8px; border-radius: 8px; color: #E8EBEF; font-size: 13px"><span style="color: #B7C0CA">{{e.k}}</span><span class="num">{{e.v}}</span></a>
+        </sc-for>
+      </div>
+      <div style="margin-top: auto; padding: 12px; border-radius: 10px; background: #12151A; border: 1px solid #222831; display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: #9AA3AE">
+        <span>Extracted with Sonnet 5.5 · resources re-checked with Opus 5.5</span>
+        <span>Cost <span class="num" style="color: #E8EBEF">$0.61</span> · avg confidence <span class="num" style="color: #6FD3A0">0.93</span></span>
+        <a href="Review.dc.html" style="font-size: 12px">Open in review queue →</a>
+      </div>
+    </aside>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1120}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const base = 'display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; font-size: 13px; ';
+    const o = (n, t, has, on) => ({ n, t, has, style: base + (on ? 'background: #1C1712; color: #F2B27C;' : 'color: #9AA3AE;') });
+    const good = '#6FD3A0', mid = '#E8C55A';
+    return {
+      outline: [
+        o('1', 'Summary', true, false), o('4', 'Property description', false, false), o('6', 'History', false, false),
+        o('7', 'Geology & mineralization', false, false), o('10', 'Drilling', true, false), o('12', 'Data verification', false, false),
+        o('13', 'Metallurgical testing', false, false), o('14', 'Mineral resources', true, true), o('15', 'Mineral reserves', true, false),
+        o('16', 'Mining methods', false, false), o('21', 'Capital & operating costs', true, false), o('22', 'Economic analysis', true, false),
+        o('27', 'Certificates of QPs', true, false)
+      ],
+      res: [
+        { k: 'Measured', v: '118 Mt · 0.47% Cu · 0.21 g/t Au', conf: '0.95', c: good },
+        { k: 'Indicated', v: '327 Mt · 0.40% Cu · 0.17 g/t Au', conf: '0.94', c: good },
+        { k: 'Measured + Indicated', v: '445 Mt · 0.42% Cu · 4,106 Mlb', conf: '0.94', c: good },
+        { k: 'Inferred', v: '286 Mt · 0.34% Cu · 0.12 g/t Au', conf: '0.83', c: mid }
+      ],
+      econ: [
+        { k: 'NPV 8% post-tax', v: 'C$1,240M' }, { k: 'IRR post-tax', v: '21.6%' }, { k: 'Initial capex', v: 'C$1,480M' },
+        { k: 'Payback', v: '3.4 yrs' }, { k: 'Mine life', v: '22 yrs' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>
