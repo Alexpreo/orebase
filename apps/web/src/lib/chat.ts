@@ -1,6 +1,6 @@
 import "server-only";
 import type { Sql } from "postgres";
-import { auth } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { collectCitations, isDocumentUuid } from "@/lib/citations";
 import { getSql } from "@/lib/db";
 import type { ChatSummary, Citation, OreBaseUIMessage } from "@/lib/chat-types";
@@ -20,12 +20,10 @@ export async function resolveClerkId(): Promise<string> {
   if (!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
     return LOCAL_DEV_CLERK_ID;
   }
-  try {
-    const { userId } = await auth();
-    return userId ?? LOCAL_DEV_CLERK_ID;
-  } catch {
-    return LOCAL_DEV_CLERK_ID;
-  }
+  // With Clerk configured, never fall back to the shared local-dev identity.
+  const { userId } = await auth();
+  if (!userId) throw new Error("Not signed in.");
+  return userId;
 }
 
 async function requireSql(): Promise<Sql> {
@@ -38,10 +36,20 @@ async function requireSql(): Promise<Sql> {
 
 export async function ensureUserId(clerkId: string): Promise<string> {
   const sql = await requireSql();
+  // Called on every page render: read first, so Clerk is only asked once per new user.
+  const [existing] = await sql<{ id: string }[]>`
+    SELECT id FROM app.users WHERE clerk_id = ${clerkId}
+  `;
+  if (existing) return existing.id;
+  const user = clerkId === LOCAL_DEV_CLERK_ID ? null : await currentUser();
+  const email = user?.primaryEmailAddress?.emailAddress ?? null;
+  const name = user?.fullName ?? null;
   const rows = await sql<{ id: string }[]>`
-    INSERT INTO app.users (clerk_id)
-    VALUES (${clerkId})
-    ON CONFLICT (clerk_id) DO UPDATE SET clerk_id = EXCLUDED.clerk_id
+    INSERT INTO app.users (clerk_id, email, name)
+    VALUES (${clerkId}, ${email}, ${name})
+    ON CONFLICT (clerk_id) DO UPDATE
+      SET email = COALESCE(app.users.email, EXCLUDED.email),
+          name = COALESCE(app.users.name, EXCLUDED.name)
     RETURNING id
   `;
   return rows[0].id;
