@@ -56,6 +56,12 @@ test("M&I uses the combined row when present, and a report total beats its zones
   assert.equal(categoryTotals(rows, "reserves"), null);
   const subtotal = [...rows, r({ category: "measured+indicated", domain: "Zone B total", tonnes: 2_000_000 })];
   assert.equal(categoryTotals(subtotal, "mi")!.tonnes, 6_000_000);
+  const dashed = [
+    r({ category: "indicated", domain: "Santa Cruz - Oxide", tonnes: 53 }),
+    r({ category: "indicated", domain: "Santa Cruz - Total", tonnes: 274 }),
+    r({ category: "indicated", domain: null, tonnes: 7 }),
+  ];
+  assert.equal(categoryTotals(dashed, "mi")!.tonnes, 274);
 });
 
 test("contained metal and primary metal", () => {

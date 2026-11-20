@@ -201,12 +201,10 @@ def _parse_economics(soup: BeautifulSoup) -> list[ProjectEconomics]:
     study_type = None
     for key, value in kv.items():
         number = _parse_number(value)
-        if "post-tax" in key and "npv" in key and number is not None:
-            npv["post_tax"] = number
-        elif "pre-tax" in key and "npv" in key and number is not None:
-            npv["pre_tax"] = number
-        elif "npv" in key and number is not None and "post_tax" not in npv:
-            npv["unspecified"] = number
+        if "npv" in key and number is not None and ("post-tax" in key or "pre-tax" in key or "after-tax" in key):
+            basis = "pre_tax" if "pre-tax" in key else "post_tax"
+            rate = re.search(r"(\d+(?:\.\d+)?)\s*%", key)
+            npv[f"{basis}_{rate.group(1)}pct" if rate else basis] = number
         elif key.strip() in {"irr", "after-tax irr", "post-tax irr"} and number is not None:
             irr = number
         elif "capex" in key or "initial capital" in key:

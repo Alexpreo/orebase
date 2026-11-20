@@ -35,7 +35,19 @@ TECHNICAL_DOC_TYPES = frozenset({"sk1300", "ni43101", "jorc", "pea", "pfs", "fs"
 MAX_TONNES = 1e12
 # Below this a resource row is far more likely a missed Mt/kt conversion than a real deposit.
 MIN_PLAUSIBLE_TONNES = 10_000
-TONNAGE_UNITS = {"t": 1.0, "kt": 1e3, "mt": 1e6}
+SHORT_TON = 0.90718474
+# short_* = US short tons ("tons" in US reports); converted to metric here.
+TONNAGE_UNITS = {
+    "t": 1.0, "kt": 1e3, "mt": 1e6,
+    "short_t": SHORT_TON, "short_kt": SHORT_TON * 1e3, "short_mt": SHORT_TON * 1e6,
+}
+# Bare pre_tax/post_tax come from HTML tables that print no discount rate.
+NPV_KEY_RE = re.compile(r"^(pre|post)_tax(_\d+(\.\d+)?pct)?$")
+# Economics money is in millions of `currency`. A capex or NPV this large was given in dollars.
+MONEY_IN_DOLLARS_MIN = 1_000_000.0
+MONEY_AMBIGUOUS_MIN = 100_000.0
+# Au/Ag/PGE grades above this in g/t are almost always contained ounces put in the grade column.
+GPT_AS_OUNCES_MIN = 5_000.0
 
 _BASE_WORDS = r"(measured|indicated|inferred|proven|proved|probable)"
 _COMBINED = (
@@ -194,6 +206,7 @@ class ResourceEstimate(BaseModel):
         if self.category not in RESOURCE_CATEGORIES:
             confidence = min(confidence, 0.3)
         cleaned_grade: dict[str, float] = {}
+        moved_metal: dict[str, float] = {}
         for key, raw in self.grade.items():
             if not GRADE_KEY_RE.match(key):
                 confidence = min(confidence, 0.4)
@@ -204,6 +217,11 @@ class ResourceEstimate(BaseModel):
                 number = float(raw)
             except (TypeError, ValueError):
                 confidence = min(confidence, 0.3)
+                continue
+            if unit == "gpt" and number >= GPT_AS_OUNCES_MIN:
+                # Contained ounces in the grade column (e.g. Au_gpt 1,250,000): move them.
+                moved_metal[f"{key.rsplit('_', 1)[0]}_oz"] = number
+                confidence = min(confidence, 0.5)
                 continue
             if number < lo or number > hi:
                 confidence = min(confidence, 0.3)
@@ -218,6 +236,8 @@ class ResourceEstimate(BaseModel):
                 continue
             if number >= 0:
                 cleaned_metal[key] = number
+        for key, number in moved_metal.items():
+            cleaned_metal.setdefault(key, number)
         object.__setattr__(self, "grade", cleaned_grade)
         object.__setattr__(self, "contained_metal", cleaned_metal)
         object.__setattr__(self, "extraction_confidence", confidence)
@@ -270,10 +290,34 @@ class ProjectEconomics(BaseModel):
             confidence = min(confidence, 0.3)
         if self.capex_initial is not None and self.capex_initial < 0:
             confidence = min(confidence, 0.3)
+        capex, confidence = _millions(self.capex_initial, confidence)
+        object.__setattr__(self, "capex_initial", capex)
+        npv: dict[str, float] = {}
+        for key, raw in self.npv.items():
+            if not NPV_KEY_RE.match(key):
+                # "unspecified", "npv", ... are usually revenue or cash-flow totals.
+                confidence = min(confidence, 0.4)
+                continue
+            value, confidence = _millions(float(raw), confidence)
+            if value is not None:
+                npv[key] = value
+        object.__setattr__(self, "npv", npv)
         if self.mine_life_years is not None and self.mine_life_years < 0:
             confidence = min(confidence, 0.3)
         object.__setattr__(self, "extraction_confidence", confidence)
         return self
+
+
+def _millions(value: Optional[float], confidence: float) -> tuple[Optional[float], float]:
+    """Money is stored in millions. Values in dollars are rescaled; thousands are only flagged."""
+    if value is None:
+        return None, confidence
+    size = abs(value)
+    if size >= MONEY_IN_DOLLARS_MIN:
+        return value / 1e6, min(confidence, 0.6)
+    if size >= MONEY_AMBIGUOUS_MIN:
+        return value, min(confidence, 0.3)
+    return value, confidence
 
 
 class DrillResult(BaseModel):
@@ -339,7 +383,10 @@ EXTRACT_SYSTEM = (
     "text. Call the given tool. Omit rows you cannot support from the text. "
     "Grade keys MUST be like Cu_pct, Au_gpt, Ag_gpt, Mo_pct, U3O8_pct. "
     "Contained-metal keys MUST be like Cu_lb, Au_oz, Ag_oz. "
-    "NPV keys MUST be like post_tax_5pct or pre_tax_8pct. "
+    "NPV keys MUST be like post_tax_5pct or pre_tax_8pct; omit an NPV whose tax basis or "
+    "discount rate is not stated. NPV and capex_initial are in MILLIONS of the currency. "
+    "capex_initial is initial (pre-production) capital only, never life-of-mine or "
+    "sustaining capital. Contained ounces or pounds go in contained_metal, never in grade. "
     "Do not invent numbers."
 )
 
@@ -395,9 +442,11 @@ RESOURCE_TOOL: dict[str, Any] = {
                         },
                         "tonnage_unit": {
                             "type": "string",
-                            "enum": ["t", "kt", "Mt"],
+                            "enum": ["t", "kt", "Mt", "short_t", "short_kt", "short_Mt"],
                             "description": "Unit of the printed tonnage (check the column header "
-                            "and table notes, e.g. '000 t' = kt, 'Mt' or 'millions of tonnes' = Mt).",
+                            "and table notes, e.g. '000 t' = kt, 'Mt' or 'millions of tonnes' = Mt). "
+                            "Use short_* when the report prints 'tons' (US short tons), e.g. "
+                            "'million tons' = short_Mt, unless it says metric tons or tonnes.",
                         },
                         "grade": {"type": "object", "additionalProperties": {"type": "number"}},
                         "contained_metal": {

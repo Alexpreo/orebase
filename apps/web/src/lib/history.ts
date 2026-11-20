@@ -67,9 +67,9 @@ function groupRows(rows: HistResource[], group: Group): HistResource[] {
     group === "mi" ? pick("measured+indicated", ["measured", "indicated"])
     : group === "reserves" ? pick("2p", ["proven", "probable"])
     : rows.filter((r) => r.category === "inferred");
-  // A report-wide total row ("Total", "Grand total", no zone) beats summing its zones;
+  // A report-wide total row ("Total", "Grand total", "Santa Cruz - Total") beats summing its zones;
   // a zone subtotal like "COP DF total" does not.
-  const totals = chosen.filter((r) => r.domain == null || /^(grand |overall |project )?total\b/i.test(r.domain.trim()));
+  const totals = chosen.filter((r) => /^(grand |overall |project )?total\b|[-–—:]\s*total$/i.test((r.domain ?? "").trim()));
   return totals.length && totals.length < chosen.length ? totals : chosen;
 }
 

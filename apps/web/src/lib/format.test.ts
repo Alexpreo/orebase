@@ -17,6 +17,7 @@ test("headline NPV prefers post-tax 5%, then 8%", () => {
   assert.equal(formatNpv({ "post_tax_1.09pct": 257.1 }, "USD"), "US$257M (post-tax, 1.09%)");
   assert.equal(formatNpv({ unspecified: 71674 }, null), "—");
   assert.equal(formatNpv({ npv: 50 }, "USD"), "US$50M (basis not stated)");
+  assert.equal(formatNpv({ post_tax: 50 }, "USD"), "US$50M (post-tax, rate not stated)");
   assert.equal(formatNpv({}, "USD"), "—");
 });
 

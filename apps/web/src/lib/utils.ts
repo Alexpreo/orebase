@@ -151,8 +151,10 @@ export function pickNpv(
     entries.find(([k]) => k === "post_tax_8pct") ??
     entries.find(([k]) => k.startsWith("post_tax")) ??
     entries[0]
-  const m = pick[0].match(/^(pre|post)_tax_([\d.]+)pct$/)
-  const basis = m ? `${m[1] === "pre" ? "pre-tax" : "post-tax"}, ${m[2]}%` : "basis not stated"
+  const m = pick[0].match(/^(pre|post)_tax(?:_([\d.]+)pct)?$/)
+  const basis = m
+    ? `${m[1] === "pre" ? "pre-tax" : "post-tax"}, ${m[2] ? `${m[2]}%` : "rate not stated"}`
+    : "basis not stated"
   return { key: pick[0], value: pick[1], basis }
 }
 
