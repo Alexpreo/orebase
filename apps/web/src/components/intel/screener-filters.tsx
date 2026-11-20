@@ -5,6 +5,7 @@ import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { SavedFilter } from "@/lib/intel-types";
+import { gradeKeyLabel, humanize, studyLabel } from "@/lib/utils";
 
 const ALL = "all";
 
@@ -13,6 +14,7 @@ type Facets = {
   countries: string[];
   stages: string[];
   studyTypes: string[];
+  gradeKeys: string[];
 };
 
 export function ScreenerFilters({
@@ -106,7 +108,7 @@ export function ScreenerFilters({
           <option value={ALL}>All stages</option>
           {facets.stages.map((value) => (
             <option key={value} value={value}>
-              {value}
+              {humanize(value)}
             </option>
           ))}
         </select>
@@ -118,16 +120,23 @@ export function ScreenerFilters({
           <option value={ALL}>All studies</option>
           {facets.studyTypes.map((value) => (
             <option key={value} value={value}>
-              {value}
+              {studyLabel(value)}
             </option>
           ))}
         </select>
-        <Input
-          className="h-8 w-36"
-          placeholder="Grade key (Cu_pct)"
-          defaultValue={searchParams.get("minGradeKey") ?? ""}
-          onBlur={(event) => apply("minGradeKey", event.target.value)}
-        />
+        <select
+          className="h-8 rounded-md border bg-background px-2 text-sm"
+          aria-label="Grade metal and unit"
+          value={searchParams.get("minGradeKey") ?? ALL}
+          onChange={(event) => apply("minGradeKey", event.target.value)}
+        >
+          <option value={ALL}>Any grade</option>
+          {facets.gradeKeys.map((value) => (
+            <option key={value} value={value}>
+              {gradeKeyLabel(value)}
+            </option>
+          ))}
+        </select>
         <Input
           className="h-8 w-24"
           placeholder="Min grade"

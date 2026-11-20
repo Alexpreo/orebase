@@ -10,6 +10,14 @@ import { formatDate } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
+function tickerText(tickers: unknown): string {
+  if (!Array.isArray(tickers)) return "—";
+  const list = (tickers as { exchange?: string; symbol?: string }[])
+    .filter((t) => t.symbol)
+    .map((t) => (t.exchange && t.exchange !== "US" ? `${t.exchange}:${t.symbol}` : t.symbol));
+  return list.length ? list.join(", ") : "—";
+}
+
 export default async function CompaniesPage() {
   const companies = await listCompanies();
 
@@ -37,6 +45,7 @@ export default async function CompaniesPage() {
             <thead>
               <tr className="border-b text-left text-muted-foreground">
                 <th className="py-2 pr-4 font-medium">Name</th>
+                <th className="py-2 pr-4 font-medium">Ticker</th>
                 <th className="py-2 pr-4 font-medium">Commodities</th>
                 <th className="py-2 pr-4 font-medium text-right">Projects</th>
                 <th className="py-2 pr-4 font-medium text-right">Filings</th>
@@ -51,6 +60,7 @@ export default async function CompaniesPage() {
                       {company.name}
                     </Link>
                   </td>
+                  <td className="py-2 pr-4 text-muted-foreground">{tickerText(company.tickers)}</td>
                   <td className="py-2 pr-4 text-muted-foreground">
                     {company.commodities?.length ? company.commodities.slice(0, 5).join(", ") : "—"}
                   </td>

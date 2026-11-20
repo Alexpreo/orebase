@@ -208,3 +208,27 @@ export function latestChange(rows: HistResource[]): string | null {
   const est = groupEstimates(rows);
   return est.length > 1 ? changeLine(est[est.length - 2], est[est.length - 1]) : null;
 }
+
+export type Snapshot = {
+  date: string | null;
+  mi: Totals | null;
+  inferred: Totals | null;
+  gradeKey: string | null;
+  study: Study | null;
+  change: string | null;
+};
+
+/** The figures a project card or watchlist row shows: latest estimate, latest study, last change. */
+export function snapshot(resources: HistResource[], economics: HistEconomics[]): Snapshot {
+  const est = groupEstimates(resources);
+  const latest = est[est.length - 1];
+  const studies = economicsProgression(economics);
+  return {
+    date: latest?.date ?? null,
+    mi: latest ? categoryTotals(latest.rows, "mi") : null,
+    inferred: latest ? categoryTotals(latest.rows, "inferred") : null,
+    gradeKey: primaryGradeKey(resources),
+    study: studies[studies.length - 1] ?? null,
+    change: est.length > 1 ? changeLine(est[est.length - 2], latest) : null,
+  };
+}

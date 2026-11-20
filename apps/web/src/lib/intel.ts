@@ -19,7 +19,7 @@ import type {
   WatchlistRecord,
 } from "@/lib/intel-types";
 import { LOW_CONFIDENCE_MAX } from "@/lib/intel-types";
-import { changeForDocument, type HistResource } from "@/lib/history";
+import { changeForDocument, snapshot, type HistEconomics, type HistResource, type Snapshot } from "@/lib/history";
 
 const LIST_LIMIT = 200;
 
@@ -47,7 +47,7 @@ export async function listCompanies(): Promise<CompanyListItem[]> {
       (SELECT max(d.filed_at) FROM raw.documents d WHERE d.company_id = c.id) AS last_filed
     FROM core.companies c
     ORDER BY c.name
-    LIMIT ${LIST_LIMIT}
+    LIMIT 2000
   `;
     return [...rows];
   } catch {
@@ -110,6 +110,32 @@ export async function listResourcesForProjects(ids: string[]): Promise<Map<strin
     WHERE r.project_id = ANY(${ids}::uuid[])
   `;
   for (const r of rows) out.set(r.project_id, [...(out.get(r.project_id) ?? []), r]);
+  return out;
+}
+
+/** Latest estimate, latest study and last change for each project (cards, watchlist). */
+export async function projectSnapshots(ids: string[]): Promise<Map<string, Snapshot>> {
+  const out = new Map<string, Snapshot>();
+  const sql = getSql();
+  if (!sql || ids.length === 0) return out;
+  try {
+    const [resources, econ] = await Promise.all([
+      listResourcesForProjects(ids),
+      sql<HistEconomics[]>`
+        SELECT e.id, e.project_id, e.document_id, e.study_type, e.effective_date, e.currency, e.npv,
+               e.irr_pct, e.capex_initial, e.aisc, e.mine_life_years, e.payback_years,
+               e.metal_price_assumptions, e.extraction_confidence, e.reviewed, d.filed_at
+        FROM core.project_economics e
+        LEFT JOIN raw.documents d ON d.id = e.document_id
+        WHERE e.project_id = ANY(${ids}::uuid[])
+      `,
+    ]);
+    const econBy = new Map<string, HistEconomics[]>();
+    for (const e of econ) econBy.set(e.project_id, [...(econBy.get(e.project_id) ?? []), e]);
+    for (const id of ids) out.set(id, snapshot(resources.get(id) ?? [], econBy.get(id) ?? []));
+  } catch {
+    // Figures are an enhancement; cards still render without them.
+  }
   return out;
 }
 
@@ -664,10 +690,11 @@ export async function screenerFacets(): Promise<{
   countries: string[];
   stages: string[];
   studyTypes: string[];
+  gradeKeys: string[];
 }> {
   const sql = getSql();
-  if (!sql) return { commodities: [], countries: [], stages: [], studyTypes: [] };
-  const [commodities, countries, stages, studyTypes] = await Promise.all([
+  if (!sql) return { commodities: [], countries: [], stages: [], studyTypes: [], gradeKeys: [] };
+  const [commodities, countries, stages, studyTypes, gradeKeys] = await Promise.all([
     sql<{ commodity: string }[]>`
       SELECT DISTINCT unnest(commodities) AS commodity
       FROM core.projects WHERE commodities IS NOT NULL ORDER BY 1
@@ -684,12 +711,17 @@ export async function screenerFacets(): Promise<{
       SELECT DISTINCT study_type FROM core.project_economics
       WHERE study_type IS NOT NULL ORDER BY 1
     `,
+    sql<{ key: string }[]>`
+      SELECT key FROM core.resource_estimates, jsonb_object_keys(grade) AS key
+      GROUP BY key HAVING count(*) >= 5 ORDER BY count(*) DESC LIMIT 40
+    `,
   ]);
   return {
     commodities: commodities.map((r) => r.commodity),
     countries: countries.map((r) => r.country),
     stages: stages.map((r) => r.stage),
     studyTypes: studyTypes.map((r) => r.study_type),
+    gradeKeys: gradeKeys.map((r) => r.key),
   };
 }
 

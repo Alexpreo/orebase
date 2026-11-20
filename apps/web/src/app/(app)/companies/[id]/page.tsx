@@ -11,7 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { getCompany, listCompanyFilings, listCompanyProjects, listCompanyEvents } from "@/lib/intel";
+import { getCompany, listCompanyFilings, listCompanyProjects, listCompanyEvents, projectSnapshots } from "@/lib/intel";
 import { docTypeLabel, formatDate } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -30,6 +30,7 @@ export default async function CompanyDetailPage({
     listCompanyFilings(id),
     listCompanyEvents(id),
   ]);
+  const snaps = await projectSnapshots(projects.map((p) => p.id));
 
   const tickers = Array.isArray(company.tickers)
     ? (company.tickers as { exchange?: string; symbol?: string }[])
@@ -62,7 +63,7 @@ export default async function CompanyDetailPage({
         ) : (
           <div className="grid gap-3 md:grid-cols-2">
             {projects.map((project) => (
-              <ProjectCard key={project.id} project={project} />
+              <ProjectCard key={project.id} project={project} snap={snaps.get(project.id)} />
             ))}
           </div>
         )}

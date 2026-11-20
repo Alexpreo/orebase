@@ -90,6 +90,16 @@ export const DOC_TYPE_LABEL: Record<string, string> = {
   financials: "Financial statements",
 }
 
+const GRADE_UNIT_LABEL: Record<string, string> = { pct: "%", gpt: "g/t", ppm: "ppm", opt: "oz/t", mgL: "mg/L" }
+
+/** "Cu_pct" -> "Cu (%)" for pickers. */
+export function gradeKeyLabel(key: string): string {
+  const i = key.lastIndexOf("_")
+  if (i < 0) return key
+  const unit = key.slice(i + 1)
+  return `${key.slice(0, i)} (${GRADE_UNIT_LABEL[unit] ?? unit})`
+}
+
 /** Readable label for a snake_case code we have no explicit label for. */
 export function humanize(code: string | null | undefined): string {
   if (!code) return "—"

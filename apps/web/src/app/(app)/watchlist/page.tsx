@@ -15,7 +15,9 @@ import {
   listWatchlistEvents,
   listWatchlistItems,
   markWatchlistSeen,
+  projectSnapshots,
 } from "@/lib/intel";
+import { ProjectFigures } from "@/components/intel/project-figures";
 
 export const dynamic = "force-dynamic";
 
@@ -38,6 +40,7 @@ export default async function WatchlistPage() {
     listWatchlistEvents(watchlist.id, watchlist.last_seen_at),
     alertsEnabled(userId),
   ]);
+  const snaps = await projectSnapshots(items.flatMap((i) => (i.project_id ? [i.project_id] : [])));
   await markWatchlistSeen(watchlist.id, userId);
 
   return (
@@ -65,8 +68,8 @@ export default async function WatchlistPage() {
             <p className="text-sm text-muted-foreground">Nothing watched yet.</p>
           ) : (
             items.map((item) => (
-              <div key={item.id} className="flex items-center justify-between gap-2 text-sm">
-                <div>
+              <div key={item.id} className="flex items-start justify-between gap-2 border-b py-2 text-sm last:border-b-0">
+                <div className="flex flex-col gap-1">
                   {item.project_id ? (
                     <Link href={`/projects/${item.project_id}`} className="hover:underline">
                       {item.project_name ?? "Project"}
@@ -78,6 +81,7 @@ export default async function WatchlistPage() {
                   ) : (
                     "Item"
                   )}
+                  {item.project_id ? <ProjectFigures snap={snaps.get(item.project_id)} /> : null}
                 </div>
                 <WatchlistControls itemId={item.id} alertsOn={alertsOn} />
               </div>

@@ -10,6 +10,7 @@ import {
   groupEstimates,
   npvComparable,
   primaryGradeKey,
+  snapshot,
   zoneMatrix,
   type HistEconomics,
   type HistResource,
@@ -97,4 +98,17 @@ test("studies sort oldest first; NPV compared only on the same basis", () => {
   ]);
   assert.deepEqual(s.map((x) => x.row.study_type), ["pea", "pfs"]);
   assert.equal(npvComparable(s[0], s[1]), false);
+});
+
+test("snapshot: latest totals, study and change", () => {
+  const s = snapshot(
+    [r({ document_id: "a", tonnes: 1_000_000 }), r({ document_id: "b", effective_date: "2026-01-01", tonnes: 1_500_000 })],
+    [],
+  );
+  assert.equal(s.date, "2026-01-01");
+  assert.equal(s.mi!.tonnes, 1_500_000);
+  assert.equal(s.gradeKey, "Au_gpt");
+  assert.equal(s.change, "M&I +50% tonnes vs the 2025 estimate");
+  assert.equal(s.study, null);
+  assert.equal(snapshot([], []).mi, null);
 });
