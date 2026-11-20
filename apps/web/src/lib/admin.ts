@@ -201,3 +201,41 @@ export async function ingestionStatus(): Promise<IngestionStatus> {
     return empty;
   }
 }
+
+export type DataCoverage = {
+  noProject: number;
+  noCompany: number;
+  noFacts: number;
+  projectsOneEstimate: number;
+  projectsWithHistory: number;
+  historyBackfillFilings: number;
+};
+
+/** How much of the corpus can feed history views; the gaps a backfill would close. */
+export async function dataCoverage(): Promise<DataCoverage | null> {
+  const sql = getSql();
+  if (!sql) return null;
+  try {
+    const [row] = await sql<DataCoverage[]>`
+      WITH est AS (
+        SELECT project_id, count(DISTINCT document_id) AS n FROM core.resource_estimates GROUP BY 1
+      )
+      SELECT
+        (SELECT count(*)::int FROM raw.documents WHERE project_id IS NULL) AS "noProject",
+        (SELECT count(*)::int FROM raw.documents WHERE company_id IS NULL) AS "noCompany",
+        (SELECT count(*)::int FROM raw.documents d
+          WHERE NOT EXISTS (SELECT 1 FROM core.resource_estimates r WHERE r.document_id = d.id)
+            AND NOT EXISTS (SELECT 1 FROM core.project_economics e WHERE e.document_id = d.id)) AS "noFacts",
+        (SELECT count(*)::int FROM est WHERE n = 1) AS "projectsOneEstimate",
+        (SELECT count(*)::int FROM est WHERE n >= 2) AS "projectsWithHistory",
+        (SELECT count(*)::int FROM raw.documents d
+          WHERE d.project_id IS NOT NULL
+            AND NOT EXISTS (SELECT 1 FROM core.resource_estimates r WHERE r.document_id = d.id)
+            AND d.project_id IN (SELECT project_id FROM raw.documents GROUP BY 1 HAVING count(*) >= 2)
+        ) AS "historyBackfillFilings"
+    `;
+    return row ?? null;
+  } catch {
+    return null;
+  }
+}

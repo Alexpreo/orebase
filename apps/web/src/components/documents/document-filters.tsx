@@ -6,6 +6,7 @@ import { Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { DocumentFacets } from "@/lib/documents";
+import { docTypeLabel, SOURCE_LABEL } from "@/lib/utils";
 
 const ALL = "all";
 
@@ -76,18 +77,14 @@ export function DocumentFilters({ facets }: DocumentFiltersProps) {
         label="Type"
         value={searchParams.get("docType") ?? ALL}
         options={facets.docTypes}
+        format={docTypeLabel}
         onChange={(value) => apply("docType", value)}
-      />
-      <FacetSelect
-        label="Status"
-        value={searchParams.get("status") ?? ALL}
-        options={facets.statuses}
-        onChange={(value) => apply("status", value)}
       />
       <FacetSelect
         label="Source"
         value={searchParams.get("source") ?? ALL}
         options={facets.sources}
+        format={(s) => SOURCE_LABEL[s] ?? s}
         onChange={(value) => apply("source", value)}
       />
 
@@ -113,10 +110,11 @@ type FacetSelectProps = {
   label: string;
   value: string;
   options: string[];
+  format?: (option: string) => string;
   onChange: (value: string) => void;
 };
 
-function FacetSelect({ label, value, options, onChange }: FacetSelectProps) {
+function FacetSelect({ label, value, options, format = (o) => o, onChange }: FacetSelectProps) {
   if (options.length === 0) {
     return null;
   }
@@ -131,7 +129,7 @@ function FacetSelect({ label, value, options, onChange }: FacetSelectProps) {
       <option value={ALL}>{label}: all</option>
       {options.map((option) => (
         <option key={option} value={option}>
-          {label}: {option}
+          {label}: {format(option)}
         </option>
       ))}
     </select>

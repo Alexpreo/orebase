@@ -9,16 +9,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { EconomicsRow } from "@/lib/intel-types";
-import { documentHref, formatDate, formatNumber } from "@/lib/utils";
-
-function npvLabel(npv: Record<string, number> | null | undefined): string {
-  if (!npv) return "—";
-  const entries = Object.entries(npv).filter(([, v]) => Number.isFinite(v));
-  if (entries.length === 0) return "—";
-  return entries
-    .map(([key, value]) => `${key}: ${formatNumber(value, 0)}`)
-    .join("; ");
-}
+import {
+  documentHref,
+  formatDate,
+  formatMoneyM,
+  formatNpv,
+  formatNumber,
+  formatPerUnit,
+  studyLabel,
+} from "@/lib/utils";
 
 export function EconomicsTable({ rows }: { rows: EconomicsRow[] }) {
   if (rows.length === 0) {
@@ -33,8 +32,10 @@ export function EconomicsTable({ rows }: { rows: EconomicsRow[] }) {
             <TableHead>Study</TableHead>
             <TableHead>NPV</TableHead>
             <TableHead className="text-right">IRR</TableHead>
-            <TableHead className="text-right">Capex</TableHead>
+            <TableHead className="text-right">Initial capex</TableHead>
+            <TableHead>AISC</TableHead>
             <TableHead className="text-right">Life</TableHead>
+            <TableHead className="text-right">Payback</TableHead>
             <TableHead>Effective</TableHead>
             <TableHead>Source</TableHead>
           </TableRow>
@@ -46,34 +47,33 @@ export function EconomicsTable({ rows }: { rows: EconomicsRow[] }) {
               <TableRow key={row.id}>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    <span className="uppercase">{row.study_type ?? "—"}</span>
-                    {row.currency ? (
-                      <Badge variant="outline">{row.currency}</Badge>
-                    ) : null}
+                    <span>{studyLabel(row.study_type)}</span>
                     {!row.reviewed ? (
-                      <Badge variant="outline">unreviewed</Badge>
-                    ) : row.review_source && row.review_source !== "human" ? (
-                      <Badge variant="outline" title="Checked against the source document by machine, not by a person">
-                        machine-checked
+                      <Badge variant="outline" title="Extracted automatically and not yet checked against the report">
+                        unverified
                       </Badge>
                     ) : null}
                   </div>
                 </TableCell>
-                <TableCell>{npvLabel(row.npv)}</TableCell>
+                <TableCell>{formatNpv(row.npv, row.currency)}</TableCell>
                 <TableCell className="text-right tabular-nums">
-                  {row.irr_pct == null ? "—" : `${formatNumber(row.irr_pct)}%`}
+                  {row.irr_pct == null ? "—" : `${formatNumber(row.irr_pct, 1)}%`}
                 </TableCell>
                 <TableCell className="text-right tabular-nums">
-                  {formatNumber(row.capex_initial, 0)}
+                  {formatMoneyM(row.capex_initial, row.currency)}
                 </TableCell>
+                <TableCell>{formatPerUnit(row.aisc)}</TableCell>
                 <TableCell className="text-right tabular-nums">
                   {row.mine_life_years == null ? "—" : `${formatNumber(row.mine_life_years, 1)} yr`}
+                </TableCell>
+                <TableCell className="text-right tabular-nums">
+                  {row.payback_years == null ? "—" : `${formatNumber(row.payback_years, 1)} yr`}
                 </TableCell>
                 <TableCell>{formatDate(row.effective_date)}</TableCell>
                 <TableCell>
                   {href ? (
                     <Link href={href} className="text-sm hover:underline">
-                      Filing
+                      Report
                     </Link>
                   ) : (
                     "—"

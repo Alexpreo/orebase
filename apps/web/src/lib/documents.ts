@@ -12,6 +12,8 @@ export type CorpusDocument = {
   page_count: number | null;
   chunk_count: number;
   created_at: string | Date | null;
+  project_id?: string | null;
+  project_name?: string | null;
 };
 
 export type DocumentDetail = CorpusDocument & {
@@ -19,6 +21,11 @@ export type DocumentDetail = CorpusDocument & {
   source_storage_path: string | null;
   source_content_type: string | null;
   render_engine: string | null;
+  summary: string | null;
+  company_id: string | null;
+  company_name: string | null;
+  project_id: string | null;
+  project_name: string | null;
 };
 
 export type DocumentFilters = {
@@ -82,10 +89,14 @@ export async function getCorpus(filters: DocumentFilters = {}): Promise<CorpusRe
           d.status,
           d.page_count,
           d.created_at,
+          d.project_id,
+          p.name AS project_name,
           (SELECT count(*)::int FROM raw.document_chunks c WHERE c.document_id = d.id)
             AS chunk_count
         FROM raw.documents d
-        WHERE (${search}::text IS NULL OR d.title ILIKE '%' || ${search} || '%')
+        LEFT JOIN core.projects p ON p.id = d.project_id
+        WHERE (${search}::text IS NULL OR d.title ILIKE '%' || ${search} || '%'
+               OR p.name ILIKE '%' || ${search} || '%')
           AND (${docType}::text IS NULL OR d.doc_type = ${docType})
           AND (${status}::text IS NULL OR d.status = ${status})
           AND (${source}::text IS NULL OR d.source = ${source})
@@ -145,9 +156,16 @@ export async function getDocument(id: string): Promise<DocumentDetail | null> {
         d.source_storage_path,
         d.source_content_type,
         d.render_engine,
+        d.summary,
+        d.company_id,
+        co.name AS company_name,
+        d.project_id,
+        p.name AS project_name,
         (SELECT count(*)::int FROM raw.document_chunks c WHERE c.document_id = d.id)
           AS chunk_count
       FROM raw.documents d
+      LEFT JOIN core.companies co ON co.id = d.company_id
+      LEFT JOIN core.projects p ON p.id = d.project_id
       WHERE d.id = ${id}
     `;
     return rows[0] ?? null;

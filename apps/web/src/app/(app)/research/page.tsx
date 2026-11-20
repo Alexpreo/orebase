@@ -14,7 +14,8 @@ import {
   listRecentFilings,
   researchAggregates,
 } from "@/lib/intel";
-import { formatDate, formatGrade, formatNumber } from "@/lib/utils";
+import { docTypeLabel, formatDate, humanize } from "@/lib/utils";
+import { DrillResults } from "@/components/intel/drill-results";
 
 export const dynamic = "force-dynamic";
 
@@ -38,7 +39,7 @@ export default async function ResearchPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Filings over time</CardTitle>
-          <CardDescription>Monthly counts by source from raw.documents.filed_at.</CardDescription>
+          <CardDescription>Filings per month, by where they were filed.</CardDescription>
         </CardHeader>
         <CardContent>
           <FilingsChart rows={byMonth} />
@@ -56,7 +57,7 @@ export default async function ResearchPage() {
             ) : (
               aggregates.byStage.map((row) => (
                 <div key={row.stage ?? "none"} className="flex justify-between">
-                  <span>{row.stage ?? "unspecified"}</span>
+                  <span>{row.stage ? humanize(row.stage) : "Not stated"}</span>
                   <span className="tabular-nums">{row.total}</span>
                 </div>
               ))
@@ -87,7 +88,7 @@ export default async function ResearchPage() {
           <CardContent className="flex flex-col gap-1 text-sm">
             {aggregates.byDocType.map((row) => (
               <div key={row.doc_type ?? "none"} className="flex justify-between">
-                <span>{row.doc_type ?? "unspecified"}</span>
+                <span>{row.doc_type ? docTypeLabel(row.doc_type) : "Not stated"}</span>
                 <span className="tabular-nums">{row.total}</span>
               </div>
             ))}
@@ -112,7 +113,7 @@ export default async function ResearchPage() {
                   <span className="text-xs text-muted-foreground">{formatDate(filing.filed_at)}</span>
                 </div>
                 <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                  {filing.doc_type ? <Badge variant="outline">{filing.doc_type}</Badge> : null}
+                  {filing.doc_type ? <Badge variant="outline">{docTypeLabel(filing.doc_type)}</Badge> : null}
                   {filing.company_id ? (
                     <Link href={`/companies/${filing.company_id}`} className="hover:underline">
                       {filing.company_name}
@@ -148,24 +149,7 @@ export default async function ResearchPage() {
           <CardTitle className="text-base">Drill highlights</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-2 text-sm">
-          {drills.length === 0 ? (
-            <p className="text-muted-foreground">No drill intercepts extracted yet.</p>
-          ) : (
-            drills.map((row) => (
-              <div key={row.id} className="flex flex-wrap justify-between gap-2">
-                <span>
-                  <Link href={`/projects/${row.project_id}`} className="hover:underline">
-                    {row.project_name}
-                  </Link>
-                  {row.hole_id ? ` · ${row.hole_id}` : ""}
-                  {row.interval_m != null ? ` · ${formatNumber(row.interval_m, 1)} m` : ""}
-                  {" · "}
-                  {formatGrade(row.assays)}
-                </span>
-                <span className="text-muted-foreground">{formatDate(row.announced_date)}</span>
-              </div>
-            ))
-          )}
+          <DrillResults rows={drills} showProject />
         </CardContent>
       </Card>
     </div>

@@ -1,3 +1,4 @@
+import { isAdmin } from "@/lib/admin-auth";
 import Link from "next/link";
 import { EntityLinkForm } from "@/components/admin/entity-link-form";
 import { ExtractButton } from "@/components/admin/extract-button";
@@ -58,6 +59,8 @@ function ReviewList({ items }: { items: ReviewItem[] }) {
 }
 
 export default async function AdminReviewPage() {
+  // The layout gate does not stop this page rendering in parallel; check here so admin data never ships.
+  if (!(await isAdmin())) return null;
   const [items, unresolved, unmatched] = await Promise.all([
     listReviewQueue(),
     listUnresolvedFilings(),

@@ -6,6 +6,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { listCompanies } from "@/lib/intel";
+import { formatDate } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -36,9 +37,10 @@ export default async function CompaniesPage() {
             <thead>
               <tr className="border-b text-left text-muted-foreground">
                 <th className="py-2 pr-4 font-medium">Name</th>
-                <th className="py-2 pr-4 font-medium">CIK</th>
+                <th className="py-2 pr-4 font-medium">Commodities</th>
                 <th className="py-2 pr-4 font-medium text-right">Projects</th>
-                <th className="py-2 font-medium text-right">Filings</th>
+                <th className="py-2 pr-4 font-medium text-right">Filings</th>
+                <th className="py-2 font-medium text-right">Latest filing</th>
               </tr>
             </thead>
             <tbody>
@@ -49,9 +51,12 @@ export default async function CompaniesPage() {
                       {company.name}
                     </Link>
                   </td>
-                  <td className="py-2 pr-4 font-mono text-xs">{company.cik ?? "—"}</td>
+                  <td className="py-2 pr-4 text-muted-foreground">
+                    {company.commodities?.length ? company.commodities.slice(0, 5).join(", ") : "—"}
+                  </td>
                   <td className="py-2 pr-4 text-right tabular-nums">{company.project_count}</td>
-                  <td className="py-2 text-right tabular-nums">{company.document_count}</td>
+                  <td className="py-2 pr-4 text-right tabular-nums">{company.document_count}</td>
+                  <td className="py-2 text-right tabular-nums text-muted-foreground">{formatDate(company.last_filed)}</td>
                 </tr>
               ))}
             </tbody>

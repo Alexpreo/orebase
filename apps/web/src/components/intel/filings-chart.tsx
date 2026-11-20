@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import type { FilingsMonthRow } from "@/lib/intel-types";
+import { SOURCE_LABEL } from "@/lib/utils";
 
 const SOURCE_COLORS: Record<string, string> = {
   edgar: "var(--chart-1, #2563eb)",
@@ -80,7 +81,7 @@ export function FilingsChart({ rows }: { rows: FilingsMonthRow[] }) {
                     fill={fill}
                   >
                     <title>
-                      {stack.month} {segment.source}: {segment.value}
+                      {`${stack.month} ${SOURCE_LABEL[segment.source] ?? segment.source}: ${segment.value}`}
                     </title>
                   </rect>
                 );
@@ -109,7 +110,7 @@ export function FilingsChart({ rows }: { rows: FilingsMonthRow[] }) {
                   FALLBACK_COLORS[index % FALLBACK_COLORS.length],
               }}
             />
-            {source}
+            {SOURCE_LABEL[source] ?? source}
           </span>
         ))}
       </div>

@@ -8,6 +8,8 @@ export type CompanyListItem = {
   hq_country: string | null;
   project_count: number;
   document_count: number;
+  commodities?: string[] | null;
+  last_filed?: string | Date | null;
 };
 
 export type CompanyDetail = {
@@ -48,6 +50,7 @@ export type ResourceRow = {
   extraction_confidence: number | string | null;
   reviewed: boolean;
   review_source?: string | null;
+  filed_at?: string | Date | null;
 };
 
 export type EconomicsRow = {
@@ -67,6 +70,7 @@ export type EconomicsRow = {
   extraction_confidence: number | string | null;
   reviewed: boolean;
   review_source?: string | null;
+  filed_at?: string | Date | null;
 };
 
 export type DrillRow = {
@@ -94,6 +98,8 @@ export type EventRow = {
   event_date: string | Date | null;
   summary: string | null;
   isNew?: boolean;
+  /** "M&I +12% tonnes vs the 2024 estimate", when the filing's estimate has a predecessor. */
+  change?: string | null;
 };
 
 export type FilingRow = {

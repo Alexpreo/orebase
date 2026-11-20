@@ -5,7 +5,8 @@ import { EmptyState } from "@/components/kit/empty-state";
 import { PageHeader } from "@/components/kit/page-header";
 import { Panel, PanelLink } from "@/components/kit/panel";
 import { Delta, StatTile } from "@/components/kit/stat-tile";
-import { PipelineStatusChip } from "@/components/kit/status";
+import { mergeByFiling } from "@/components/intel/event-feed";
+import { isAdmin } from "@/lib/admin-auth";
 import { ensureUserId, resolveClerkId } from "@/lib/chat";
 import {
   extractionMonthlyCap,
@@ -16,7 +17,7 @@ import {
   listWatchlistEvents,
 } from "@/lib/intel";
 import type { EventRow } from "@/lib/intel-types";
-import { formatAgo, formatShortDate } from "@/lib/utils";
+import { formatAgo, formatShortDate, humanize } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -58,11 +59,12 @@ function now() {
 }
 
 export default async function HomePage() {
-  const [briefing, reports, spend, watch] = await Promise.all([
+  const [briefing, reports, spend, watch, admin] = await Promise.all([
     homeBriefing(),
     listLatestReports(7),
     extractionSpend(),
     watchlistActivity(),
+    isAdmin(),
   ]);
   const nowMs = now();
   const cap = extractionMonthlyCap();
@@ -123,13 +125,9 @@ export default async function HomePage() {
           label="Resource estimates extracted"
           value={<CountUp value={briefing.resources.total} />}
           foot={
-            <>
-              Avg confidence{" "}
-              <span className="num text-fg">
-                {briefing.resources.avg_confidence == null ? "—" : briefing.resources.avg_confidence.toFixed(2)}
-              </span>{" "}
-              · {briefing.resources.unreviewed} in review
-            </>
+            briefing.resources.unreviewed > 0
+              ? `${briefing.resources.unreviewed} not yet checked against the source`
+              : "All checked against their source reports"
           }
         />
         <StatTile
@@ -147,6 +145,7 @@ export default async function HomePage() {
             )
           }
         />
+        {admin ? (
         <StatTile
           className="rise d4"
           label={`Extraction spend · ${month}`}
@@ -165,6 +164,7 @@ export default async function HomePage() {
             </div>
           }
         />
+        ) : null}
       </section>
 
       <section className="flex flex-wrap gap-3.5">
@@ -257,27 +257,39 @@ export default async function HomePage() {
               <table className="w-full min-w-[600px] border-collapse text-[13px]">
                 <thead>
                   <tr className="text-left text-[11px] tracking-[0.06em] text-fg-4 uppercase">
-                    <th scope="col" className="px-5 py-2 font-semibold">Company</th>
-                    <th scope="col" className="px-3 py-2 font-semibold">Document</th>
-                    <th scope="col" className="px-3 py-2 font-semibold">Filed</th>
-                    <th scope="col" className="px-3 py-2 font-semibold">Jurisdiction</th>
-                    <th scope="col" className="px-5 py-2 text-right font-semibold">Pipeline</th>
+                    <th scope="col" className="w-[38%] min-w-[220px] px-5 py-2 font-semibold">Project</th>
+                    <th scope="col" className="px-3 py-2 font-semibold">What it says</th>
+                    <th scope="col" className="px-5 py-2 text-right font-semibold">Filed</th>
                   </tr>
                 </thead>
                 <tbody>
                   {reports.map((r) => (
                     <tr key={r.id} className="border-t border-line-soft transition-colors hover:bg-hover">
-                      <td className="px-5 py-3 font-medium">
-                        <Link href={`/documents/${r.id}`} className="text-fg hover:text-copper-2">
-                          {r.company_name ?? r.title ?? "Unknown issuer"}
+                      <td className="px-5 py-3 align-top">
+                        <Link
+                          href={r.project_id ? `/projects/${r.project_id}` : `/documents/${r.id}`}
+                          className="font-medium text-fg hover:text-copper-2"
+                        >
+                          {r.project_name ?? r.company_name ?? r.title ?? "Unknown issuer"}
                         </Link>
+                        <div className="text-xs text-fg-3">
+                          {[r.project_name ? r.company_name : null, r.region ?? r.country, REPORT_LABEL[r.doc_type ?? ""]]
+                            .filter(Boolean)
+                            .join(" · ")}
+                        </div>
                       </td>
-                      <td className="px-3 py-3 whitespace-nowrap text-fg-2">{REPORT_LABEL[r.doc_type ?? ""] ?? "Technical report"}</td>
-                      <td className="num px-3 py-3 whitespace-nowrap text-fg-2">{formatShortDate(r.filed_at)}</td>
-                      <td className="px-3 py-3 text-fg-2">{r.region ?? r.country ?? "—"}</td>
-                      <td className="px-5 py-3 text-right">
-                        <PipelineStatusChip status={r.status} />
+                      <td className="px-3 py-3 align-top text-fg-2">
+                        {r.summary ? (
+                          <Link href={`/documents/${r.id}`} className="line-clamp-2 hover:text-fg">
+                            {r.summary}
+                          </Link>
+                        ) : (
+                          <Link href={`/documents/${r.id}`} className="text-fg-3 hover:text-fg">
+                            Not summarized yet · open report
+                          </Link>
+                        )}
                       </td>
+                      <td className="num px-5 py-3 text-right align-top whitespace-nowrap text-fg-2">{formatShortDate(r.filed_at)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -301,7 +313,7 @@ export default async function HomePage() {
             </EmptyState>
           ) : (
             <ul className="flex flex-col pt-2">
-              {watch.events.slice(0, 4).map((e) => {
+              {mergeByFiling(watch.events).slice(0, 4).map((e) => {
                 const tone = EVENT_TONE[e.event_type ?? ""] ?? { text: "text-fg-2", dot: "bg-fg-4" };
                 return (
                   <li key={e.id}>
@@ -312,12 +324,13 @@ export default async function HomePage() {
                       <span aria-hidden="true" className={`mt-1.5 size-2 flex-none rounded-full ${tone.dot}`} />
                       <span className="flex min-w-0 flex-1 flex-col gap-[3px]">
                         <span className={`text-[11px] font-semibold tracking-[0.06em] uppercase ${tone.text}`}>
-                          {(e.event_type ?? "event").replaceAll("_", " ")}
+                          {humanize(e.event_type ?? "event")}
                         </span>
                         <span className="text-sm font-medium">
                           {e.project_name}
                           {e.company_name ? ` · ${e.company_name}` : ""}
                         </span>
+                        {e.change ? <span className="text-[13px] text-copper-2">{e.change}</span> : null}
                         {e.summary ? <span className="line-clamp-2 text-[13px] text-fg-3">{e.summary}</span> : null}
                       </span>
                       <span className="num text-xs whitespace-nowrap text-fg-4">

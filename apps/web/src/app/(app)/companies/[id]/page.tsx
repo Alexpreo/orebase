@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { getCompany, listCompanyFilings, listCompanyProjects, listCompanyEvents } from "@/lib/intel";
-import { formatDate } from "@/lib/utils";
+import { docTypeLabel, formatDate } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -41,7 +41,6 @@ export default async function CompanyDetailPage({
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">{company.name}</h1>
           <div className="mt-2 flex flex-wrap gap-2">
-            {company.cik ? <Badge variant="outline">CIK {company.cik}</Badge> : null}
             {tickers.map((ticker) => (
               <Badge key={`${ticker.exchange}-${ticker.symbol}`} variant="secondary">
                 {ticker.exchange ? `${ticker.exchange}:` : ""}
@@ -94,7 +93,7 @@ export default async function CompanyDetailPage({
                   {filing.title ?? "Untitled"}
                 </Link>
                 <span className="text-muted-foreground">
-                  {filing.doc_type ?? "unknown"} · {formatDate(filing.filed_at)}
+                  {docTypeLabel(filing.doc_type)} · {formatDate(filing.filed_at)}
                 </span>
               </div>
             ))

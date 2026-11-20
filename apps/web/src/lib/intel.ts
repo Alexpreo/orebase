@@ -19,6 +19,7 @@ import type {
   WatchlistRecord,
 } from "@/lib/intel-types";
 import { LOW_CONFIDENCE_MAX } from "@/lib/intel-types";
+import { changeForDocument, type HistResource } from "@/lib/history";
 
 const LIST_LIMIT = 200;
 
@@ -40,7 +41,10 @@ export async function listCompanies(): Promise<CompanyListItem[]> {
     SELECT
       c.id, c.name, c.cik, c.tickers, c.hq_country,
       (SELECT count(*)::int FROM core.projects p WHERE p.company_id = c.id) AS project_count,
-      (SELECT count(*)::int FROM raw.documents d WHERE d.company_id = c.id) AS document_count
+      (SELECT count(*)::int FROM raw.documents d WHERE d.company_id = c.id) AS document_count,
+      (SELECT array_agg(DISTINCT x) FROM core.projects p, unnest(p.commodities) x
+        WHERE p.company_id = c.id) AS commodities,
+      (SELECT max(d.filed_at) FROM raw.documents d WHERE d.company_id = c.id) AS last_filed
     FROM core.companies c
     ORDER BY c.name
     LIMIT ${LIST_LIMIT}
@@ -92,6 +96,36 @@ export async function listCompanyFilings(companyId: string): Promise<FilingRow[]
   return [...rows];
 }
 
+/** Resource rows (with filing dates) for many projects, grouped by project id. */
+export async function listResourcesForProjects(ids: string[]): Promise<Map<string, HistResource[]>> {
+  const out = new Map<string, HistResource[]>();
+  const sql = getSql();
+  if (!sql || ids.length === 0) return out;
+  const rows = await sql<HistResource[]>`
+    SELECT r.id, r.project_id, r.document_id, r.effective_date, r.category, r.domain, r.tonnes,
+           r.grade, r.contained_metal, r.cutoff, r.standard, r.extraction_confidence, r.reviewed,
+           d.filed_at
+    FROM core.resource_estimates r
+    LEFT JOIN raw.documents d ON d.id = r.document_id
+    WHERE r.project_id = ANY(${ids}::uuid[])
+  `;
+  for (const r of rows) out.set(r.project_id, [...(out.get(r.project_id) ?? []), r]);
+  return out;
+}
+
+/** Adds "M&I +12% tonnes vs the 2024 estimate" to events whose filing carried a new estimate. */
+async function withChange<T extends EventRow>(events: T[]): Promise<T[]> {
+  try {
+    const byProject = await listResourcesForProjects([...new Set(events.map((e) => e.project_id))]);
+    return events.map((e) => ({
+      ...e,
+      change: e.document_id ? changeForDocument(byProject.get(e.project_id) ?? [], e.document_id) : null,
+    }));
+  } catch {
+    return events;
+  }
+}
+
 export async function getProject(id: string): Promise<ProjectSummary | null> {
   const sql = getSql();
   if (!sql) return null;
@@ -109,11 +143,13 @@ export async function listProjectResources(projectId: string): Promise<ResourceR
   const sql = getSql();
   if (!sql) return [];
   const rows = await sql<ResourceRow[]>`
-    SELECT id, project_id, document_id, effective_date, category, domain, tonnes, grade,
-           contained_metal, cutoff, standard, extraction_confidence, reviewed, review_source
-    FROM core.resource_estimates
-    WHERE project_id = ${projectId}
-    ORDER BY effective_date DESC NULLS LAST, category, domain NULLS FIRST
+    SELECT r.id, r.project_id, r.document_id, r.effective_date, r.category, r.domain, r.tonnes,
+           r.grade, r.contained_metal, r.cutoff, r.standard, r.extraction_confidence, r.reviewed,
+           r.review_source, d.filed_at
+    FROM core.resource_estimates r
+    LEFT JOIN raw.documents d ON d.id = r.document_id
+    WHERE r.project_id = ${projectId}
+    ORDER BY r.effective_date DESC NULLS LAST, r.category, r.domain NULLS FIRST
   `;
   return [...rows];
 }
@@ -122,14 +158,58 @@ export async function listProjectEconomics(projectId: string): Promise<Economics
   const sql = getSql();
   if (!sql) return [];
   const rows = await sql<EconomicsRow[]>`
-    SELECT id, project_id, document_id, study_type, effective_date, currency, npv,
-           irr_pct, capex_initial, aisc, mine_life_years, payback_years,
-           metal_price_assumptions, extraction_confidence, reviewed, review_source
-    FROM core.project_economics
-    WHERE project_id = ${projectId}
-    ORDER BY effective_date DESC NULLS LAST
+    SELECT e.id, e.project_id, e.document_id, e.study_type, e.effective_date, e.currency, e.npv,
+           e.irr_pct, e.capex_initial, e.aisc, e.mine_life_years, e.payback_years,
+           e.metal_price_assumptions, e.extraction_confidence, e.reviewed, e.review_source,
+           d.filed_at
+    FROM core.project_economics e
+    LEFT JOIN raw.documents d ON d.id = e.document_id
+    WHERE e.project_id = ${projectId}
+    ORDER BY e.effective_date DESC NULLS LAST
   `;
   return [...rows];
+}
+
+export async function listProjectDrills(projectId: string): Promise<DrillRow[]> {
+  const sql = getSql();
+  if (!sql) return [];
+  const rows = await sql<DrillRow[]>`
+    SELECT id, project_id, document_id, hole_id, announced_date, from_m, to_m, interval_m,
+           assays, true_width_noted, extraction_confidence, reviewed
+    FROM core.drill_results
+    WHERE project_id = ${projectId}
+    ORDER BY announced_date DESC NULLS LAST, hole_id, from_m
+    LIMIT 300
+  `;
+  return [...rows];
+}
+
+/** What was extracted from one filing, for the document page. */
+export async function listDocumentFacts(documentId: string): Promise<{
+  resources: ResourceRow[];
+  economics: EconomicsRow[];
+  drills: DrillRow[];
+}> {
+  const sql = getSql();
+  if (!sql) return { resources: [], economics: [], drills: [] };
+  const [resources, economics, drills] = await Promise.all([
+    sql<ResourceRow[]>`
+      SELECT id, project_id, document_id, effective_date, category, domain, tonnes, grade,
+             contained_metal, cutoff, standard, extraction_confidence, reviewed, review_source
+      FROM core.resource_estimates WHERE document_id = ${documentId}
+      ORDER BY category, domain NULLS FIRST`,
+    sql<EconomicsRow[]>`
+      SELECT id, project_id, document_id, study_type, effective_date, currency, npv, irr_pct,
+             capex_initial, aisc, mine_life_years, payback_years, metal_price_assumptions,
+             extraction_confidence, reviewed, review_source
+      FROM core.project_economics WHERE document_id = ${documentId}`,
+    sql<DrillRow[]>`
+      SELECT id, project_id, document_id, hole_id, announced_date, from_m, to_m, interval_m,
+             assays, true_width_noted, extraction_confidence, reviewed
+      FROM core.drill_results WHERE document_id = ${documentId}
+      ORDER BY hole_id, from_m LIMIT 300`,
+  ]);
+  return { resources: [...resources], economics: [...economics], drills: [...drills] };
 }
 
 export async function listProjectEvents(projectId: string): Promise<EventRow[]> {
@@ -144,7 +224,7 @@ export async function listProjectEvents(projectId: string): Promise<EventRow[]> 
     WHERE e.project_id = ${projectId}
     ORDER BY e.event_date DESC NULLS LAST, e.id DESC
   `;
-  return [...rows];
+  return withChange([...rows]);
 }
 
 export async function listCompanyEvents(companyId: string): Promise<EventRow[]> {
@@ -160,7 +240,7 @@ export async function listCompanyEvents(companyId: string): Promise<EventRow[]> 
     ORDER BY e.event_date DESC NULLS LAST, e.id DESC
     LIMIT ${LIST_LIMIT}
   `;
-  return [...rows];
+  return withChange([...rows]);
 }
 
 export async function listProjectFilings(projectId: string): Promise<FilingRow[]> {
@@ -501,14 +581,14 @@ export async function listWatchlistEvents(
     LIMIT 100
   `;
     const seenMs = lastSeenAt ? new Date(lastSeenAt).getTime() : null;
-    return rows.map(({ created_at, ...event }) => ({
+    return withChange(rows.map(({ created_at, ...event }) => ({
       ...event,
       isNew:
         seenMs != null &&
         created_at != null &&
         Number.isFinite(new Date(created_at).getTime()) &&
         new Date(created_at).getTime() > seenMs,
-    }));
+    })));
   } catch {
     return [];
   }

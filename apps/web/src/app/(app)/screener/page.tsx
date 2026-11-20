@@ -19,9 +19,19 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ensureUserId, resolveClerkId } from "@/lib/chat";
-import { listSavedFilters, listScreener, screenerFacets } from "@/lib/intel";
+import { latestChange } from "@/lib/history";
+import { listResourcesForProjects, listSavedFilters, listScreener, screenerFacets } from "@/lib/intel";
 import type { ScreenerFilters as FilterValues } from "@/lib/intel-types";
-import { formatDate, formatGrade, formatNumber, formatTonnes } from "@/lib/utils";
+import {
+  categoryLabel,
+  formatDate,
+  formatGrade,
+  formatNpv,
+  formatNumber,
+  formatTonnes,
+  humanize,
+  studyLabel,
+} from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -89,6 +99,7 @@ export default async function ScreenerPage({
     screenerFacets(),
     listSavedFilters(userId),
   ]);
+  const history = await listResourcesForProjects(rows.map((r) => r.id)).catch(() => new Map());
 
   return (
     <div className="flex flex-col gap-6 p-6">
@@ -152,12 +163,13 @@ export default async function ScreenerPage({
                       Resource date{sortMark("resource_date", sortKey, sortDir)}
                     </Link>
                   </TableHead>
+                  <TableHead>Change vs previous estimate</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {rows.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center text-sm text-muted-foreground">
+                    <TableCell colSpan={9} className="text-center text-sm text-muted-foreground">
                       No projects match these filters.
                     </TableCell>
                   </TableRow>
@@ -179,17 +191,28 @@ export default async function ScreenerPage({
                         )}
                       </TableCell>
                       <TableCell>
-                        {row.stage ? <Badge variant="outline">{row.stage}</Badge> : "—"}
+                        {row.stage ? <Badge variant="outline">{humanize(row.stage)}</Badge> : "—"}
                       </TableCell>
                       <TableCell className="text-right tabular-nums">
                         {formatTonnes(row.tonnes)}
+                        {row.resource_category ? (
+                          <div className="text-xs text-muted-foreground">{categoryLabel(row.resource_category)}</div>
+                        ) : null}
                       </TableCell>
                       <TableCell>{formatGrade(row.grade)}</TableCell>
-                      <TableCell>{row.study_type ?? "—"}</TableCell>
+                      <TableCell>
+                        {studyLabel(row.study_type)}
+                        {row.npv ? (
+                          <div className="text-xs text-muted-foreground">NPV {formatNpv(row.npv, row.currency)}</div>
+                        ) : null}
+                      </TableCell>
                       <TableCell className="text-right tabular-nums">
                         {row.irr_pct == null ? "—" : `${formatNumber(row.irr_pct)}%`}
                       </TableCell>
                       <TableCell>{formatDate(row.resource_date)}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        {latestChange(history.get(row.id) ?? []) ?? "—"}
+                      </TableCell>
                     </TableRow>
                   ))
                 )}

@@ -1,4 +1,5 @@
-import { getAdminData, getSedarIngestStatus } from "@/lib/admin";
+import { isAdmin } from "@/lib/admin-auth";
+import { dataCoverage, getAdminData, getSedarIngestStatus } from "@/lib/admin";
 import { extractionSpend } from "@/lib/intel";
 import { formatDate, formatNumber } from "@/lib/utils";
 import { RetryButton } from "@/components/admin/retry-button";
@@ -42,8 +43,10 @@ function statusVariant(
 }
 
 export default async function AdminPage() {
-  const [{ ok, message, documents, sourceStats, statusStats }, spend, sedar] =
-    await Promise.all([getAdminData(), extractionSpend(), getSedarIngestStatus()]);
+  // The layout gate does not stop this page rendering in parallel; check here so admin data never ships.
+  if (!(await isAdmin())) return null;
+  const [{ ok, message, documents, sourceStats, statusStats }, spend, sedar, coverage] =
+    await Promise.all([getAdminData(), extractionSpend(), getSedarIngestStatus(), dataCoverage()]);
   const pendingOpen =
     sedar.pendingFetches.find((row) => row.status === "pending")?.total ?? 0;
   const searchLive = sedar.sedarDocs24h > 0 || pendingOpen > 0 || sedar.lastRun != null;
@@ -151,6 +154,26 @@ export default async function AdminPage() {
           </CardContent>
         </Card>
       </div>
+
+      {coverage ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Data coverage</CardTitle>
+            <CardDescription>
+              History views need several extracted filings per project. Unlinked filings never reach a project page.
+              Link companies with <code>scripts.link_companies</code>.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-3 text-sm sm:grid-cols-3">
+            <div><span className="text-xl font-semibold tabular-nums">{coverage.noProject}</span> filings with no project</div>
+            <div><span className="text-xl font-semibold tabular-nums">{coverage.noCompany}</span> filings with no company</div>
+            <div><span className="text-xl font-semibold tabular-nums">{coverage.noFacts}</span> filings with nothing extracted</div>
+            <div><span className="text-xl font-semibold tabular-nums">{coverage.projectsWithHistory}</span> projects with 2+ estimates (history works)</div>
+            <div><span className="text-xl font-semibold tabular-nums">{coverage.projectsOneEstimate}</span> projects with one estimate</div>
+            <div><span className="text-xl font-semibold tabular-nums">{coverage.historyBackfillFilings}</span> linked filings a history backfill would extract</div>
+          </CardContent>
+        </Card>
+      ) : null}
 
       <CanadaIngestForm />
 

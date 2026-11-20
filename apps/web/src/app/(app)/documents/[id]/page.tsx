@@ -3,10 +3,15 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import { ExtractButton } from "@/components/admin/extract-button";
 import { PdfViewer } from "@/components/documents/pdf-viewer";
-import { Badge } from "@/components/ui/badge";
+import { DrillResults } from "@/components/intel/drill-results";
+import { EconomicsTable } from "@/components/intel/economics-table";
+import { ResourceTable } from "@/components/intel/resource-table";
+import { Panel } from "@/components/kit/panel";
 import { Button } from "@/components/ui/button";
+import { isAdmin } from "@/lib/admin-auth";
 import { getDocument } from "@/lib/documents";
-import { formatDate } from "@/lib/utils";
+import { listDocumentFacts } from "@/lib/intel";
+import { docTypeLabel, formatDate } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -19,13 +24,20 @@ export default async function DocumentPage({ params, searchParams }: DocumentPag
   const { id } = await params;
   const { page } = await searchParams;
 
-  const document = await getDocument(id);
+  const [document, facts, admin] = await Promise.all([getDocument(id), listDocumentFacts(id), isAdmin()]);
   if (!document) {
     notFound();
   }
 
   const parsedPage = Number.parseInt(page ?? "", 10);
-  const initialPage = Number.isNaN(parsedPage) ? 1 : parsedPage;
+  // A citation link (?page=N) means the reader wants the source page, so lead with the PDF.
+  const cited = !Number.isNaN(parsedPage);
+  const initialPage = cited ? parsedPage : 1;
+  const hasFacts = facts.resources.length + facts.economics.length + facts.drills.length > 0;
+
+  const pdf = (
+    <PdfViewer fileUrl={`/api/documents/${document.id}/file`} initialPage={initialPage} />
+  );
 
   return (
     <div className="flex flex-col gap-4 p-6">
@@ -41,16 +53,31 @@ export default async function DocumentPage({ params, searchParams }: DocumentPag
             <ArrowLeft className="size-4" />
             All documents
           </Button>
-          <h1 className="truncate text-xl font-semibold tracking-tight">
-            {document.title ?? "Untitled document"}
+          <h1 className="text-xl font-semibold tracking-tight">
+            {document.project_name ?? document.company_name ?? document.title ?? "Untitled document"}
           </h1>
-          <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-            <Badge variant="outline">{document.doc_type ?? "unknown"}</Badge>
+          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
+            <span>{docTypeLabel(document.doc_type)}</span>
+            <span>·</span>
             <span>Filed {formatDate(document.filed_at)}</span>
+            {document.company_id && document.company_name ? (
+              <>
+                <span>·</span>
+                <Link href={`/companies/${document.company_id}`} className="hover:underline">
+                  {document.company_name}
+                </Link>
+              </>
+            ) : null}
+            {document.project_id ? (
+              <>
+                <span>·</span>
+                <Link href={`/projects/${document.project_id}`} className="hover:underline">
+                  Project page and history
+                </Link>
+              </>
+            ) : null}
             <span>·</span>
             <span>{document.page_count ?? "—"} pages</span>
-            <span>·</span>
-            <span>{document.chunk_count} indexed chunks</span>
           </div>
         </div>
 
@@ -65,25 +92,44 @@ export default async function DocumentPage({ params, searchParams }: DocumentPag
               }
             >
               <ExternalLink className="size-4" />
-              View original filing
+              Original filing
             </Button>
           ) : null}
-          <ExtractButton documentId={document.id} />
+          {admin ? <ExtractButton documentId={document.id} /> : null}
         </div>
       </div>
 
-      {document.render_engine ? (
-        <p className="text-xs text-muted-foreground">
-          Rendered from {document.source_content_type ?? "source"} by{" "}
-          <code className="rounded bg-muted px-1 py-0.5">{document.render_engine}</code>.
-          Page numbers below are the citation anchors.
-        </p>
-      ) : null}
+      {cited ? pdf : null}
 
-      <PdfViewer
-        fileUrl={`/api/documents/${document.id}/file`}
-        initialPage={initialPage}
-      />
+      {document.summary || hasFacts ? (
+        <Panel title="What this filing says">
+          {document.summary ? <p className="max-w-3xl text-sm leading-relaxed text-fg-2">{document.summary}</p> : null}
+          {facts.resources.length ? (
+            <div className="flex flex-col gap-2">
+              <h3 className="text-sm font-medium">Resources and reserves</h3>
+              <ResourceTable rows={facts.resources} />
+            </div>
+          ) : null}
+          {facts.economics.length ? (
+            <div className="flex flex-col gap-2">
+              <h3 className="text-sm font-medium">Study economics</h3>
+              <EconomicsTable rows={facts.economics} />
+            </div>
+          ) : null}
+          {facts.drills.length ? (
+            <div className="flex flex-col gap-2">
+              <h3 className="text-sm font-medium">Drill results</h3>
+              <DrillResults rows={facts.drills} />
+            </div>
+          ) : null}
+        </Panel>
+      ) : (
+        <p className="text-sm text-muted-foreground">
+          Nothing has been extracted from this filing yet, so only the PDF is available.
+        </p>
+      )}
+
+      {cited ? null : pdf}
     </div>
   );
 }

@@ -2,7 +2,6 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { FileText } from "lucide-react";
 import { DocumentFilters } from "@/components/documents/document-filters";
-import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -19,25 +18,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { getCorpus } from "@/lib/documents";
-import { formatDate } from "@/lib/utils";
+import { docTypeLabel, formatDate } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
-
-function statusVariant(
-  status: string | null,
-): "default" | "secondary" | "destructive" | "outline" {
-  switch (status) {
-    case "failed":
-      return "destructive";
-    case "extracted":
-    case "indexed":
-      return "default";
-    case "parsed":
-      return "secondary";
-    default:
-      return "outline";
-  }
-}
 
 type DocumentsPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -93,18 +76,17 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
               <TableHeader>
                 <TableRow>
                   <TableHead>Title</TableHead>
+                  <TableHead>Project</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead>Filed</TableHead>
-                  <TableHead>Status</TableHead>
                   <TableHead className="text-right">Pages</TableHead>
-                  <TableHead className="text-right">Chunks</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {documents.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={6}
+                      colSpan={5}
                       className="text-center text-sm text-muted-foreground"
                     >
                       No documents match these filters.
@@ -124,18 +106,19 @@ export default async function DocumentsPage({ searchParams }: DocumentsPageProps
                           </span>
                         </Link>
                       </TableCell>
-                      <TableCell>{doc.doc_type ?? "—"}</TableCell>
-                      <TableCell>{formatDate(doc.filed_at)}</TableCell>
                       <TableCell>
-                        <Badge variant={statusVariant(doc.status)}>
-                          {doc.status ?? "unknown"}
-                        </Badge>
+                        {doc.project_id ? (
+                          <Link href={`/projects/${doc.project_id}`} className="hover:underline">
+                            {doc.project_name}
+                          </Link>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
                       </TableCell>
+                      <TableCell>{docTypeLabel(doc.doc_type)}</TableCell>
+                      <TableCell>{formatDate(doc.filed_at)}</TableCell>
                       <TableCell className="text-right tabular-nums">
                         {doc.page_count ?? "—"}
-                      </TableCell>
-                      <TableCell className="text-right tabular-nums">
-                        {doc.chunk_count || "—"}
                       </TableCell>
                     </TableRow>
                   ))
