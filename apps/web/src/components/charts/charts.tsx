@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { absMax, niceScale, scaleTo } from "./scale";
 
@@ -223,7 +224,7 @@ export function HBars({
   color = SERIES.copper,
   format = (v: number) => v.toLocaleString("en-US"),
 }: {
-  data: { label: string; value: number }[];
+  data: { label: string; value: number; href?: string }[];
   label: string;
   color?: string;
   format?: (v: number) => string;
@@ -233,7 +234,11 @@ export function HBars({
     <ul className="flex flex-col gap-2.5" aria-label={label}>
       {data.map((d, i) => (
         <li key={d.label} className="grid grid-cols-[minmax(0,9rem)_1fr_auto] items-center gap-3 text-[13px]">
-          <span className="truncate text-fg-2" title={d.label}>{d.label}</span>
+          {d.href ? (
+            <Link href={d.href} className="truncate text-fg-2 hover:text-copper-2" title={d.label}>{d.label}</Link>
+          ) : (
+            <span className="truncate text-fg-2" title={d.label}>{d.label}</span>
+          )}
           <span className="h-2 overflow-hidden rounded-full bg-track">
             <span className="block h-full origin-left rounded-full rise" style={{ width: `${(d.value / max) * 100}%`, background: color, animationDelay: `${i * 40}ms` }} />
           </span>

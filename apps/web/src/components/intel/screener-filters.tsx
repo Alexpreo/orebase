@@ -5,7 +5,7 @@ import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { SavedFilter } from "@/lib/intel-types";
-import { gradeKeyLabel, humanize, studyLabel } from "@/lib/utils";
+import { gradeKeyLabel, stageLabel, studyLabel } from "@/lib/utils";
 
 const ALL = "all";
 
@@ -108,7 +108,7 @@ export function ScreenerFilters({
           <option value={ALL}>All stages</option>
           {facets.stages.map((value) => (
             <option key={value} value={value}>
-              {humanize(value)}
+              {stageLabel(value)}
             </option>
           ))}
         </select>

@@ -10,7 +10,7 @@ import {
 import { ProjectFigures } from "@/components/intel/project-figures";
 import type { Snapshot } from "@/lib/history";
 import type { ProjectSummary } from "@/lib/intel-types";
-import { humanize } from "@/lib/utils";
+import { stageLabel } from "@/lib/utils";
 
 export function ProjectCard({ project, snap }: { project: ProjectSummary; snap?: Snapshot }) {
   return (
@@ -34,7 +34,7 @@ export function ProjectCard({ project, snap }: { project: ProjectSummary; snap?:
       <CardContent className="flex flex-col gap-2">
         <ProjectFigures snap={snap} />
         <div className="flex flex-wrap gap-1.5">
-        {project.stage ? <Badge variant="secondary">{humanize(project.stage)}</Badge> : null}
+        {project.stage ? <Badge variant="secondary">{stageLabel(project.stage)}</Badge> : null}
         {project.country ? <Badge variant="outline">{project.country}</Badge> : null}
         {project.region ? <Badge variant="outline">{project.region}</Badge> : null}
         {(project.commodities ?? []).map((commodity) => (

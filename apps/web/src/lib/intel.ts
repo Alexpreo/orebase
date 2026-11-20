@@ -851,7 +851,7 @@ export async function homeBriefing(): Promise<BriefingData> {
 
 export type HomeFiling = FilingRow & { source: string | null; region: string | null; country: string | null };
 
-export async function listLatestReports(limit = 7): Promise<HomeFiling[]> {
+export async function listLatestReports(limit = 7, commodity: string | null = null): Promise<HomeFiling[]> {
   const sql = getSql();
   if (!sql) return [];
   try {
@@ -863,6 +863,7 @@ export async function listLatestReports(limit = 7): Promise<HomeFiling[]> {
       LEFT JOIN core.companies c ON c.id = d.company_id
       LEFT JOIN core.projects p ON p.id = d.project_id
       WHERE d.doc_type = ANY(${REPORT_TYPES})
+        AND (${commodity}::text IS NULL OR ${commodity} = ANY(p.commodities))
       ORDER BY d.filed_at DESC NULLS LAST, d.created_at DESC
       LIMIT ${limit}
     `;

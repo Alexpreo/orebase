@@ -6,7 +6,7 @@ import { documentHref, formatDate, formatGrade, formatNumber } from "@/lib/utils
 const unitOf = (k: string) => k.slice(k.lastIndexOf("_") + 1);
 
 /** Most common assay key that has a grade unit, skipping equivalents. */
-function mainKey(rows: DrillRow[]): string | null {
+export function mainKey(rows: DrillRow[]): string | null {
   const counts = new Map<string, number>();
   for (const r of rows)
     for (const k of Object.keys(r.assays ?? {}))
@@ -14,10 +14,26 @@ function mainKey(rows: DrillRow[]): string | null {
   return [...counts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
 }
 
-const width = (r: DrillRow) => {
+export const width = (r: DrillRow) => {
   const w = Number(r.interval_m ?? (r.to_m != null && r.from_m != null ? Number(r.to_m) - Number(r.from_m) : NaN));
   return Number.isFinite(w) && w > 0 ? w : null;
 };
+
+/** Grade x width (gram-metres or %-metres): how geologists compare intercepts. Best per hole first. */
+export function rankIntercepts<T extends DrillRow>(rows: T[], key: string, limit = 8, perHole = false) {
+  const ranked = rows
+    .map((r) => ({ r, w: width(r), g: Number(r.assays?.[key]) }))
+    .filter((x): x is { r: T; w: number; g: number } => x.w !== null && Number.isFinite(x.g) && x.g > 0)
+    .sort((a, b) => b.g * b.w - a.g * a.w);
+  if (!perHole) return ranked.slice(0, limit);
+  const seen = new Set<string>();
+  return ranked.filter((x) => {
+    const hole = `${x.r.project_id}|${x.r.hole_id ?? x.r.id}`;
+    if (seen.has(hole)) return false;
+    seen.add(hole);
+    return true;
+  }).slice(0, limit);
+}
 
 export function DrillResults({ rows, showProject = false }: { rows: (DrillRow & { project_name?: string })[]; showProject?: boolean }) {
   if (rows.length === 0) {
@@ -25,14 +41,7 @@ export function DrillResults({ rows, showProject = false }: { rows: (DrillRow & 
   }
   const key = mainKey(rows);
   const unit = key ? unitOf(key) : "";
-  // Grade x width (gram-metres or %-metres) ranks intercepts the way geologists compare them.
-  const ranked = key
-    ? rows
-        .map((r) => ({ r, w: width(r), g: Number(r.assays?.[key]) }))
-        .filter((x) => x.w && Number.isFinite(x.g))
-        .sort((a, b) => b.g * b.w! - a.g * a.w!)
-        .slice(0, 8)
-    : [];
+  const ranked = key ? rankIntercepts(rows, key) : [];
 
   return (
     <div className="flex flex-col gap-5">
@@ -46,7 +55,7 @@ export function DrillResults({ rows, showProject = false }: { rows: (DrillRow & 
             data={ranked.map(({ r, w, g }) => ({
               // Hole + depth keeps labels unique when one hole has several intercepts.
               label: `${r.hole_id ?? "hole"} · ${formatNumber(w, 1)} m${r.from_m == null ? "" : ` from ${formatNumber(r.from_m, 0)} m`}`,
-              value: g * w!,
+              value: g * w,
             }))}
             format={(v) => formatNumber(v, 0)}
           />

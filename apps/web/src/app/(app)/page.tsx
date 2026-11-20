@@ -5,7 +5,22 @@ import { EmptyState } from "@/components/kit/empty-state";
 import { PageHeader } from "@/components/kit/page-header";
 import { Panel, PanelLink } from "@/components/kit/panel";
 import { Delta, StatTile } from "@/components/kit/stat-tile";
+import { cookies } from "next/headers";
+import { CommoditySwitch } from "@/components/home/commodity-switch";
+import { NewStudies } from "@/components/home/new-studies";
+import { PipelinePanel } from "@/components/home/pipeline";
+import { ResourceMovers } from "@/components/home/resource-movers";
+import { TopIntercepts } from "@/components/home/top-intercepts";
 import { mergeByFiling } from "@/components/intel/event-feed";
+import {
+  COMMODITIES,
+  dashboardCounts,
+  newStudies,
+  parseCommodity,
+  pipeline,
+  recentIntercepts,
+  resourceMovers,
+} from "@/lib/dashboard";
 import { isAdmin } from "@/lib/admin-auth";
 import { ensureUserId, resolveClerkId } from "@/lib/chat";
 import {
@@ -58,13 +73,29 @@ function now() {
   return Date.now();
 }
 
-export default async function HomePage() {
-  const [briefing, reports, spend, watch, admin] = await Promise.all([
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const param = (await searchParams).c;
+  // ?c= wins (shared links); otherwise the remembered choice; "all" clears it.
+  const raw = typeof param === "string" ? param : (await cookies()).get("home_commodity")?.value;
+  const commodity = parseCommodity(raw);
+  const scope = COMMODITIES.find((c) => c.code === commodity) ?? null;
+  const scopeWord = scope ? `${scope.label.toLowerCase()} ` : "";
+
+  const [briefing, reports, spend, watch, admin, counts, movers, studies, intercepts, pipe] = await Promise.all([
     homeBriefing(),
-    listLatestReports(7),
+    listLatestReports(7, commodity),
     extractionSpend(),
     watchlistActivity(),
     isAdmin(),
+    dashboardCounts(commodity),
+    resourceMovers(commodity),
+    newStudies(commodity),
+    recentIntercepts(commodity),
+    pipeline(commodity),
   ]);
   const nowMs = now();
   const cap = extractionMonthlyCap();
@@ -107,28 +138,44 @@ export default async function HomePage() {
         }
       />
 
+      <CommoditySwitch options={COMMODITIES} active={commodity} />
+
       <section aria-label="Key figures" className="grid grid-cols-[repeat(auto-fit,minmax(230px,1fr))] gap-3.5">
+        {scope ? (
+          <StatTile
+            className="rise d1"
+            label={`New ${scope.label.toLowerCase()} reports · 7d`}
+            value={<CountUp value={counts.reports7d} />}
+            foot="Technical reports on projects with this commodity"
+          />
+        ) : (
+          <StatTile
+            className="rise d1"
+            label="New technical reports · 7d"
+            value={<CountUp value={week} />}
+            chart={
+              <MiniBars
+                values={briefing.last7.map((d) => d.n)}
+                label={`Reports per day, last 7 days: ${briefing.last7.map((d) => d.n).join(", ")}`}
+              />
+            }
+            foot={<Delta value={week - briefing.prior7} suffix="vs prior week" />}
+          />
+        )}
         <StatTile
-          className="rise d1"
-          label="New technical reports · 7d"
-          value={<CountUp value={week} />}
-          chart={
-            <MiniBars
-              values={briefing.last7.map((d) => d.n)}
-              label={`Reports per day, last 7 days: ${briefing.last7.map((d) => d.n).join(", ")}`}
-            />
-          }
-          foot={<Delta value={week - briefing.prior7} suffix="vs prior week" />}
+          className="rise d2"
+          label="New studies · 90d"
+          value={<CountUp value={counts.studies90d} />}
+          foot="PEA, PFS and FS reports with economics"
         />
         <StatTile
           className="rise d2"
-          label="Resource estimates extracted"
-          value={<CountUp value={briefing.resources.total} />}
-          foot={
-            briefing.resources.unreviewed > 0
-              ? `${briefing.resources.unreviewed} not yet checked against the source`
-              : "All checked against their source reports"
-          }
+          label="Resource updates · 90d"
+          value={<CountUp value={counts.resourceUpdates90d} />}
+          foot={(() => {
+            const compared = movers.filter((m) => m.delta).length;
+            return compared ? `${compared} compared with an earlier estimate` : "None with an earlier estimate on file yet";
+          })()}
         />
         <StatTile
           className="rise d3"
@@ -169,76 +216,38 @@ export default async function HomePage() {
 
       <section className="flex flex-wrap gap-3.5">
         <Panel
-          className="rise d5 flex-[2_1_560px]"
-          title="Filings pulse"
-          subtitle="Technical reports filed per week, last 12 weeks"
-          action={
-            <div className="flex gap-4 text-xs text-fg-2">
-              <Legend color={SERIES.copper} label="SEDAR+" />
-              <Legend color={SERIES.slate} label="EDGAR" />
-            </div>
-          }
+          className="rise d5 flex-[3_1_520px]"
+          title="Resource updates"
+          subtitle={`Estimates filed in the last 90 days, biggest changes first${scope ? ` · ${scope.label}` : ""}`}
         >
-          {pulseTotal === 0 ? (
-            <EmptyState title="No technical reports filed in the last 12 weeks">
-              New filings appear here as the pollers ingest them.
-            </EmptyState>
-          ) : (
-            <StackedBars
-              series={[
-                { name: "SEDAR+", color: SERIES.copper },
-                { name: "EDGAR", color: SERIES.slate },
-              ]}
-              data={briefing.pulse.map((w, i) => ({
-                label: i === briefing.pulse.length - 1 ? "Now" : i % 2 === 0 ? formatShortDate(w.week_start) : "",
-                highlight: i === briefing.pulse.length - 1,
-                values: [w.sedar, w.edgar],
-              }))}
-              label={`Weekly technical report filings over 12 weeks, ${pulseTotal} in total: ${briefing.pulse
-                .map((w) => `week of ${formatShortDate(w.week_start)} ${w.sedar} SEDAR+ and ${w.edgar} EDGAR`)
-                .join("; ")}`}
-            />
-          )}
+          <ResourceMovers movers={movers} empty={`No ${scopeWord}resource estimates filed in the last 90 days.`} />
         </Panel>
+        <Panel
+          flush
+          className="rise d5 flex-[4_1_560px] pb-2"
+          title="New studies"
+          subtitle="PEAs, pre-feasibility and feasibility studies filed in the last 90 days"
+          action={<PanelLink href={`/screener${scope ? `?commodity=${scope.code}` : ""}`}>Compare in screener →</PanelLink>}
+        >
+          <NewStudies studies={studies} empty={`No ${scopeWord}studies filed in the last 90 days.`} />
+        </Panel>
+      </section>
 
-        <section className="rise d6 flex min-w-0 flex-[1_1_320px] flex-col gap-3.5 rounded-2xl border border-[#2E2419] bg-[linear-gradient(180deg,#16120E_0%,#12151A_60%)] p-5">
-          <h2 className="font-heading text-lg font-semibold">Ask OreBase</h2>
-          <form action="/chat" className="flex flex-col gap-3.5">
-            <label htmlFor="home-ask" className="text-[13px] text-fg-3">
-              Every answer cites the exact page it came from.
-            </label>
-            <div className="relative">
-              <textarea
-                id="home-ask"
-                name="q"
-                rows={3}
-                required
-                placeholder="Ask about any filing, project or company…"
-                className="block w-full resize-none rounded-[10px] border border-line-3 bg-nav p-3 pr-12 text-sm text-fg placeholder:text-fg-4 focus-visible:border-copper focus-visible:outline-none"
-              />
-              <button
-                type="submit"
-                aria-label="Ask"
-                className="absolute right-2 bottom-2 grid size-8 place-items-center rounded-lg bg-copper text-on-copper transition-colors hover:bg-copper-hover"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M12 19V5M5 12l7-7 7 7" />
-                </svg>
-              </button>
-            </div>
-          </form>
-          <div className="flex flex-col gap-2">
-            {ASK_PROMPTS.map((q) => (
-              <Link
-                key={q}
-                href={`/chat?q=${encodeURIComponent(q)}`}
-                className="block rounded-[10px] border border-line-3 px-3 py-2.5 text-[13px] text-fg-2 transition-colors duration-(--duration-quick) hover:border-copper hover:text-copper-2"
-              >
-                {q}
-              </Link>
-            ))}
-          </div>
-        </section>
+      <section className="flex flex-wrap gap-3.5">
+        <Panel
+          className="rise d6 flex-[3_1_560px]"
+          title="Top drill intercepts"
+          subtitle="Best intercepts filed in the last 30 days, one per hole"
+        >
+          <TopIntercepts rows={intercepts} gradeKey={scope?.key ?? null} label={scope?.label ?? null} />
+        </Panel>
+        <Panel
+          className="rise d6 flex-[2_1_420px]"
+          title="Pipeline"
+          subtitle={`Where new reports are coming from · last 90 days${scope ? ` · ${scope.label}` : ""}`}
+        >
+          <PipelinePanel data={pipe} empty={`No ${scopeWord}technical reports filed in the last 90 days.`} />
+        </Panel>
       </section>
 
       <section className="flex flex-wrap gap-3.5">
@@ -343,6 +352,80 @@ export default async function HomePage() {
             </ul>
           )}
         </Panel>
+      </section>
+
+      <section className="flex flex-wrap gap-3.5">
+        <Panel
+          className="rise d5 flex-[2_1_560px]"
+          title="Filings pulse"
+          subtitle="Technical reports filed per week, last 12 weeks"
+          action={
+            <div className="flex gap-4 text-xs text-fg-2">
+              <Legend color={SERIES.copper} label="SEDAR+" />
+              <Legend color={SERIES.slate} label="EDGAR" />
+            </div>
+          }
+        >
+          {pulseTotal === 0 ? (
+            <EmptyState title="No technical reports filed in the last 12 weeks">
+              New filings appear here as the pollers ingest them.
+            </EmptyState>
+          ) : (
+            <StackedBars
+              series={[
+                { name: "SEDAR+", color: SERIES.copper },
+                { name: "EDGAR", color: SERIES.slate },
+              ]}
+              data={briefing.pulse.map((w, i) => ({
+                label: i === briefing.pulse.length - 1 ? "Now" : i % 2 === 0 ? formatShortDate(w.week_start) : "",
+                highlight: i === briefing.pulse.length - 1,
+                values: [w.sedar, w.edgar],
+              }))}
+              label={`Weekly technical report filings over 12 weeks, ${pulseTotal} in total: ${briefing.pulse
+                .map((w) => `week of ${formatShortDate(w.week_start)} ${w.sedar} SEDAR+ and ${w.edgar} EDGAR`)
+                .join("; ")}`}
+            />
+          )}
+        </Panel>
+
+        <section className="rise d6 flex min-w-0 flex-[1_1_320px] flex-col gap-3.5 rounded-2xl border border-[#2E2419] bg-[linear-gradient(180deg,#16120E_0%,#12151A_60%)] p-5">
+          <h2 className="font-heading text-lg font-semibold">Ask OreBase</h2>
+          <form action="/chat" className="flex flex-col gap-3.5">
+            <label htmlFor="home-ask" className="text-[13px] text-fg-3">
+              Every answer cites the exact page it came from.
+            </label>
+            <div className="relative">
+              <textarea
+                id="home-ask"
+                name="q"
+                rows={3}
+                required
+                placeholder="Ask about any filing, project or company…"
+                className="block w-full resize-none rounded-[10px] border border-line-3 bg-nav p-3 pr-12 text-sm text-fg placeholder:text-fg-4 focus-visible:border-copper focus-visible:outline-none"
+              />
+              <button
+                type="submit"
+                aria-label="Ask"
+                className="absolute right-2 bottom-2 grid size-8 place-items-center rounded-lg bg-copper text-on-copper transition-colors hover:bg-copper-hover"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M12 19V5M5 12l7-7 7 7" />
+                </svg>
+              </button>
+            </div>
+          </form>
+          <div className="flex flex-col gap-2">
+            {ASK_PROMPTS.map((q) => (
+              <Link
+                key={q}
+                href={`/chat?q=${encodeURIComponent(q)}`}
+                className="block rounded-[10px] border border-line-3 px-3 py-2.5 text-[13px] text-fg-2 transition-colors duration-(--duration-quick) hover:border-copper hover:text-copper-2"
+              >
+                {q}
+              </Link>
+            ))}
+          </div>
+        </section>
       </section>
     </main>
   );

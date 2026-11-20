@@ -20,7 +20,7 @@ import {
   listProjectFilings,
   listProjectResources,
 } from "@/lib/intel";
-import { docTypeLabel, formatDate, formatMoneyM, formatNumber, humanize, studyLabel } from "@/lib/utils";
+import { docTypeLabel, formatDate, formatMoneyM, formatNumber, stageLabel, studyLabel } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -59,7 +59,7 @@ export default async function ProjectDetailPage({
             ) : (
               <span>Company not identified</span>
             )}
-            {project.stage ? <Badge variant="secondary">{humanize(project.stage)}</Badge> : null}
+            {project.stage ? <Badge variant="secondary">{stageLabel(project.stage)}</Badge> : null}
             {project.country ? <Badge variant="outline">{project.country}</Badge> : null}
             {(project.commodities ?? []).map((commodity) => (
               <Badge key={commodity} variant="outline">

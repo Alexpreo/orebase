@@ -118,6 +118,11 @@ export const STUDY_LABEL: Record<string, string> = {
   other: "Technical report",
 }
 
+/** Project stage: the study stages read as studies ("PEA", not "Pea"). */
+export function stageLabel(code: string | null | undefined): string {
+  return code && code in STUDY_LABEL && code !== "other" ? STUDY_LABEL[code] : humanize(code)
+}
+
 export function studyLabel(code: string | null | undefined): string {
   return code ? STUDY_LABEL[code] ?? humanize(code) : "—"
 }

@@ -7,6 +7,7 @@ import {
   changeLine,
   containedFromGrade,
   economicsProgression,
+  estimateDelta,
   groupEstimates,
   npvComparable,
   primaryGradeKey,
@@ -111,4 +112,21 @@ test("snapshot: latest totals, study and change", () => {
   assert.equal(s.change, "M&I +50% tonnes vs the 2025 estimate");
   assert.equal(s.study, null);
   assert.equal(snapshot([], []).mi, null);
+});
+
+test("estimate delta: tonnes, contained metal, scope-change flag", () => {
+  const est = groupEstimates([
+    r({ document_id: "a", tonnes: 1_000_000, grade: { Au_gpt: 2 } }),
+    r({ document_id: "a", category: "inferred", tonnes: 500_000, grade: { Au_gpt: 1 } }),
+    r({ document_id: "b", effective_date: "2026-01-01", tonnes: 1_100_000, grade: { Au_gpt: 2 } }),
+    r({ document_id: "b", effective_date: "2026-01-01", category: "inferred", tonnes: 500_000, grade: { Au_gpt: 1 } }),
+  ]);
+  const d = estimateDelta(est[0], est[1]);
+  assert.equal(Math.round(d.miPct!), 10);
+  assert.equal(d.infPct, 0);
+  assert.equal(Math.round(d.metalPct!), 8); // (2.2+0.5)/(2.0+0.5) Mt·g/t
+  assert.equal(d.scopeChange, false);
+  const big = groupEstimates([r({ document_id: "a", tonnes: 1e6 }), r({ document_id: "b", effective_date: "2026-01-01", tonnes: 15e6 })]);
+  assert.equal(estimateDelta(big[0], big[1]).scopeChange, true);
+  assert.equal(changeLine(big[0], big[1]), "M&I +1400% tonnes vs the 2025 estimate (likely a change in scope; check the report)");
 });

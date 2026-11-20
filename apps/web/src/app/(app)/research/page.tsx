@@ -14,7 +14,7 @@ import {
   listRecentFilings,
   researchAggregates,
 } from "@/lib/intel";
-import { docTypeLabel, formatDate, humanize } from "@/lib/utils";
+import { docTypeLabel, formatDate, stageLabel } from "@/lib/utils";
 import { DrillResults } from "@/components/intel/drill-results";
 
 export const dynamic = "force-dynamic";
@@ -57,7 +57,7 @@ export default async function ResearchPage() {
             ) : (
               aggregates.byStage.map((row) => (
                 <div key={row.stage ?? "none"} className="flex justify-between">
-                  <span>{row.stage ? humanize(row.stage) : "Not stated"}</span>
+                  <span>{row.stage ? stageLabel(row.stage) : "Not stated"}</span>
                   <span className="tabular-nums">{row.total}</span>
                 </div>
               ))

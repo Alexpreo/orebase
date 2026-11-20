@@ -22,16 +22,7 @@ import { ensureUserId, resolveClerkId } from "@/lib/chat";
 import { latestChange } from "@/lib/history";
 import { listResourcesForProjects, listSavedFilters, listScreener, screenerFacets } from "@/lib/intel";
 import type { ScreenerFilters as FilterValues } from "@/lib/intel-types";
-import {
-  categoryLabel,
-  formatDate,
-  formatGrade,
-  formatNpv,
-  formatNumber,
-  formatTonnes,
-  humanize,
-  studyLabel,
-} from "@/lib/utils";
+import { categoryLabel, formatDate, formatGrade, formatNpv, formatNumber, formatTonnes, stageLabel, studyLabel } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -191,7 +182,7 @@ export default async function ScreenerPage({
                         )}
                       </TableCell>
                       <TableCell>
-                        {row.stage ? <Badge variant="outline">{humanize(row.stage)}</Badge> : "—"}
+                        {row.stage ? <Badge variant="outline">{stageLabel(row.stage)}</Badge> : "—"}
                       </TableCell>
                       <TableCell className="text-right tabular-nums">
                         {formatTonnes(row.tonnes)}

@@ -179,18 +179,51 @@ export function npvComparable(a: Study, b: Study): boolean {
 }
 
 /** "M&I +12% tonnes, Au −0.03 g/t" for event lines; null when there is nothing to compare. */
+/** Above this a tonnage swing is usually a partial vs full estimate, not real growth or loss. */
+export const SCOPE_CHANGE_PCT = 300;
+
+export type EstimateDelta = {
+  miPct: number | null;
+  infPct: number | null;
+  /** Change in M&I + Inferred contained metal of the project's main grade key. */
+  metalPct: number | null;
+  metalKey: string | null;
+  scopeChange: boolean;
+};
+
+export function estimateDelta(prev: Estimate, next: Estimate): EstimateDelta {
+  const tonnes = (g: Group) => pctChange(categoryTotals(prev.rows, g)?.tonnes, categoryTotals(next.rows, g)?.tonnes);
+  const key = primaryGradeKey([...prev.rows, ...next.rows]);
+  const metal = (e: Estimate) => {
+    if (!key) return null;
+    let sum = 0;
+    let any = false;
+    for (const g of ["mi", "inferred"] as Group[]) {
+      const t = categoryTotals(e.rows, g);
+      const grade = t?.grades[key];
+      if (!t || grade === undefined) continue;
+      sum += containedFromGrade(t.tonnes, key, grade)?.value ?? 0;
+      any = true;
+    }
+    return any ? sum : null;
+  };
+  const miPct = tonnes("mi");
+  const infPct = tonnes("inferred");
+  const metalPct = pctChange(metal(prev), metal(next));
+  const scopeChange = [miPct, infPct, metalPct].some((p) => p !== null && Math.abs(p) > SCOPE_CHANGE_PCT);
+  return { miPct, infPct, metalPct, metalKey: key, scopeChange };
+}
+
 export function changeLine(prev: Estimate, next: Estimate): string | null {
+  const d = estimateDelta(prev, next);
   const parts: string[] = [];
-  for (const g of ["mi", "inferred"] as Group[]) {
-    const a = categoryTotals(prev.rows, g);
-    const b = categoryTotals(next.rows, g);
-    if (!a || !b) continue;
-    const p = pctChange(a.tonnes, b.tonnes);
+  for (const [name, p] of [["M&I", d.miPct], ["Inferred", d.infPct]] as const) {
     if (p === null) continue;
-    const name = g === "mi" ? "M&I" : "Inferred";
     parts.push(Math.abs(p) < 0.5 ? `${name} tonnes unchanged` : `${name} ${p > 0 ? "+" : "−"}${Math.abs(p).toFixed(0)}% tonnes`);
   }
-  return parts.length ? `${parts.join(", ")} vs the ${prev.date.slice(0, 4)} estimate` : null;
+  if (!parts.length) return null;
+  const tail = d.scopeChange ? " (likely a change in scope; check the report)" : "";
+  return `${parts.join(", ")} vs the ${prev.date.slice(0, 4)} estimate${tail}`;
 }
 
 /** Change line for the estimate a given filing reported, against the estimate before it. */
